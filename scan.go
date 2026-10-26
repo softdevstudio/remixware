@@ -2,11 +2,13 @@ package remixware
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -59,23 +61,41 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 	}
 
 	// Folders an index already covers are declared third-party code, not
-	// copies: an index of ./vendor shouldn't report ./vendor.
+	// copies: an index of ./vendor shouldn't report ./vendor. A component
+	// at the project's own folder, or above it, is the project itself, not
+	// something it depends on: its files are scanned, and a file can't be
+	// a copy of the project's own code.
 	var declared []string
 	for _, ix := range opt.Indexes {
 		for _, c := range ix.Components {
-			if within(c.Root, abs) {
+			if c.Root != abs && within(c.Root, abs) {
 				declared = append(declared, c.Root)
 			}
 		}
 	}
+	inDeclared := func(p string) bool {
+		for _, dr := range declared {
+			if within(p, dr) {
+				return true
+			}
+		}
+		return false
+	}
+	own := make([][]bool, len(opt.Indexes))
+	for k, ix := range opt.Indexes {
+		own[k] = make([]bool, len(ix.Files))
+		for i, f := range ix.Files {
+			own[k][i] = within(f.Abs, abs) && !inDeclared(f.Abs)
+		}
+	}
 
-	var files []string
+	var files, unreadable []string
 	err = filepath.WalkDir(abs, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if path == abs {
 				return err
 			}
-			res.Skipped["unreadable"]++
+			unreadable = append(unreadable, relSlash(abs, path))
 			return nil
 		}
 		rel := relSlash(abs, path)
@@ -130,13 +150,9 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 			defer wg.Done()
 			for i := range next {
 				path := files[i]
-				data, err := os.ReadFile(path)
-				if err != nil {
-					outs[i].skip = "unreadable"
-					continue
-				}
-				if r := skipReason(data); r != "" {
-					outs[i].skip = r
+				data, skip := readSource(path)
+				if skip != "" {
+					outs[i].skip = skip
 					continue
 				}
 				sx := languageFor(path)
@@ -144,8 +160,8 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 				fps := winnow(toks, sx)
 				rel := relSlash(abs, path)
 				var found []Finding
-				for _, ix := range opt.Indexes {
-					found = append(found, matchFile(ix, path, rel, toks, fps, opt)...)
+				for k, ix := range opt.Indexes {
+					found = append(found, matchFile(ix, own[k], path, rel, toks, fps, opt)...)
 				}
 				outs[i] = fileOut{lines: countLines(data), findings: found}
 			}
@@ -158,7 +174,10 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 	wg.Wait()
 
 	var all []Finding
-	for _, o := range outs {
+	for i, o := range outs {
+		if o.skip == "unreadable" {
+			unreadable = append(unreadable, relSlash(abs, files[i]))
+		}
 		if o.skip != "" {
 			res.Skipped[o.skip]++
 			continue
@@ -166,6 +185,20 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 		res.FilesScanned++
 		res.LinesScanned += o.lines
 		all = append(all, o.findings...)
+	}
+	// A check that couldn't read part of the project hasn't checked it.
+	if len(unreadable) > 0 {
+		sort.Strings(unreadable)
+		shown := unreadable
+		if len(shown) > 5 {
+			shown = append(shown[:5:5], "...")
+		}
+		them := "them"
+		if len(unreadable) == 1 {
+			them = "it"
+		}
+		return nil, fmt.Errorf("can't read %s in %s: %s. Fix the permissions, or leave %s out with --exclude",
+			countNoun(len(unreadable), "path", "paths"), project, strings.Join(shown, ", "), them)
 	}
 	for _, ix := range opt.Indexes {
 		for _, c := range ix.Components {
@@ -212,24 +245,68 @@ const (
 	maxDrift    = 40                           // tokens a match may shift by, for inserted or removed code
 )
 
-// matchFile finds the stretches of one scanned file that match files in an index.
-func matchFile(ix *Index, abs, rel string, toks []token, fps []fingerprint, opt ScanOptions) []Finding {
-	var hits []hit
-	for _, f := range fps {
+// maxHitsPerFile is how many shared fingerprints are followed up for one
+// scanned file. A variable, so the tests can lower it.
+var maxHitsPerFile = 1 << 20
+
+// matchFile finds the stretches of one scanned file that match files in an
+// index. own marks the indexed files that are the project's own.
+func matchFile(ix *Index, own []bool, abs, rel string, toks []token, fps []fingerprint, opt ScanOptions) []Finding {
+	// The indexed places of each fingerprint, without the project's own files.
+	lists := make([][]indexFP, len(fps))
+	counts := map[uint32]int{}
+	total := 0
+	for i, f := range fps {
 		posts := ix.lookup(f.hash)
 		if len(posts) > maxPostings {
 			posts = posts[:maxPostings]
 		}
+		lists[i] = posts
 		for _, p := range posts {
-			if ix.Files[p.file].Abs == abs {
+			if !own[p.file] && ix.Files[p.file].Abs != abs {
+				counts[p.file]++
+				total++
+			}
+		}
+	}
+	if total == 0 {
+		return nil
+	}
+	// Only an index holding many near-identical files, such as hundreds of
+	// versions of one large file, gets past the limit; then the files that
+	// share the most with this one are followed up, so the work and memory
+	// for one file stay bounded.
+	var keep map[uint32]bool
+	if total > maxHitsPerFile {
+		files := make([]uint32, 0, len(counts))
+		for f := range counts {
+			files = append(files, f)
+		}
+		sort.Slice(files, func(i, j int) bool {
+			if counts[files[i]] != counts[files[j]] {
+				return counts[files[i]] > counts[files[j]]
+			}
+			return files[i] < files[j]
+		})
+		keep = map[uint32]bool{}
+		n := 0
+		for _, f := range files {
+			if n > 0 && n+counts[f] > maxHitsPerFile {
+				break
+			}
+			keep[f] = true
+			n += counts[f]
+		}
+	}
+	hits := make([]hit, 0, min(total, maxHitsPerFile))
+	for i, f := range fps {
+		for _, p := range lists[i] {
+			if own[p.file] || ix.Files[p.file].Abs == abs || (keep != nil && !keep[p.file]) {
 				continue
 			}
 			hits = append(hits, hit{src: p.file, spos: int32(f.pos), tpos: int32(p.pos), sline: int32(f.line),
 				send: int32(f.end), tline: int32(p.line), tend: int32(p.end), exact: p.exact == f.exact})
 		}
-	}
-	if len(hits) == 0 {
-		return nil
 	}
 	sort.Slice(hits, func(i, j int) bool {
 		a, b := hits[i], hits[j]
@@ -249,12 +326,12 @@ func matchFile(ix *Index, abs, rel string, toks []token, fps []fingerprint, opt 
 		}
 		var srcToks []token
 		loaded := false
-		for _, ch := range chainHits(hits[i:j]) {
+		for _, ch := range chainHits(preferExact(hits[i:j])) {
 			if len(ch) < 2 {
 				continue
 			}
 			if !loaded {
-				srcToks, loaded = sourceTokens(ix.Files[hits[i].src]), true
+				srcToks, loaded = ix.sourceTokens(ix.Files[hits[i].src]), true
 			}
 			if f, ok := regionFinding(ix, rel, toks, srcToks, ch, opt); ok {
 				out = append(out, f)
@@ -267,10 +344,14 @@ func matchFile(ix *Index, abs, rel string, toks []token, fps []fingerprint, opt 
 
 // sourceTokens tokenizes an indexed file again, when it is still on disk
 // unchanged, so a match can be followed token by token past its last
-// fingerprint. It returns nil when the file is gone or has changed.
-func sourceTokens(sf *SourceFile) []token {
-	data, err := os.ReadFile(sf.Abs)
-	if err != nil || skipReason(data) != "" {
+// fingerprint. It returns nil when the file is gone, has changed, or isn't
+// one the index may point at (see Index.readable).
+func (ix *Index) sourceTokens(sf *SourceFile) []token {
+	if !ix.readable(sf.Abs) {
+		return nil
+	}
+	data, skip := readSource(sf.Abs)
+	if skip != "" {
 		return nil
 	}
 	toks := tokenize(data, languageFor(sf.Abs))
@@ -473,6 +554,29 @@ func trimHead(s, t []token, keep, s0, t0 int32) (int32, int32) {
 	return s0, t0
 }
 
+// preferExact drops shape-only hits where the same k-gram of the scanned
+// file also matches the indexed file exactly, names included. Two lines
+// such as "let a = a.chars()" and "let b = b.chars()" have the same shape:
+// each matches both, and only the exact hit says which is which.
+func preferExact(hs []hit) []hit {
+	out := hs[:0:0]
+	for i := 0; i < len(hs); {
+		j := i
+		exact := false
+		for j < len(hs) && hs[j].spos == hs[i].spos {
+			exact = exact || hs[j].exact
+			j++
+		}
+		for _, h := range hs[i:j] {
+			if h.exact || !exact {
+				out = append(out, h)
+			}
+		}
+		i = j
+	}
+	return out
+}
+
 // chainHits links hits on one indexed file into runs that advance together
 // through both files: one run per copied stretch.
 func chainHits(hs []hit) [][]hit {
@@ -496,7 +600,9 @@ func chainHits(hs []hit) [][]hit {
 			last := c.hits[len(c.hits)-1]
 			ds := h.spos - last.spos
 			dt := h.tpos - last.tpos
-			if ds <= 0 || dt <= -kgramSize || dt > maxGap {
+			// A copy runs forwards through both files. A step back in the
+			// indexed file is look-alike code lining up with the wrong place.
+			if ds <= 0 || dt < 0 || dt > maxGap {
 				continue
 			}
 			drift := dt - ds
@@ -616,6 +722,10 @@ func regionFinding(ix *Index, rel string, toks, srcToks []token, ch []hit, opt S
 	}
 	src := sourceFromIndex(ix, sf, comp)
 	src.Lines = Range{int(tline), int(tend)}
+	if srcToks == nil {
+		// Not read back, so the report can't show it either.
+		src.Abs = ""
+	}
 	for _, a := range sf.Also {
 		if v := ix.Components[a].Version; v != "" && v != src.Version && !containsString(src.OtherVersions, v) {
 			src.OtherVersions = append(src.OtherVersions, v)
@@ -629,7 +739,6 @@ func regionFinding(ix *Index, rel string, toks, srcToks []token, ch []hit, opt S
 		Match:  Match{Kind: kind, Coverage: round2(float64(scov) / float64(span)), Tokens: scov, WholeFile: whole},
 		score:  float64(scov) + ratio,
 	}
-	f.ID = findingID(rel, src)
 	return f, true
 }
 

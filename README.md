@@ -59,8 +59,10 @@ remixware notice . --index deps.rmx --out THIRD_PARTY_NOTICES.md
 
 `check` exits with 1 when findings break your policy, so a build stops
 there. After `notice` has written the entries, the same `check` passes for
-attribution. Conflicts and code with no licence can't be fixed with a
-notice: those need the code removed, rewritten, or a different licence.
+attribution. When `notice` can't find something an entry needs, such as a
+copyright line, it says so, and that entry counts once you've filled it in.
+Conflicts and code with no licence can't be fixed with a notice: those need
+the code removed, rewritten, or a different licence.
 
 ## What to index
 
@@ -72,17 +74,34 @@ belongs to, and that component's licence. Good things to index:
   `site-packages`, Cargo's sources (`~/.cargo/registry/src`).
 - Projects you suspect, cloned with `git clone --depth 1`.
 - Your company's other code, with `--license LicenseRef-Proprietary`, to
-  see what moved between projects.
+  see what moved between projects. In a proprietary project those copies
+  are listed for `review` (fine when both belong to the same owner); in an
+  open source project they are conflicts.
 
 Remixware finds the components inside a folder by their manifests
 (`go.mod`, `package.json`, `Cargo.toml`, `composer.json`, `pyproject.toml`,
 `.dist-info` folders) and by folders with a licence file. A component's
-licence comes from its manifest, its licence files, `LICENSES/` folders
-(REUSE) and `SPDX-License-Identifier` lines in its files. A folder without
-a licence takes the licence of the folder above it, except across
-`node_modules`, `vendor`, `third_party` and similar folders, where it gets
-none. Code with no licence at all is reported as `no-license`, because
-nobody has given permission to copy it.
+licence comes from its manifest, its licence files and `LICENSES/` folders
+(REUSE). A folder without a licence takes the licence of the folder above
+it, except across `node_modules`, `vendor`, `third_party` and similar
+folders, where it gets none. Code with no licence at all is reported as
+`no-license`, because nobody has given permission to copy it.
+
+- Several licence files all apply, except files that each name one licence,
+  such as `LICENSE-MIT` and `LICENSE-APACHE`, or a short file saying the
+  project is dual licensed: those are a choice (`Apache-2.0 OR MIT`).
+- A crate whose `Cargo.toml` says `license.workspace = true` takes the
+  licence of its workspace.
+- Python distributions that install into one folder, such as `google/`, are
+  told apart by their `RECORD` files.
+- A file's own header can say more. An `SPDX-License-Identifier` line in the
+  comments at its top is that file's licence. A licence notice there that
+  names something other than the component's licence is counted along with
+  it, so a header can't hide a stricter licence: a file headed MIT inside a
+  GPL project counts as both. Only comments count, not code.
+- Symbolic links are never followed and only regular files are read, so a
+  `NOTICE` that links to a file elsewhere on the machine stays out of the
+  index.
 
 ```sh
 remixware index ./some-project --name github.com/acme/tool --version v1.2.0 --out tool.rmx
@@ -91,8 +110,15 @@ remixware index ~/src/old-product --license LicenseRef-Proprietary --out ours.rm
 
 Folders that an index already covers are skipped when you scan, so
 indexing your own `vendor` folder doesn't report every vendored file as a
-copy. `node_modules`, `vendor`, `third_party` and virtual environments
-aren't scanned unless you pass `--include-deps`, and `.git` never is.
+copy. An index that holds the project itself (because you indexed a folder
+above it) doesn't hide it: the project's files are still scanned, and
+nothing is reported as copied from the project's own code.
+`node_modules`, `vendor`, `third_party` and virtual environments aren't
+scanned unless you pass `--include-deps`, and `.git` never is.
+
+An index is data. One made on another machine, or by someone else, can't
+make a scan read files outside the folders it was indexed from, and an
+index that doesn't hold together is refused as damaged.
 
 ## With SCANOSS
 
@@ -123,7 +149,7 @@ Every finding has a status:
 |---|---|
 | `conflict` | The copied code's licence can't be combined with your project's licence as it stands, for example GPL code in an MIT project. |
 | `no-license` | No licence was found for the source, so nobody has given permission to copy it. |
-| `review` | A person has to look: a file-level copyleft licence such as MPL-2.0 or LGPL, a licence text Remixware doesn't recognise, or the same code also found under stricter terms. |
+| `review` | A person has to look: a file-level copyleft licence such as MPL-2.0 or LGPL, code that fits only if your project moves to another licence version (Apache-2.0 into GPL-2.0-or-later), a licence text Remixware doesn't recognise, or the same code also found under stricter terms. |
 | `attribution-missing` | The licence allows the copy, but its copyright line and licence text have to ship with your code, and your notice files don't have them. |
 | `attributed` | Allowed, and credited: your notice files name the source, or the copied file kept its original copyright header. |
 | `allowed` | Accepted by a rule in your policy file. |
@@ -151,8 +177,10 @@ Notice files are found by name in the project's top folder:
 `licenses/` and `third_party_licenses/`. A source counts as credited when a
 notice has its full component name (such as `github.com/acme/tool` or
 `click@8.1.7`), its repository address, its package URL, one of its full
-copyright lines, or the `Source:` line `remixware notice` writes. A bare
-name like `errors` doesn't count, since it's an everyday word.
+copyright lines, or the `Source:` line `remixware notice` writes, as a whole
+word: `github.com/acme/tool-extras` doesn't credit `github.com/acme/tool`. A
+bare name like `errors` doesn't count, since it's an everyday word, and
+neither does an entry `remixware notice` left for you to finish.
 
 ## Policy file
 
@@ -176,7 +204,8 @@ quietly switch a rule off.
 ```
 
 - `license`: your project's licence, as an SPDX expression.
-- `fail_on`: the statuses that make `check` fail.
+- `fail_on`: the statuses that make `check` fail. An empty list is an
+  error, since it would pass everything.
 - `ignore`: project paths not to scan. Patterns work like `.gitignore`:
   `*` stays inside a folder, `**` crosses folders, a bare name matches at
   any depth.
@@ -205,7 +234,9 @@ remixware version
 after the project folder.
 
 Exit codes: 0 when all went well, 1 when `check` found findings that break
-the policy, 2 for bad arguments, unreadable files and other errors.
+the policy, 2 for bad arguments, unreadable files and other errors. A
+`check` that found no source files to scan also exits with 2, so a wrong
+folder or an `--exclude` that covers everything can't pass.
 
 ## Reports
 
@@ -215,16 +246,17 @@ the policy, 2 for bad arguments, unreadable files and other errors.
 - `--json FILE`: the findings for other tools. The fields are `findings`
   (each with `id`, `file`, `lines`, `status`, `reason`, `source` and
   `match`), `counts` per status, and what was scanned.
-- `--spdx FILE`: an SPDX 2.3 document (JSON) with each copied snippet, its
-  source, its licence and its copyright lines, for software bills of
-  materials.
+- `--spdx FILE`: an SPDX 2.3 document (JSON) with each copied snippet (its
+  byte and line ranges), its source, its licence and its copyright lines,
+  for software bills of materials.
 - `remixware notice`: Markdown entries for a third-party notices file, one
-  per component, with the copyright lines, the licence text and where the
+  per component, with the copyright lines, the licence texts and where the
   code is used. Entries already in the file aren't written again. Each
-  entry carries the component's own licence file when the index has it,
-  or else the standard text, built in for MIT, BSD-2-Clause, BSD-3-Clause,
-  ISC, Zlib, BSL-1.0, Apache-2.0 and MPL-2.0. For other licences the entry
-  says where to get the text, and `notice` lists what's left to finish.
+  entry carries the component's own licence files when the index has them,
+  and the standard text of any other licence the copy is under, built in
+  for MIT, BSD-2-Clause, BSD-3-Clause, ISC, Zlib, BSL-1.0, Apache-2.0 and
+  MPL-2.0. For other licences the entry says where to get the text, and
+  `notice` lists what's left to finish.
 
 ## In CI
 
@@ -252,8 +284,11 @@ leaves a shared hash (winnowing). Hashes shared with an indexed file are
 chained into stretches that advance through both files together, and a
 stretch becomes a finding when it covers at least 50 tokens and 5 lines.
 When only the shape matches and the names don't, it has to cover more,
-with fewer gaps. Code that everyone writes the same way, such as a run of
-near-identical lines or Go's `sort.Interface` methods, isn't matched.
+with fewer gaps, and where a line matches exactly, names included, that
+place wins over look-alike lines. Code that everyone writes the same way,
+such as a run of near-identical lines or Go's `sort.Interface` methods,
+isn't matched, and neither are tables of numbers or strings with no names
+in them, such as a hash function's constants.
 
 Go, C and C++, Java, C#, Kotlin, Swift, Scala, JavaScript and TypeScript,
 Rust, Python, Ruby, PHP, shell, Perl, SQL, Lua, CSS and a few more are read.

@@ -65,7 +65,10 @@ var knownLicenses = []License{
 	{"PostgreSQL", "PostgreSQL License", CatPermissive},
 	{"NCSA", "University of Illinois/NCSA License", CatPermissive},
 	{"Unicode-3.0", "Unicode License v3", CatPermissive},
+	{"Unicode-DFS-2016", "Unicode License Agreement, Data Files and Software (2016)", CatPermissive},
 	{"X11", "X11 License", CatPermissive},
+	{"HPND", "Historical Permission Notice and Disclaimer", CatPermissive},
+	{"CeCILL-B", "CeCILL-B Free Software License Agreement", CatPermissive},
 
 	{"LGPL-2.0-only", "GNU Library General Public License v2 only", CatWeakCopyleft},
 	{"LGPL-2.0-or-later", "GNU Library General Public License v2 or later", CatWeakCopyleft},
@@ -80,6 +83,7 @@ var knownLicenses = []License{
 	{"CDDL-1.0", "Common Development and Distribution License 1.0", CatWeakCopyleft},
 	{"CDDL-1.1", "Common Development and Distribution License 1.1", CatWeakCopyleft},
 	{"MS-RL", "Microsoft Reciprocal License", CatWeakCopyleft},
+	{"CeCILL-C", "CeCILL-C Free Software License Agreement", CatWeakCopyleft},
 
 	{"GPL-1.0-only", "GNU General Public License v1.0 only", CatCopyleft},
 	{"GPL-1.0-or-later", "GNU General Public License v1.0 or later", CatCopyleft},
@@ -90,6 +94,8 @@ var knownLicenses = []License{
 	{"EUPL-1.1", "European Union Public Licence 1.1", CatCopyleft},
 	{"EUPL-1.2", "European Union Public Licence 1.2", CatCopyleft},
 	{"OSL-3.0", "Open Software License 3.0", CatCopyleft},
+	{"CeCILL-2.0", "CeCILL Free Software License Agreement v2.0", CatCopyleft},
+	{"CeCILL-2.1", "CeCILL Free Software License Agreement v2.1", CatCopyleft},
 	{"CC-BY-SA-4.0", "Creative Commons Attribution Share Alike 4.0", CatCopyleft},
 
 	{"AGPL-3.0-only", "GNU Affero General Public License v3.0 only", CatNetworkCopyleft},
@@ -104,6 +110,7 @@ var knownLicenses = []License{
 	{"CC-BY-NC-SA-4.0", "Creative Commons Attribution Non Commercial Share Alike 4.0", CatSourceAvailable},
 	{"CC-BY-ND-4.0", "Creative Commons Attribution No Derivatives 4.0", CatSourceAvailable},
 	{"LicenseRef-Commons-Clause", "Commons Clause", CatSourceAvailable},
+	{"JSON", "JSON License", CatSourceAvailable},
 	{LicenseProprietary, "Proprietary", CatSourceAvailable},
 }
 
@@ -412,12 +419,34 @@ func orDefault(v, def string) string {
 }
 
 // gnuLicense reads a GNU licence and its version from the text after its
-// name. "Or any later version" only counts in a short notice: a full
-// licence file always contains it in its "how to apply" example.
+// name. A full licence text always says "or any later version" in its "how
+// to apply" example, after its terms, so there it only counts when it comes
+// before the terms: in a preface such as "you may use this under version 2
+// or any later version", followed by the text.
 func gnuLicense(base string) func(rest, all string) string {
 	return func(rest, all string) string {
-		later := strings.Contains(rest, " or at your option any later version ") || strings.Contains(rest, " or any later version ")
-		full := strings.Contains(all, " terms and conditions ")
+		anyLater := func(s string) bool {
+			return strings.Contains(s, " or at your option any later version ") || strings.Contains(s, " or any later version ")
+		}
+		later := anyLater(rest)
+		// The full texts head their terms "TERMS AND CONDITIONS"; a notice
+		// may say "under the terms and conditions of the GNU ...", which
+		// isn't that heading. LGPL-3.0 "incorporates the terms and
+		// conditions of version 3" of the GPL in its first lines.
+		const terms = " terms and conditions "
+		for i := 0; ; {
+			j := strings.Index(all[i:], terms)
+			if j < 0 {
+				break
+			}
+			at := i + j
+			next := all[at+len(terms):]
+			if !strings.HasPrefix(next, "of ") || strings.HasPrefix(next, "of version 3 of the gnu general public license ") {
+				later = anyLater(all[:at])
+				break
+			}
+			i = at + len(terms)
+		}
 		v := versionIn(rest, 400, " version 3 ", "3.0", " version 2 1 ", "2.1", " version 2 ", "2.0", " version 1 ", "1.0",
 			" v3 ", "3.0", " v2 1 ", "2.1", " v2 ", "2.0")
 		switch base {
@@ -434,7 +463,7 @@ func gnuLicense(base string) func(rest, all string) string {
 				v = "2.0"
 			}
 		}
-		if later && !full {
+		if later {
 			return base + "-" + v + "-or-later"
 		}
 		return base + "-" + v + "-only"
@@ -457,12 +486,17 @@ var licenseSignatures = []licenseSignature{
 	{"apache license", func(rest, _ string) string {
 		return orDefault(versionIn(rest, 80, " 2 0 ", "Apache-2.0", " 1 1 ", "Apache-1.1"), "Apache-2.0")
 	}},
+	{"the apache software license version 1 1", fixed("Apache-1.1")},
 	{"common development and distribution license", func(rest, _ string) string {
-		return orDefault(versionIn(rest, 120, " 1 1 ", "CDDL-1.1"), "CDDL-1.0")
+		// Not " 1 1 " alone: section 1.1 comes right after the title.
+		return orDefault(versionIn(rest, 120, " version 1 1 ", "CDDL-1.1", " version 1 0 ", "CDDL-1.0"), "CDDL-1.0")
 	}},
-	{"european union public licen", func(rest, _ string) string {
-		return orDefault(versionIn(rest, 80, " 1 1 ", "EUPL-1.1"), "EUPL-1.2")
-	}},
+	{"european union public licence", eupl},
+	{"european union public license", eupl},
+	{"cecill free software license agreement", cecill},
+	{"contrat de licence de logiciel libre cecill", cecill},
+	{"cecill b free software license agreement", fixed("CeCILL-B")},
+	{"cecill c free software license agreement", fixed("CeCILL-C")},
 	{"server side public license", fixed("SSPL-1.0")},
 	{"business source license", fixed("BUSL-1.1")},
 	{"elastic license 2 0", fixed("Elastic-2.0")},
@@ -494,12 +528,7 @@ var licenseSignatures = []licenseSignature{
 		}
 		return "CC-BY-4.0"
 	}},
-	{"permission is hereby granted free of charge to any person obtaining a copy", func(_, all string) string {
-		if strings.Contains(all, " the above copyright notice and this permission notice shall be included ") {
-			return "MIT"
-		}
-		return "MIT-0"
-	}},
+	{"permission is hereby granted free of charge to any person obtaining a copy", mitFamily},
 	{"permission to use copy modify and or distribute this software for any purpose with or without fee is hereby granted", isc},
 	{"permission to use copy modify and distribute this software for any purpose with or without fee is hereby granted", isc},
 	{"redistribution and use in source and binary forms with or without modification are permitted", func(_, all string) string {
@@ -521,9 +550,48 @@ var licenseSignatures = []licenseSignature{
 		if strings.Contains(all, " postgresql ") {
 			return "PostgreSQL"
 		}
-		return "X11"
+		return "HPND"
 	}},
 	{"mit license", fixed("MIT")},
+}
+
+// mitFamily tells MIT from its relatives, which all start "Permission is
+// hereby granted, free of charge". MIT-0 is the one that asks for nothing:
+// any condition to keep the notice makes it MIT or a variant of it.
+func mitFamily(_, all string) string {
+	switch {
+	case strings.Contains(all, " the software shall be used for good not evil "):
+		return "JSON"
+	case strings.Contains(all, " unicode ") && strings.Contains(all, " data files "):
+		if strings.Contains(all, " unicode license v3 ") {
+			return "Unicode-3.0"
+		}
+		return "Unicode-DFS-2016"
+	case strings.Contains(all, " x consortium "):
+		return "X11"
+	}
+	for _, keep := range []string{" shall be included ", " notice appear ", " notices appear ", " must be retained ",
+		" must retain ", " must be reproduced ", " must reproduce ", " must be included "} {
+		if strings.Contains(all, keep) {
+			return "MIT"
+		}
+	}
+	return "MIT-0"
+}
+
+func eupl(rest, _ string) string {
+	return orDefault(versionIn(rest, 80, " v 1 1 ", "EUPL-1.1", " v 1 2 ", "EUPL-1.2", " version 1 1 ", "EUPL-1.1",
+		" version 1 2 ", "EUPL-1.2"), "EUPL-1.2")
+}
+
+func cecill(rest, _ string) string {
+	switch {
+	case strings.HasPrefix(rest, " contrat de licence de logiciel libre cecill b "):
+		return "CeCILL-B"
+	case strings.HasPrefix(rest, " contrat de licence de logiciel libre cecill c "):
+		return "CeCILL-C"
+	}
+	return orDefault(versionIn(rest, 200, " version 2 1 ", "CeCILL-2.1", " version 2 0 ", "CeCILL-2.0"), "CeCILL-2.1")
 }
 
 func isc(_, all string) string {
@@ -541,7 +609,15 @@ func DetectLicense(text string) string {
 	if id := spdxTagLicense(firstLines(text, 30)); id != "" {
 		return id
 	}
-	t := normText(text)
+	if ids := licensesIn(normText(text)); len(ids) > 0 {
+		return ids[0]
+	}
+	return ""
+}
+
+// licensesIn returns every licence whose wording appears in a normalised
+// text, in the order the wording first appears.
+func licensesIn(t string) []string {
 	type at struct {
 		pos int
 		sig licenseSignature
@@ -553,9 +629,134 @@ func DetectLicense(text string) string {
 		}
 	}
 	sort.SliceStable(found, func(i, j int) bool { return found[i].pos < found[j].pos })
+	var ids []string
 	for _, f := range found {
-		if id := f.sig.resolve(t[f.pos:], t); id != "" {
-			return id
+		if id := f.sig.resolve(t[f.pos:], t); id != "" && !containsString(ids, id) {
+			ids = append(ids, id)
+		}
+	}
+	// "MIT License" over a text that asks for nothing is still MIT.
+	if containsString(ids, "MIT") && containsString(ids, "MIT-0") {
+		var keep []string
+		for _, id := range ids {
+			if id != "MIT-0" {
+				keep = append(keep, id)
+			}
+		}
+		ids = keep
+	}
+	return ids
+}
+
+// headerLicense names the licence that the comments at the top of a source
+// file give it, or "". A header naming several licences either offers a
+// choice ("... or the MIT license, at your option"), joined with OR, or
+// means that all of them apply, joined with AND.
+func headerLicense(head string) string {
+	t := normText(head)
+	ids := licensesIn(t)
+	switch len(ids) {
+	case 0:
+		return ""
+	case 1:
+		return ids[0]
+	}
+	if offersChoice(t) {
+		sort.Strings(ids)
+		return strings.Join(ids, " OR ")
+	}
+	return joinLicenses(ids)
+}
+
+// offersChoice reports whether a normalised notice lets the reader pick
+// one of several licences. GNU notices say "at your option any later
+// version", which is about versions, not a choice of licence.
+func offersChoice(t string) bool {
+	for _, p := range []string{" dual licensed ", " dual licenced ", " dual license ", " dual licence ", " either license ",
+		" either licence ", " at your choice ", " your choice of ", " you may choose "} {
+		if strings.Contains(t, p) {
+			return true
+		}
+	}
+	const opt = " at your option "
+	for i := 0; ; {
+		j := strings.Index(t[i:], opt)
+		if j < 0 {
+			return false
+		}
+		i += j + len(opt)
+		if !strings.HasPrefix(t[i:], "any later version ") {
+			return true
+		}
+	}
+}
+
+// originWords say where code came from rather than what licence it has:
+// "based on code released under the MIT license".
+var originWords = []string{" based on ", " derived from ", " adapted from ", " ported from ", " taken from ", " copied from ",
+	" borrowed from ", " inspired by ", " modified from ", " originally ", " portions "}
+
+// fileLicense decides what licence one file carries, from its component's
+// licence and the licence its header names, and returns "" when that is
+// just the component's.
+//
+// A header that agrees with the component, or names one of the component's
+// options, changes nothing. A header naming the same GNU licence and
+// version with or without "or later" is the more precise statement and
+// wins. Any other header licence is added to the component's instead of
+// replacing it, so a header can't hide a stricter licence: a file headed
+// MIT inside a GPL project counts as both. Where the component has no
+// licence, the header is all there is, unless it only says where the code
+// came from.
+func fileLicense(comp, header, head string) string {
+	if strings.TrimSpace(header) == "" {
+		return ""
+	}
+	header = NormalizeLicense(header)
+	if strings.TrimSpace(comp) == "" {
+		comp = LicenseNone
+	}
+	comp = NormalizeLicense(comp)
+	if strings.EqualFold(comp, header) {
+		return ""
+	}
+	if comp == LicenseNone {
+		t := normText(head)
+		for _, w := range originWords {
+			if strings.Contains(t, w) {
+				return ""
+			}
+		}
+		return header
+	}
+	var cl, hl []string
+	for _, l := range parseLicenseExpr(comp).leaves() {
+		cl = append(cl, strings.ToLower(l.id))
+	}
+	hLeaves := parseLicenseExpr(header).leaves()
+	all := true
+	for _, l := range hLeaves {
+		hl = append(hl, strings.ToLower(l.id))
+		if !containsString(cl, strings.ToLower(l.id)) {
+			all = false
+		}
+	}
+	if all {
+		return ""
+	}
+	if len(cl) == 1 && len(hl) == 1 && gnuBase(cl[0]) != "" && gnuBase(cl[0]) == gnuBase(hl[0]) {
+		return header
+	}
+	return joinLicenses([]string{comp, header})
+}
+
+// gnuBase returns a GNU licence id without "-only" or "-or-later", as in
+// "gpl-2.0", or "" for other licences.
+func gnuBase(id string) string {
+	id = strings.ToLower(id)
+	for _, suf := range []string{"-only", "-or-later"} {
+		if b, ok := strings.CutSuffix(id, suf); ok && strings.Contains(b, "gpl-") {
+			return b
 		}
 	}
 	return ""
@@ -571,31 +772,6 @@ func firstLines(s string, n int) string {
 		i += j + 1
 	}
 	return s[:i]
-}
-
-// headerComments returns the comment text at the top of a source file, where
-// licence notices live, without the comment markers.
-func headerComments(src string, maxLines int) string {
-	var b strings.Builder
-	for _, raw := range strings.Split(firstLines(src, maxLines), "\n") {
-		l := strings.TrimSpace(raw)
-		switch {
-		case l == "":
-			continue
-		case strings.HasPrefix(l, "//"), strings.HasPrefix(l, "#"), strings.HasPrefix(l, "--"),
-			strings.HasPrefix(l, "/*"), strings.HasPrefix(l, "*"), strings.HasPrefix(l, "<!--"),
-			strings.HasPrefix(l, "\"\"\""), strings.HasPrefix(l, "'''"), strings.HasPrefix(l, ";"):
-			b.WriteString(strings.TrimLeft(l, "/#*-<!;\"' "))
-			b.WriteByte('\n')
-		default:
-			// Some licence notices sit in a docstring or block comment
-			// without leading markers; keep the line, the detector only
-			// reacts to licence wording.
-			b.WriteString(l)
-			b.WriteByte('\n')
-		}
-	}
-	return b.String()
 }
 
 var copyrightLine = regexp.MustCompile(`(?i)^(?:copyright\b|\(c\)\s|©)`)
@@ -679,25 +855,26 @@ type verdict struct {
 
 // projectKind is the project's licence reduced to what compatibility needs.
 type projectKind struct {
-	id     string
-	family string // proprietary, permissive, lgpl2only, lgpl2plus, lgpl3, mpl, weak, gpl2only, gpl2plus, gpl3, agpl3, eupl, copyleft
+	id     string // the licence id, for comparing with the copied code's
+	name   string // how reasons name it: "MIT", "proprietary"
+	family string // proprietary, permissive, lgpl2only, lgpl2plus, lgpl3, mpl, weak, gpl1only, gpl1plus, gpl2only, gpl2plus, gpl3, agpl3, eupl, copyleft
 	note   string
 }
 
 func classifyProject(id string) projectKind {
 	l := lookupLicense(id)
-	k := projectKind{id: l.ID}
+	k := projectKind{id: l.ID, name: l.ID}
 	switch l.Cat {
 	case CatNone:
-		k.family, k.id, k.note = "proprietary", "proprietary", "the project has no licence file, so it is treated as all rights reserved"
+		k.family, k.name, k.note = "proprietary", "proprietary", "the project has no licence file, so it is treated as all rights reserved"
 		return k
 	case CatUnknown:
-		k.family, k.id, k.note = "proprietary", "proprietary", "the project's licence wasn't recognised, so it is treated as proprietary"
+		k.family, k.name, k.note = "proprietary", "proprietary", "the project's licence wasn't recognised, so it is treated as proprietary"
 		return k
 	case CatSourceAvailable:
 		k.family = "proprietary"
 		if l.ID == LicenseProprietary {
-			k.id = "proprietary"
+			k.name = "proprietary"
 		}
 		return k
 	case CatPublicDomain, CatPermissive:
@@ -705,9 +882,13 @@ func classifyProject(id string) projectKind {
 		return k
 	}
 	switch l.ID {
-	case "GPL-1.0-only", "GPL-2.0-only":
+	case "GPL-1.0-only":
+		k.family = "gpl1only"
+	case "GPL-1.0-or-later":
+		k.family = "gpl1plus"
+	case "GPL-2.0-only":
 		k.family = "gpl2only"
-	case "GPL-1.0-or-later", "GPL-2.0-or-later":
+	case "GPL-2.0-or-later":
 		k.family = "gpl2plus"
 	case "GPL-3.0-only", "GPL-3.0-or-later":
 		k.family = "gpl3"
@@ -735,10 +916,17 @@ func classifyProject(id string) projectKind {
 
 func gplFamily(f string) bool {
 	switch f {
-	case "gpl2only", "gpl2plus", "gpl3", "agpl3":
+	case "gpl1only", "gpl1plus", "gpl2only", "gpl2plus", "gpl3", "agpl3":
 		return true
 	}
 	return false
+}
+
+// commonsClause reports whether a WITH names the Commons Clause, which
+// isn't an exception that grants more but a condition that takes away the
+// right to sell.
+func commonsClause(with string) bool {
+	return strings.EqualFold(strings.TrimPrefix(with, "LicenseRef-"), "Commons-Clause")
 }
 
 // evaluate decides what copying code under src means for a project under
@@ -795,6 +983,9 @@ func evalExpr(e *licExpr, p projectKind) verdict {
 		}
 		return worst
 	}
+	if commonsClause(e.with) {
+		return verdict{baseConflict, e.id + " with the Commons Clause is not an open source licence: the clause takes away the right to sell the software. Copying this code needs the owner's permission."}
+	}
 	v := evalLeaf(lookupLicense(e.id), p)
 	if e.with != "" && v.status != baseOK {
 		v.reason += " (" + e.with + " applies: read its terms too.)"
@@ -828,7 +1019,8 @@ func article(name string) string {
 
 func evalLeaf(src License, p projectKind) verdict {
 	id := src.ID
-	proj := p.id
+	proj := p.name
+	same := strings.EqualFold(id, p.id)
 	keep := func() verdict {
 		return verdict{baseAttribution, "Keep its copyright line and the " + id + " licence text with your copy, for example in a third-party notices file."}
 	}
@@ -852,13 +1044,32 @@ func evalLeaf(src License, p projectKind) verdict {
 		}
 		return verdict{baseReview, "The licence (" + id + ") wasn't recognised. Read it before keeping the copy."}
 	case CatSourceAvailable:
-		if strings.EqualFold(id, proj) {
+		switch {
+		case id == "JSON":
+			return verdict{baseReview, "The JSON licence adds \"The Software shall be used for Good, not Evil\", a condition that makes it not an open source licence. Many companies don't accept it: have it reviewed."}
+		case id == LicenseProprietary && p.family == "proprietary":
+			return verdict{baseReview, "Proprietary code, and your project is proprietary too: fine when both belong to the same owner. Otherwise copying it needs the owner's permission."}
+		case id == LicenseProprietary:
+			return verdict{baseConflict, "Proprietary code can't go into " + article(proj) + " " + proj + " project without its owner's permission."}
+		case same:
 			return verdict{baseReview, id + " is not an open source licence. Your project uses it too: check its terms allow this copy."}
 		}
 		return verdict{baseConflict, id + " is not an open source licence: copying this code needs the owner's permission."}
 	case CatPermissive:
-		if (id == "Apache-2.0" || id == "Apache-1.1") && (p.family == "gpl2only" || p.family == "lgpl2only") {
-			return verdict{baseConflict, "Apache-2.0 code can't go into " + article(proj) + " " + proj + " project: the two licences conflict over patents."}
+		if id == "Apache-2.0" {
+			switch p.family {
+			case "gpl1only", "gpl2only", "lgpl2only":
+				return verdict{baseConflict, "Apache-2.0 code can't go into " + article(proj) + " " + proj + " project: the two licences conflict over patents."}
+			case "gpl1plus", "gpl2plus", "lgpl2plus":
+				v3 := "GPL-3.0"
+				if p.family == "lgpl2plus" {
+					v3 = "LGPL-3.0"
+				}
+				return verdict{baseReview, "Apache-2.0 code fits only if your project moves to version 3 of its licence: " + v3 + " accepts Apache-2.0 code, version 2 doesn't."}
+			}
+		}
+		if id == "Apache-1.1" && (gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl")) {
+			return verdict{baseConflict, "Apache-1.1 code can't go into " + article(proj) + " " + proj + " project: its conditions on the Apache names go further than the GPL allows."}
 		}
 		if id == "BSD-4-Clause" && (gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl")) {
 			return verdict{baseConflict, "BSD-4-Clause's advertising clause can't be combined with the " + proj + "."}
@@ -876,23 +1087,36 @@ func evalLeaf(src License, p projectKind) verdict {
 		return keep()
 	case CatWeakCopyleft:
 		lgpl := strings.HasPrefix(id, "LGPL-")
+		if v, ok := onlyIntoLater(id, p); ok {
+			return v
+		}
 		switch {
-		case strings.EqualFold(id, proj):
+		case same:
 			return allowedIn()
 		case lgpl && strings.HasPrefix(id, "LGPL-3.0"):
 			switch p.family {
 			case "gpl3", "agpl3", "lgpl3":
 				return allowedIn()
-			case "gpl2plus", "lgpl2plus":
+			case "gpl1plus", "gpl2plus", "lgpl2plus":
 				return verdict{baseReview, id + " code fits only if your project moves to version 3 of its licence."}
-			case "gpl2only", "lgpl2only":
+			case "lgpl2only":
+				return verdict{baseConflict, id + " code doesn't fit " + article(proj) + " " + proj + " project: the combination could only go out under GPL-3.0."}
+			case "gpl1only", "gpl2only":
 				return cantMix()
 			}
 		case lgpl:
-			if gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl") {
+			switch {
+			case p.family == "gpl1only":
+				return cantMix()
+			case p.family == "lgpl3" && strings.HasSuffix(id, "-only"):
+				return verdict{baseReview, id + " code can't move to LGPL-3.0, so with it your project could only go out under the GPL. Have it reviewed."}
+			case gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl"):
 				return verdict{baseAttribution, "Allowed: " + id + " code can be used under the " + proj + ". Keep its copyright line and licence notice."}
 			}
 		case strings.HasPrefix(id, "MPL-2.0"):
+			if p.family == "gpl1only" {
+				return cantMix()
+			}
 			if gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl") {
 				return verdict{baseAttribution, "Allowed through MPL-2.0's secondary licence terms, unless the file is marked \"Incompatible With Secondary Licenses\". Keep its notice."}
 			}
@@ -910,24 +1134,45 @@ func evalLeaf(src License, p projectKind) verdict {
 		}
 		return verdict{baseReview, id + " applies file by file: keep the copied code in its own file under " + id + ", keep its notice, and publish your changes to that file."}
 	case CatCopyleft:
+		if v, ok := onlyIntoLater(id, p); ok {
+			return v
+		}
 		switch id {
-		case "GPL-1.0-only", "GPL-2.0-only":
+		case "GPL-1.0-only":
+			switch p.family {
+			case "gpl1only":
+				return allowedIn()
+			case "gpl1plus":
+				return verdict{baseReview, id + " code would make your " + proj + " project GPL-1.0-only as a whole."}
+			}
+		case "GPL-1.0-or-later":
+			if gplFamily(p.family) {
+				return allowedIn()
+			}
+		case "GPL-2.0-only":
 			switch p.family {
 			case "gpl2only":
 				return allowedIn()
-			case "gpl2plus":
+			case "gpl1plus", "gpl2plus":
 				return verdict{baseReview, id + " code would make your " + proj + " project GPL-2.0-only as a whole."}
 			}
-		case "GPL-1.0-or-later", "GPL-2.0-or-later":
-			if gplFamily(p.family) {
+		case "GPL-2.0-or-later":
+			switch p.family {
+			case "gpl2only", "gpl2plus", "gpl3", "agpl3":
 				return allowedIn()
+			case "gpl1plus":
+				return verdict{baseReview, id + " code fits only if your project moves to GPL-2.0 or later."}
 			}
 		case "GPL-3.0-only", "GPL-3.0-or-later":
 			switch p.family {
 			case "gpl3", "agpl3":
 				return allowedIn()
-			case "gpl2plus":
+			case "gpl1plus", "gpl2plus":
 				return verdict{baseReview, id + " code fits only if your project moves to GPL-3.0."}
+			}
+		case "CeCILL-2.0", "CeCILL-2.1":
+			if gplFamily(p.family) {
+				return verdict{baseReview, id + " code can be combined with GPL code when the result goes out under the GPL (its article 5.3.4). Have it reviewed."}
 			}
 		case "EUPL-1.1", "EUPL-1.2":
 			if p.family == "eupl" {
@@ -941,14 +1186,19 @@ func evalLeaf(src License, p projectKind) verdict {
 				return allowedIn()
 			}
 		}
-		if strings.EqualFold(id, proj) {
+		if same {
 			return allowedIn()
 		}
-		if gplFamily(p.family) || strings.HasPrefix(p.family, "lgpl") || p.family == "eupl" {
+		if gplFamily(p.family) {
 			return cantMix()
 		}
+		// Anywhere else, an LGPL project included, the copy fits only if the
+		// whole program changes to the copied code's licence.
 		return verdict{baseConflict, id + " code can't go into " + article(proj) + " " + proj + " project unless the whole program is released under " + id + ". Remove it, rewrite it, or relicense."}
 	case CatNetworkCopyleft:
+		if v, ok := onlyIntoLater(id, p); ok {
+			return v
+		}
 		switch p.family {
 		case "agpl3":
 			return allowedIn()
@@ -958,6 +1208,16 @@ func evalLeaf(src License, p projectKind) verdict {
 		return verdict{baseConflict, id + " code can't go into " + article(proj) + " " + proj + " project unless the whole program is released under " + id + ", which also means offering the source to everyone who uses it over a network."}
 	}
 	return verdict{baseReview, "The licence (" + id + ") needs a look."}
+}
+
+// onlyIntoLater is code under "version N only" of a GNU licence copied into
+// a project under "version N or later" of the same licence: the project
+// can no longer move to a later version.
+func onlyIntoLater(id string, p projectKind) (verdict, bool) {
+	if b := gnuBase(id); b != "" && b == gnuBase(p.id) && strings.HasSuffix(id, "-only") && strings.HasSuffix(p.id, "-or-later") {
+		return verdict{baseReview, id + " code would make your " + p.name + " project " + id + " as a whole."}, true
+	}
+	return verdict{}, false
 }
 
 // licenseCategory returns the category that governs an expression: the most

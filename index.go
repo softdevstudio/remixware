@@ -144,7 +144,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 		go func() {
 			defer wg.Done()
 			for i := range next {
-				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License)
+				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License, opt.License == "")
 			}
 		}()
 	}
@@ -162,7 +162,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 		sum  [32]byte
 	}
 	seen := map[contentKey]int{}
-	var fps []indexFP
+	var fileFPs [][]fingerprint
 	for i, r := range results {
 		if r.skip != "" {
 			ix.Skipped[r.skip]++
@@ -180,17 +180,23 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 				if old.Comp != f.Comp && !containsInt(f.Also, old.Comp) {
 					f.Also = append(f.Also, old.Comp)
 				}
+				// The same tokens can be laid out on other lines: keep the
+				// fingerprints of the copy that is kept.
+				fileFPs[prev] = r.fps
 			} else if f.Comp != pending[i].comp && !containsInt(f.Also, pending[i].comp) {
 				f.Also = append(f.Also, pending[i].comp)
 			}
 			ix.Duplicates++
 			continue
 		}
-		id := len(ix.Files)
-		seen[key] = id
+		seen[key] = len(ix.Files)
 		ix.Files = append(ix.Files, r.sf)
-		ix.Lines += r.sf.Lines
-		for _, f := range r.fps {
+		fileFPs = append(fileFPs, r.fps)
+	}
+	var fps []indexFP
+	for id, list := range fileFPs {
+		ix.Lines += ix.Files[id].Lines
+		for _, f := range list {
 			fps = append(fps, indexFP{hash: f.hash, exact: f.exact, file: uint32(id), pos: f.pos, line: f.line, end: f.end})
 		}
 	}
@@ -225,7 +231,8 @@ func containsInt(s []int, v int) bool {
 // that belong to each.
 func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) {
 	dirs := map[string]*dirInfo{}
-	owner := map[string]string{}       // path of a Python package or module -> its dist-info folder
+	owners := map[string][]string{}    // path of a Python package or module -> the dist-info folders installing it
+	recordOwner := map[string]string{} // file -> the dist-info folder whose RECORD lists it
 	distInfo := map[string]*manifest{} // dist-info folder -> metadata
 	distLic := map[string][]string{}
 	type codeFile struct{ abs, dir string }
@@ -259,8 +266,16 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 					parent := filepath.Dir(path)
 					for _, top := range m.topLevel {
 						top = strings.ReplaceAll(top, "/", string(filepath.Separator))
-						owner[filepath.Join(parent, top)] = path
-						owner[filepath.Join(parent, top+".py")] = path
+						for _, q := range []string{filepath.Join(parent, top), filepath.Join(parent, top+".py")} {
+							if !containsString(owners[q], path) {
+								owners[q] = append(owners[q], path)
+							}
+						}
+					}
+					for _, rp := range m.record {
+						if f := filepath.Join(parent, filepath.FromSlash(rp)); !filepath.IsAbs(rp) && within(f, parent) && f != parent {
+							recordOwner[f] = path
+						}
 					}
 				}
 				return filepath.SkipDir
@@ -286,7 +301,7 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 			rootsInOrder = append(rootsInOrder, p)
 		}
 	}
-	for p := range owner {
+	for p := range owners {
 		if _, ok := dirs[p]; ok || strings.HasSuffix(p, ".py") {
 			rootsInOrder = append(rootsInOrder, p)
 		}
@@ -295,61 +310,91 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 	rootsInOrder = dedupe(rootsInOrder)
 
 	var kept []string
+	var created []int               // components made from this root
+	distComps := map[string][]int{} // dist-info folder -> its components
 	for _, p := range rootsInOrder {
+		if dis := owners[p]; len(dis) > 0 {
+			// One component per distribution, even when several install
+			// into the same folder (a namespace package such as google/).
+			sort.Strings(dis)
+			for _, di := range dis {
+				m := distInfo[di]
+				c := &Component{Root: p, Name: m.name, Version: m.version, URL: m.url, PURL: m.purl()}
+				if m.license != "" {
+					c.License, c.LicenseFrom = NormalizeLicense(m.license), filepath.Base(di)+"/METADATA"
+				}
+				expr, from, text, cr := licenseFromFiles(distLic[di])
+				if c.License == "" && expr != "" {
+					c.License, c.LicenseFrom = expr, filepath.Base(di)+"/"+from
+				}
+				if c.License == "" {
+					c.License = LicenseNone
+				}
+				c.LicenseText, c.Copyrights = text, cr
+				compByRoot[p] = len(ix.Components)
+				distComps[di] = append(distComps[di], len(ix.Components))
+				created = append(created, len(ix.Components))
+				ix.Components = append(ix.Components, c)
+			}
+			if len(dis) > 1 {
+				// Files no RECORD claims could belong to any of them, so
+				// they take all their licences.
+				var names, lics []string
+				for _, di := range dis {
+					c := ix.Components[distComps[di][len(distComps[di])-1]]
+					names = append(names, c.Name)
+					lics = append(lics, c.License)
+				}
+				c := &Component{Root: p, Name: relSlash(filepath.Dir(root), p), License: joinLicenses(lics),
+					LicenseFrom: "shared by " + strings.Join(names, ", ")}
+				compByRoot[p] = len(ix.Components)
+				created = append(created, len(ix.Components))
+				ix.Components = append(ix.Components, c)
+			}
+			kept = append(kept, p)
+			continue
+		}
 		c := &Component{Root: p}
-		if di, ok := owner[p]; ok {
-			m := distInfo[di]
+		info := dirs[p]
+		m := info.manifest
+		if m != nil {
 			c.Name, c.Version, c.URL, c.PURL = m.name, m.version, m.url, m.purl()
 			if m.license != "" {
-				c.License, c.LicenseFrom = NormalizeLicense(m.license), filepath.Base(di)+"/METADATA"
-			}
-			expr, from, text, cr := licenseFromFiles(distLic[di])
-			if c.License == "" && expr != "" {
-				c.License, c.LicenseFrom = expr, filepath.Base(di)+"/"+from
-			}
-			c.LicenseText, c.Copyrights = text, cr
-		} else {
-			info := dirs[p]
-			m := info.manifest
-			if m != nil {
-				c.Name, c.Version, c.URL, c.PURL = m.name, m.version, m.url, m.purl()
-				if m.license != "" {
-					if l := NormalizeLicense(m.license); licenseCategory(l) != CatUnknown {
-						c.License, c.LicenseFrom = l, manifestFile(m.kind)
-					}
+				if l := NormalizeLicense(m.license); licenseCategory(l) != CatUnknown {
+					c.License, c.LicenseFrom = l, manifestFile(m.kind)
 				}
 			}
-			var licPaths []string
-			for _, f := range info.licenseFiles {
-				licPaths = append(licPaths, filepath.Join(p, f))
-			}
-			if m != nil && m.licFile != "" {
-				licPaths = append(licPaths, filepath.Join(p, m.licFile))
-			}
-			if info.reuseDir {
-				sub, _ := os.ReadDir(filepath.Join(p, "LICENSES"))
-				for _, s := range sub {
-					if !s.IsDir() {
-						licPaths = append(licPaths, filepath.Join(p, "LICENSES", s.Name()))
-					}
+		}
+		var licPaths []string
+		for _, f := range info.licenseFiles {
+			licPaths = append(licPaths, filepath.Join(p, f))
+		}
+		if m != nil && m.licFile != "" {
+			licPaths = append(licPaths, filepath.Join(p, m.licFile))
+		}
+		if info.reuseDir {
+			sub, _ := os.ReadDir(filepath.Join(p, "LICENSES"))
+			for _, s := range sub {
+				if !s.IsDir() {
+					licPaths = append(licPaths, filepath.Join(p, "LICENSES", s.Name()))
 				}
 			}
-			expr, from, text, cr := licenseFromFiles(dedupe(licPaths))
-			if p != root && expr == "" && len(cr) == 0 && !info.reuseDir && (m == nil || m.name == "") {
-				// Its only "licence file" is a page about the licence, such
-				// as docs/license.rst: the folder is part of the one above.
-				continue
-			}
-			if c.License == "" && expr != "" {
-				c.License, c.LicenseFrom = expr, from
-			}
-			c.LicenseText, c.Copyrights = text, cr
-			if info.noticeFile != "" {
-				c.NoticeText = strings.TrimSpace(readSmall(filepath.Join(p, info.noticeFile), 16<<10))
-			}
-			if c.URL == "" {
-				c.URL = gitRemote(p)
-			}
+		}
+		expr, from, text, cr := licenseFromFiles(dedupe(licPaths))
+		if p != root && expr == "" && len(cr) == 0 && !info.reuseDir && (m == nil || m.name == "") {
+			// Its only "licence file" is a page about the licence, such
+			// as docs/license.rst: the folder is part of the one above.
+			continue
+		}
+		if c.License == "" && expr != "" {
+			c.License, c.LicenseFrom = expr, from
+		}
+		c.LicenseText, c.Copyrights = text, cr
+		if info.noticeFile != "" {
+			c.NoticeText = strings.TrimSpace(readSmall(filepath.Join(p, info.noticeFile), 16<<10))
+		}
+		if c.URL == "" {
+			c.URL = gitRemote(p)
 		}
 		if c.Name == "" {
 			c.Name = relSlash(filepath.Dir(root), p)
@@ -373,6 +418,7 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 			}
 		}
 		compByRoot[p] = len(ix.Components)
+		created = append(created, len(ix.Components))
 		ix.Components = append(ix.Components, c)
 		kept = append(kept, p)
 	}
@@ -413,17 +459,28 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 	}
 	if opt.License != "" {
 		l := NormalizeLicense(opt.License)
-		for _, p := range rootsInOrder {
-			c := ix.Components[compByRoot[p]]
-			c.License, c.LicenseFrom = l, "--license"
+		for _, i := range created {
+			ix.Components[i].License, ix.Components[i].LicenseFrom = l, "--license"
 		}
 	}
 
-	// Each file belongs to the nearest component root above it.
+	// Each file belongs to the distribution whose RECORD lists it, or else
+	// to the nearest component root above it.
 	var out []pendingFile
 	for _, f := range code {
 		ci := -1
-		if _, ok := owner[f.abs]; ok {
+		if di, ok := recordOwner[f.abs]; ok {
+			for _, k := range distComps[di] {
+				if r := ix.Components[k].Root; r == f.abs || within(f.abs, r) {
+					ci = k
+					break
+				}
+			}
+			if ci < 0 && len(distComps[di]) > 0 {
+				ci = distComps[di][0]
+			}
+		}
+		if _, ok := owners[f.abs]; ok && ci < 0 {
 			ci = compByRoot[f.abs]
 		}
 		for q := f.dir; ci < 0; q = filepath.Dir(q) {
@@ -463,26 +520,30 @@ func manifestFile(kind string) string {
 	return kind
 }
 
-func fingerprintSourceFile(p pendingFile, compLicense string) fileResult {
-	data, err := os.ReadFile(p.abs)
-	if err != nil {
-		return fileResult{skip: "unreadable"}
-	}
-	if r := skipReason(data); r != "" {
-		return fileResult{skip: r}
+// fingerprintSourceFile reads and fingerprints one file. Its own licence
+// comes from the comments at its top (see fileLicense), unless the user
+// named the licence of all the code with --license.
+func fingerprintSourceFile(p pendingFile, compLicense string, headers bool) fileResult {
+	data, skip := readSource(p.abs)
+	if skip != "" {
+		return fileResult{skip: skip}
 	}
 	sx := languageFor(p.abs)
 	toks := tokenize(data, sx)
 	fps := winnow(toks, sx)
 	sf := &SourceFile{Comp: p.comp, Path: p.rel, Abs: p.abs, Lines: countLines(data), Tokens: len(toks)}
-	head := string(data[:min(len(data), 16<<10)])
-	header := headerComments(head, 60)
-	if id := spdxTagLicense(firstLines(head, 30)); id != "" {
-		sf.License = id
-	} else if id := DetectLicense(header); id != "" && id != compLicense {
-		sf.License = id
+	head := leadingComments(data, sx, 16<<10)
+	if headers {
+		// An SPDX tag is the file's own explicit statement of its licence.
+		if id := spdxTagLicense(head); id != "" {
+			if !strings.EqualFold(id, NormalizeLicense(compLicense)) {
+				sf.License = id
+			}
+		} else {
+			sf.License = fileLicense(compLicense, headerLicense(head), head)
+		}
 	}
-	sf.Copyrights = copyrightLines(header, 5)
+	sf.Copyrights = copyrightLines(head, 5)
 	h := sha256.New()
 	var buf [8]byte
 	for _, t := range toks {
@@ -678,6 +739,14 @@ func LoadIndex(path string) (*Index, error) {
 		return nil, err
 	}
 	defer f.Close()
+	// Deflate packs at most about 1,000 bytes into one, so the file's size
+	// caps how much it can hold: a small file that claims a lot is damaged,
+	// and memory is set aside only for what it can really hold.
+	st, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	capacity := uint64(st.Size())*1100 + 1<<16
 	magic := make([]byte, len(indexMagic))
 	if _, err := io.ReadFull(f, magic); err != nil || string(magic) != indexMagic {
 		return nil, fmt.Errorf("%s is not a Remixware index (make one with remixware index)", path)
@@ -688,11 +757,13 @@ func LoadIndex(path string) (*Index, error) {
 	}
 	br := bufio.NewReaderSize(zr, 1<<20)
 	n, err := binary.ReadUvarint(br)
-	if err != nil || n > 1<<31 {
+	if err != nil || n > 1<<30 || n > capacity {
 		return nil, fmt.Errorf("%s: damaged index header", path)
 	}
-	head := make([]byte, n)
-	if _, err := io.ReadFull(br, head); err != nil {
+	// Read what is there rather than trust the length: a damaged or made-up
+	// file can't make Remixware allocate memory it doesn't need.
+	head, err := io.ReadAll(io.LimitReader(br, int64(n)))
+	if err != nil || uint64(len(head)) != n {
 		return nil, fmt.Errorf("%s: damaged index header", path)
 	}
 	ix := &Index{Path: path}
@@ -702,8 +773,11 @@ func LoadIndex(path string) (*Index, error) {
 	if ix.Format != 1 || ix.K != kgramSize || ix.W != windowSize || ix.MinDistinct != minDistinct || ix.Norm != normVersion {
 		return nil, fmt.Errorf("%s was made by %s with other settings: rebuild it with remixware index", path, ix.Tool)
 	}
+	if err := ix.validate(); err != nil {
+		return nil, fmt.Errorf("%s: damaged index (%v)", path, err)
+	}
 	count, err := binary.ReadUvarint(br)
-	if err != nil || count > 1<<34 {
+	if err != nil || count > capacity/indexRecordSize {
 		return nil, fmt.Errorf("%s: damaged index", path)
 	}
 	ix.fps = make([]indexFP, 0, count)
@@ -724,6 +798,9 @@ func LoadIndex(path string) (*Index, error) {
 		if p.file >= nfiles {
 			return nil, fmt.Errorf("%s: damaged index (bad file number)", path)
 		}
+		if f := ix.Files[p.file]; int64(p.pos)+kgramSize > int64(f.Tokens) || p.line < 1 || p.line > p.end || int64(p.end) > int64(max(f.Lines, 1)) {
+			return nil, fmt.Errorf("%s: damaged index (a fingerprint outside its file)", path)
+		}
 		ix.fps = append(ix.fps, p)
 	}
 	// Reading to the end makes gzip check its checksum.
@@ -735,12 +812,50 @@ func LoadIndex(path string) (*Index, error) {
 			return nil, fmt.Errorf("%s: damaged index (not sorted)", path)
 		}
 	}
-	for _, c := range ix.Files {
-		if c.Comp < 0 || c.Comp >= len(ix.Components) {
-			return nil, fmt.Errorf("%s: damaged index (bad component number)", path)
+	return ix, nil
+}
+
+// validate checks that the index header holds together: every component
+// and file is there, and every number that points at one points inside.
+func (ix *Index) validate() error {
+	for i, c := range ix.Components {
+		if c == nil {
+			return fmt.Errorf("component %d is missing", i)
 		}
 	}
-	return ix, nil
+	for i, f := range ix.Files {
+		if f == nil {
+			return fmt.Errorf("file %d is missing", i)
+		}
+		if f.Comp < 0 || f.Comp >= len(ix.Components) {
+			return fmt.Errorf("file %d has a bad component number", i)
+		}
+		for _, a := range f.Also {
+			if a < 0 || a >= len(ix.Components) {
+				return fmt.Errorf("file %d has a bad component number", i)
+			}
+		}
+		if f.Tokens < 0 || f.Lines < 0 {
+			return fmt.Errorf("file %d has a bad size", i)
+		}
+	}
+	return nil
+}
+
+// readable reports whether a scan may read an indexed file again: it must
+// be an absolute, clean path to a source file inside one of the folders
+// the index was made from. An index made elsewhere, or made up, can't
+// point a scan at other files on this machine.
+func (ix *Index) readable(p string) bool {
+	if p == "" || !filepath.IsAbs(p) || filepath.Clean(p) != p || languageFor(p) == nil {
+		return false
+	}
+	for _, r := range ix.Roots {
+		if filepath.IsAbs(r) && p != filepath.Clean(r) && within(p, filepath.Clean(r)) {
+			return true
+		}
+	}
+	return false
 }
 
 // LicenseCounts returns how many components carry each licence.

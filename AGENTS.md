@@ -15,6 +15,8 @@ The rules that matter most:
   scripts/record-results.sh. Don't type numbers by hand.
 - Statuses, JSON field names and policy keys are a public interface: never
   rename one.
+- A change to tokenizing or fingerprinting bumps `normVersion`; the test
+  `TestFingerprintsMatchNormVersion` says so when you forget.
 - Remixware has no network code, and adding any needs the owner's approval.
 - When you finish, update the State and Gaps sections of CLAUDE.md with
   what you did and what is still open.

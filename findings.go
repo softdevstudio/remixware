@@ -60,7 +60,7 @@ type Source struct {
 	LicenseFrom   string   `json:"license_from,omitempty"`
 	Copyrights    []string `json:"copyrights,omitempty"`
 	Via           string   `json:"via"` // "index" or "scanoss"
-	Abs           string   `json:"abs,omitempty"`
+	Abs           string   `json:"-"`   // where the source was read from, for the HTML report
 }
 
 // ComponentTexts holds the licence and NOTICE text of a component, kept once
@@ -161,9 +161,27 @@ type Input struct {
 	Matches    int    `json:"matches,omitempty"`
 }
 
+// findingID names a finding by the copy and where in the source it came
+// from, so it stays the same from scan to scan while they do.
 func findingID(file string, s Source) string {
-	h := sha1.Sum([]byte(file + "\x00" + s.Component + "\x00" + s.File))
+	h := sha1.Sum([]byte(fmt.Sprintf("%s\x00%s\x00%s\x00%d", file, s.Component, s.File, s.Lines.Start)))
 	return "RW-" + hex.EncodeToString(h[:4])
+}
+
+// assignIDs gives every finding its ID, and keeps IDs unique when two
+// findings would get the same one.
+func assignIDs(fs []Finding) {
+	seen := map[string]int{}
+	for i := range fs {
+		id := findingID(fs[i].File, fs[i].Source)
+		if n := seen[id]; n > 0 {
+			seen[id] = n + 1
+			id = fmt.Sprintf("%s-%d", id, n+1)
+		} else {
+			seen[id] = 1
+		}
+		fs[i].ID = id
+	}
 }
 
 // mergeFindings clusters findings that cover the same lines of the same
@@ -215,6 +233,7 @@ func mergeFindings(in []Finding) []Finding {
 		}
 		return out[i].Lines.Start < out[j].Lines.Start
 	})
+	assignIDs(out)
 	return out
 }
 

@@ -53,6 +53,11 @@ func LoadPolicy(path string) (*Policy, error) {
 	if err := dec.Decode(p); err != nil {
 		return nil, fmt.Errorf("%s: %v", path, err)
 	}
+	if p.FailOn != nil && len(p.FailOn) == 0 {
+		// An empty list would make check pass whatever it finds.
+		return nil, fmt.Errorf("%s: fail_on is empty; list the statuses that should fail the check, or leave fail_on out for the defaults (%s)",
+			path, strings.Join(DefaultFailOn, ", "))
+	}
 	for _, s := range p.FailOn {
 		if statusRank(s) >= len(AllStatuses) {
 			return nil, fmt.Errorf("%s: fail_on has %q; statuses are %s", path, s, strings.Join(AllStatuses, ", "))
@@ -196,23 +201,69 @@ func creditNeedles(s Source) []string {
 	return out
 }
 
+// credited reports whether lowercased notice text credits a source. Entries
+// that remixware notice left for the user to finish don't count until they
+// are finished, and a name only counts as a whole word:
+// github.com/acme/tool-extras doesn't credit github.com/acme/tool.
 func credited(text string, s Source) bool {
 	if text == "" {
 		return false
 	}
+	text = finishedNotices(text)
 	text = strings.Join(strings.Fields(text), " ")
 	for _, n := range creditNeedles(s) {
-		if strings.Contains(text, n) {
+		if containsWord(text, n) {
 			return true
 		}
 	}
 	return false
 }
 
+// finishedNotices drops the entries of a notices text that still say
+// something has to be copied in "before you ship this".
+func finishedNotices(text string) string {
+	if !strings.Contains(text, unfinishedMark) {
+		return text
+	}
+	parts := strings.Split(text, "\n## ")
+	var keep []string
+	for _, p := range parts {
+		if !strings.Contains(p, unfinishedMark) {
+			keep = append(keep, p)
+		}
+	}
+	return strings.Join(keep, "\n## ")
+}
+
+// containsWord reports whether needle occurs in text with no letter, digit,
+// '_' or '-' right after it, and none of those or '.' right before it,
+// where the needle itself starts or ends with one.
+func containsWord(text, needle string) bool {
+	if needle == "" {
+		return false
+	}
+	isWord := func(c byte) bool {
+		return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-'
+	}
+	for i := 0; ; {
+		j := strings.Index(text[i:], needle)
+		if j < 0 {
+			return false
+		}
+		at, end := i+j, i+j+len(needle)
+		before := at == 0 || !isWord(needle[0]) || !(isWord(text[at-1]) || text[at-1] == '.')
+		after := end == len(text) || !isWord(needle[len(needle)-1]) || !isWord(text[end])
+		if before && after {
+			return true
+		}
+		i = at + 1
+	}
+}
+
 // keepsNotice reports whether the copied code still carries its original
 // copyright line and licence notice in the file itself, as happens when a
 // whole file is copied with its header.
-func keepsNotice(fileText string, s Source) bool {
+func keepsNotice(path, fileText string, s Source) bool {
 	if len(s.Copyrights) == 0 {
 		return false
 	}
@@ -227,12 +278,12 @@ func keepsNotice(fileText string, s Source) bool {
 	if !found {
 		return false
 	}
-	head := headerComments(fileText, 80)
-	id := spdxTagLicense(firstLines(fileText, 30))
+	head := leadingComments([]byte(fileText), languageFor(path), 32<<10)
+	id := spdxTagLicense(head)
 	if id == "" {
-		id = DetectLicense(head)
+		id = headerLicense(head)
 	}
-	return id != "" && strings.EqualFold(id, s.License)
+	return id != "" && strings.EqualFold(NormalizeLicense(id), NormalizeLicense(s.License))
 }
 
 // Evaluate gives every finding a status and a reason, given the project's
@@ -280,7 +331,7 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 			case credited(notices, f.Source):
 				f.Status = StatusAttributed
 				f.Reason = "Credited in the project's notices. " + f.Reason
-			case keepsNotice(fileText(f.File), f.Source):
+			case keepsNotice(f.File, fileText(f.File), f.Source):
 				f.Status = StatusAttributed
 				f.Reason = "The file keeps the original copyright and licence notice. " + f.Reason
 			default:

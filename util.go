@@ -1,6 +1,7 @@
 package remixware
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -124,4 +125,12 @@ func countLines(b []byte) int {
 		n++
 	}
 	return n
+}
+
+// countNoun writes a count with its noun: "1 path", "3 paths".
+func countNoun(n int, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
 }

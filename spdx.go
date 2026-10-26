@@ -46,7 +46,8 @@ type spdxFile struct {
 
 type spdxPointer struct {
 	Reference  string `json:"reference"`
-	LineNumber int    `json:"lineNumber"`
+	Offset     int    `json:"offset,omitempty"`
+	LineNumber int    `json:"lineNumber,omitempty"`
 }
 
 type spdxRange struct {
@@ -91,6 +92,7 @@ func WriteSPDX(w io.Writer, res *Results) error {
 		CreationInfo:      spdxCreation{Created: res.Created, Creators: []string{"Tool: remixware-" + Version}},
 	}
 	fileIDs := map[string]string{}
+	fileData := map[string][]byte{}
 	refs := map[string]bool{}
 	for i, f := range res.Findings {
 		fid, ok := fileIDs[f.File]
@@ -98,8 +100,11 @@ func WriteSPDX(w io.Writer, res *Results) error {
 			fid = fmt.Sprintf("SPDXRef-File-%d", len(fileIDs)+1)
 			fileIDs[f.File] = fid
 			sum := sha1.New()
-			if data, err := os.ReadFile(filepath.Join(res.Project, filepath.FromSlash(f.File))); err == nil {
-				sum.Write(data)
+			if rel, ok := projectPath(f.File); ok {
+				if data, err := os.ReadFile(filepath.Join(res.Project, filepath.FromSlash(rel))); err == nil {
+					sum.Write(data)
+					fileData[f.File] = data
+				}
 			}
 			doc.Files = append(doc.Files, spdxFile{SPDXID: fid, FileName: "./" + f.File,
 				Checksums:        []spdxChecksum{{"SHA1", hex.EncodeToString(sum.Sum(nil))}},
@@ -124,10 +129,14 @@ func WriteSPDX(w io.Writer, res *Results) error {
 			}
 		}
 		comment += fmt.Sprintf(" (%s). Remixware status: %s.", kindText(f.Match), f.Status)
+		// SPDX asks for the byte range of every snippet; the line range
+		// comes with it.
+		from, to := byteRange(fileData[f.File], f.Lines)
+		ranges := []spdxRange{{spdxPointer{Reference: fid, Offset: from}, spdxPointer{Reference: fid, Offset: to}},
+			{spdxPointer{Reference: fid, LineNumber: max(f.Lines.Start, 1)}, spdxPointer{Reference: fid, LineNumber: max(f.Lines.End, f.Lines.Start, 1)}}}
 		doc.Snippets = append(doc.Snippets, spdxSnippet{
 			SPDXID: fmt.Sprintf("SPDXRef-Snippet-%d", i+1), Name: "from " + f.Source.Key, SnippetFromFile: fid,
-			Ranges:           []spdxRange{{spdxPointer{fid, f.Lines.Start}, spdxPointer{fid, f.Lines.End}}},
-			LicenseConcluded: lic, LicenseInfo: []string{lic}, CopyrightText: copyright, Comment: comment,
+			Ranges: ranges, LicenseConcluded: lic, LicenseInfo: []string{lic}, CopyrightText: copyright, Comment: comment,
 		})
 		doc.Relationships = append(doc.Relationships, spdxRelationship{fid, "CONTAINS", fmt.Sprintf("SPDXRef-Snippet-%d", i+1)})
 	}
@@ -149,6 +158,32 @@ func WriteSPDX(w io.Writer, res *Results) error {
 	enc.SetIndent("", "  ")
 	enc.SetEscapeHTML(false)
 	return enc.Encode(doc)
+}
+
+// byteRange returns the bytes of a file that lines r cover, counting from 1
+// and including both ends, as SPDX snippets give them. Without the file's
+// contents, or for lines it doesn't have, it returns 1:1.
+func byteRange(data []byte, r Range) (int, int) {
+	start, end, line := -1, -1, 1
+	for i := 0; i <= len(data); i++ {
+		if line == r.Start && start < 0 {
+			start = i
+		}
+		if i == len(data) || data[i] == '\n' {
+			if line == r.End {
+				end = i
+				if i < len(data) {
+					end++ // the line's newline is part of it
+				}
+				break
+			}
+			line++
+		}
+	}
+	if start < 0 || end <= start {
+		return 1, 1
+	}
+	return start + 1, end
 }
 
 // spdxLicense makes an expression valid in an SPDX document: unknown ids

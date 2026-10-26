@@ -189,6 +189,9 @@ func cmdIndex(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stdout, "%s %s identical to a file in another version and recorded once.\n", comma(ix.Duplicates),
 			plural(ix.Duplicates, "file was", "files were"))
 	}
+	if n := ix.Skipped["unreadable"]; n > 0 {
+		fmt.Fprintf(stdout, "%s %s couldn't be read and %s not in the index.\n", comma(n), plural(n, "file", "files"), plural(n, "is", "are"))
+	}
 	counts := ix.LicenseCounts()
 	var lics []string
 	for l := range counts {
@@ -264,11 +267,17 @@ func compareFlags(cmd string, stderr io.Writer) (*flag.FlagSet, *compareOpts) {
 }
 
 // compare runs a scan and imports results files, then evaluates the policy.
-func compare(cmd string, args []string, stderr io.Writer) (*remixware.Results, *remixware.Policy, *compareOpts, error) {
+// check, when set, looks at the flags before any work starts.
+func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpts) error) (*remixware.Results, *remixware.Policy, *compareOpts, error) {
 	fs, o := compareFlags(cmd, stderr)
 	pos, err := parse(fs, args)
 	if err != nil {
 		return nil, nil, nil, err
+	}
+	if check != nil {
+		if err := check(o); err != nil {
+			return nil, nil, nil, err
+		}
 	}
 	if len(pos) > 1 {
 		return nil, nil, nil, fmt.Errorf("%s takes one project folder, got %d: %s", cmd, len(pos), strings.Join(pos, " "))
@@ -468,7 +477,7 @@ func summary(res *remixware.Results) string {
 }
 
 func cmdScan(args []string, stdout, stderr io.Writer) error {
-	res, _, o, err := compare("scan", args, stderr)
+	res, _, o, err := compare("scan", args, stderr, nil)
 	if err != nil {
 		return err
 	}
@@ -496,23 +505,37 @@ func rank(s string) int {
 }
 
 func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
-	res, pol, o, err := compare("check", args, stderr)
+	var flagFailOn []string
+	// A typo in --fail-on is found before the scan, not after it.
+	checkFlags := func(o *compareOpts) error {
+		if o.failOn == "" {
+			return nil
+		}
+		for _, s := range strings.Split(o.failOn, ",") {
+			s = strings.TrimSpace(s)
+			if rank(s) < 0 {
+				return fmt.Errorf("--fail-on: unknown status %q; statuses are %s", s, strings.Join(remixware.AllStatuses, ", "))
+			}
+			flagFailOn = append(flagFailOn, s)
+		}
+		return nil
+	}
+	res, pol, o, err := compare("check", args, stderr, checkFlags)
 	if err != nil {
 		return exitUsage, err
 	}
 	failOn := remixware.DefaultFailOn
 	switch {
-	case o.failOn != "":
-		failOn = nil
-		for _, s := range strings.Split(o.failOn, ",") {
-			s = strings.TrimSpace(s)
-			if rank(s) < 0 {
-				return exitUsage, fmt.Errorf("--fail-on: unknown status %q; statuses are %s", s, strings.Join(remixware.AllStatuses, ", "))
-			}
-			failOn = append(failOn, s)
-		}
+	case len(flagFailOn) > 0:
+		failOn = flagFailOn
 	case len(pol.FailOn) > 0:
 		failOn = pol.FailOn
+	}
+	// A check that scanned nothing has checked nothing: a wrong path or an
+	// --exclude that covers everything must not pass.
+	if len(o.indexes) > 0 && res.FilesScanned == 0 {
+		return exitUsage, fmt.Errorf("no source files to check in %s%s; check the folder, --exclude and the policy's ignore list",
+			shownPath(res.Project), skippedNote(res))
 	}
 	if !o.quiet {
 		header(stdout, res)
@@ -549,6 +572,28 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 	return exitOK, nil
 }
 
+// skippedNote says what a scan skipped, as in " (12 files skipped: 8
+// declared, 4 generated)", or "".
+func skippedNote(res *remixware.Results) string {
+	var keys []string
+	total := 0
+	for k, n := range res.Skipped {
+		if n > 0 {
+			keys = append(keys, k)
+			total += n
+		}
+	}
+	if total == 0 {
+		return ""
+	}
+	sort.Strings(keys)
+	var parts []string
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%d %s", res.Skipped[k], k))
+	}
+	return fmt.Sprintf(" (%d %s skipped: %s)", total, plural(total, "file", "files"), strings.Join(parts, ", "))
+}
+
 func hasStatus(fs []remixware.Finding, s string) bool {
 	for _, f := range fs {
 		if f.Status == s {
@@ -568,7 +613,7 @@ func containsString(s []string, v string) bool {
 }
 
 func cmdNotice(args []string, stdout, stderr io.Writer) error {
-	res, _, o, err := compare("notice", args, stderr)
+	res, _, o, err := compare("notice", args, stderr, nil)
 	if err != nil {
 		return err
 	}

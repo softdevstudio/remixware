@@ -11,7 +11,7 @@ const (
 	windowSize  = 12
 	minDistinct = 6 // k-grams with fewer distinct tokens (lists, tables) are ignored
 	maxRepeats  = 4 // k-grams found this often in one file are ignored as the file's own boilerplate
-	normVersion = 1 // bump when tokenizing or hashing changes: old indexes stop matching
+	normVersion = 2 // bump when tokenizing or hashing changes: old indexes stop matching
 )
 
 // fingerprint is one selected k-gram.
@@ -50,12 +50,15 @@ func rawKgramHashes(toks []token) (norm []uint64, exact []uint32) {
 	var names [kgramSize]uint64
 	var vals [kgramSize]uint64
 	for s := 0; s < n; s++ {
-		nn := 0
+		nn, words := 0, 0
 		h := uint64(0x6a09e667f3bcc909)
 		e := uint64(0xbb67ae8584caa73b)
 		for j := 0; j < kgramSize; j++ {
 			t := toks[s+j]
 			v := t.norm
+			if t.isName() || t.keyword {
+				words++
+			}
 			if t.isName() {
 				id := -1
 				for k := 0; k < nn; k++ {
@@ -77,6 +80,10 @@ func rawKgramHashes(toks []token) (norm []uint64, exact []uint32) {
 		}
 		switch {
 		case distinct(vals[:]) < minDistinct:
+			h = invalidHash
+		case words == 0:
+			// Only numbers, strings and punctuation: a table of constants
+			// such as SHA-256's, the same in every language that has it.
 			h = invalidHash
 		case h == invalidHash:
 			h--

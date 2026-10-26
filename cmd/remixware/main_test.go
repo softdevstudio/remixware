@@ -140,6 +140,27 @@ func TestCheckCommand(t *testing.T) {
 		exitOK, "Project licence: GPL-3.0-or-later (from --license)")
 }
 
+// A check that couldn't look at anything must not pass: a wrong folder, an
+// --exclude that covers everything, an index that holds the project itself.
+func TestCheckThatScansNothingFails(t *testing.T) {
+	ix := upstreamIndex(t)
+	empty := t.TempDir()
+	os.WriteFile(filepath.Join(empty, "README.md"), []byte("# docs only\n"), 0o644)
+	expect(t, cli("check", empty, "--index", ix), exitUsage, "no source files to check")
+	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--exclude", "**"), exitUsage, "no source files to check")
+	// A bad --fail-on is reported before any scanning starts.
+	r := cli("check", fixture("projects", "shopfront"), "--index", ix, "--fail-on", "conflcit")
+	expect(t, r, exitUsage, `unknown status "conflcit"`)
+	if strings.Contains(r.stderr, "scanning") {
+		t.Errorf("scanned before reporting the bad --fail-on:\n%s", r.stderr)
+	}
+	// An index of the whole testdata folder holds shopfront itself: its
+	// files are still checked, and still copied from upstream.
+	all := filepath.Join(t.TempDir(), "all.rmx")
+	expect(t, cli("index", testdata, "--out", all, "--quiet"), exitOK)
+	expect(t, cli("check", fixture("projects", "shopfront"), "--index", all), exitFail, "FAIL: 7 findings break the policy")
+}
+
 func TestPolicyFile(t *testing.T) {
 	ix := upstreamIndex(t)
 	dir := t.TempDir()
@@ -148,6 +169,9 @@ func TestPolicyFile(t *testing.T) {
 	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--policy", pol), exitOK, "PASS", "fail on: conflict")
 	os.WriteFile(pol, []byte(`{"fail_on": ["conflict"], "alow": []}`), 0o644)
 	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--policy", pol), exitUsage, `unknown field "alow"`)
+	// An empty fail_on would pass everything: it's an error, not a default.
+	os.WriteFile(pol, []byte(`{"fail_on": []}`), 0o644)
+	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--policy", pol), exitUsage, "fail_on is empty")
 
 	// Without --policy, the project's own .remixware.json is read.
 	proj := filepath.Join(dir, "shopfront")
@@ -167,15 +191,23 @@ func TestNoticeLoop(t *testing.T) {
 
 	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 4 findings")
 	expect(t, cli("notice", proj, "--index", ix, "--out", notes), exitOK,
-		"added 5 entries", "not written: example.org/gplsort")
+		"added 5 entries", "not written: example.org/gplsort", "finish by hand: leftpadx 1.0.4: copyright line not known")
 	after, _ := os.ReadFile(notes)
 	if !bytes.HasPrefix(after, before) || len(after) <= len(before) {
 		t.Fatalf("notices file not appended to")
 	}
+	// The entry notice couldn't finish doesn't count until someone does.
+	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 1 finding breaks", "web/pad.js")
+	const todo = "Copyright: not known. Copy the copyright line from the source before you ship this."
+	if !bytes.Contains(after, []byte(todo)) {
+		t.Fatalf("no line to finish in the notices:\n%s", after)
+	}
+	finished := bytes.Replace(after, []byte(todo), []byte("Copyright (c) 2016 The leftpadx authors"), 1)
+	os.WriteFile(notes, finished, 0o644)
 	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitOK, "PASS")
 	expect(t, cli("notice", proj, "--index", ix, "--out", notes), exitOK, "nothing to add")
 	again, _ := os.ReadFile(notes)
-	if !bytes.Equal(again, after) {
+	if !bytes.Equal(again, finished) {
 		t.Errorf("second notice run changed the file")
 	}
 	// Without --out the entries go to standard output.

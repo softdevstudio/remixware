@@ -2,6 +2,7 @@ package remixware
 
 import (
 	"bytes"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -14,9 +15,10 @@ import (
 // exact is the hash of the token as written, used to tell a verbatim copy
 // from a renamed one.
 type token struct {
-	norm  uint64
-	exact uint64
-	line  int32
+	norm    uint64
+	exact   uint64
+	line    int32
+	keyword bool
 }
 
 func (t token) isName() bool { return t.norm == 0 }
@@ -40,7 +42,14 @@ func fnvHash(prefix byte, b []byte) uint64 {
 	return h
 }
 
-var hashString = fnvHash('s', nil)
+var (
+	hashString = fnvHash('s', nil)
+	hashRegex  = fnvHash('r', nil)
+)
+
+// regexAfterKeyword lists the JavaScript keywords after which a slash starts
+// a regular expression rather than a division.
+var regexAfterKeyword = set(`return typeof instanceof in of new delete void throw case do else yield await`)
 
 var ops3 = map[string]bool{">>=": true, "<<=": true, "...": true, "===": true, "!==": true, "**=": true, "//=": true,
 	"->*": true, "<=>": true, "&&=": true, "||=": true, "??=": true, ">>>": true, "::=": true, "&^=": true}
@@ -50,10 +59,6 @@ var ops2 = map[string]bool{"==": true, "!=": true, "<=": true, ">=": true, "&&":
 	"<<": true, ">>": true, "->": true, "=>": true, "::": true, ":=": true, "<-": true, "**": true, "//": true,
 	"??": true, "?.": true, "..": true, "&^": true, "|>": true}
 
-// tokenize splits source code into tokens, dropping comments and layout.
-// It is deliberately forgiving: it never fails, and code it can't make
-// sense of still turns into a stable stream of tokens, so two copies of the
-// same text always tokenize the same way.
 // isTriple reports whether a triple quote starts at i.
 func isTriple(src []byte, i int) bool {
 	c := byte(0)
@@ -87,6 +92,126 @@ func scanTriple(src []byte, i int, line *int32) int {
 	return n
 }
 
+// leadingComments returns the comments at the top of a source file, before
+// its first line of code, markers included: where licence notices, SPDX
+// tags and copyright lines live. A byte order mark, a shebang line and
+// PHP's opening tag are passed over, and so are C preprocessor lines; a
+// Python module docstring counts as a comment. Licence words in the code
+// itself, in a string or a variable name, never count.
+func leadingComments(src []byte, sx *syntax, limit int) string {
+	if sx == nil {
+		return ""
+	}
+	if len(src) > limit {
+		src = src[:limit]
+	}
+	if bytes.Contains(src, []byte("\r\n")) {
+		src = bytes.ReplaceAll(src, []byte("\r\n"), []byte("\n"))
+	}
+	n, i := len(src), 0
+	if n >= 3 && src[0] == 0xEF && src[1] == 0xBB && src[2] == 0xBF {
+		i = 3
+	}
+	if n-i >= 2 && src[i] == '#' && src[i+1] == '!' {
+		for i < n && src[i] != '\n' {
+			i++
+		}
+	}
+	var b strings.Builder
+	keep := func(from, to int) {
+		b.Write(src[from:to])
+		b.WriteByte('\n')
+	}
+	for i < n {
+		c := src[i]
+		switch {
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v':
+			i++
+			continue
+		case hasPrefixAt(src, i, "<?php"):
+			i += len("<?php")
+			continue
+		}
+		if end, ok := blockComment(src, i, sx); ok {
+			keep(i, end)
+			i = end
+			continue
+		}
+		if lineComment(src, i, sx) || (c == '#' && sx == synC) {
+			j := i
+			for j < n && src[j] != '\n' {
+				j++
+			}
+			if c == '#' && sx == synC {
+				i = j // #include, #ifndef: not a comment, but no code yet either
+				continue
+			}
+			keep(i, j)
+			i = j
+			continue
+		}
+		if sx.tripleQuotes {
+			j := i
+			if sx.stringPrefix && isASCIILetter(c) {
+				j = pyStringStart(src, i)
+			}
+			if isTriple(src, j) {
+				var line int32
+				end := scanTriple(src, j, &line)
+				keep(i, end)
+				i = end
+				continue
+			}
+		}
+		break
+	}
+	return b.String()
+}
+
+// scanRegex returns the end of a JavaScript regular expression literal that
+// starts with the slash at i, flags included. A literal can't span lines, so
+// a slash with no closing slash on its line is a division after all.
+func scanRegex(src []byte, i int) (int, bool) {
+	inClass := false
+	for j := i + 1; j < len(src); j++ {
+		switch src[j] {
+		case '\n':
+			return 0, false
+		case '\\':
+			j++
+			if j < len(src) && src[j] == '\n' {
+				return 0, false
+			}
+		case '[':
+			inClass = true
+		case ']':
+			inClass = false
+		case '/':
+			if inClass {
+				continue
+			}
+			for j++; j < len(src) && isASCIILetter(src[j]); j++ {
+			}
+			return j, true
+		}
+	}
+	return 0, false
+}
+
+// valueEnd reports whether an operator ends a value, so that a slash after
+// it is a division: x) / 2, a[i] / 2, n++ / 2.
+func valueEnd(op []byte) bool {
+	switch string(op) {
+	case ")", "]", "}", "++", "--":
+		return true
+	}
+	return false
+}
+
+// tokenize splits source code into tokens, dropping comments and layout.
+// It is deliberately forgiving: it never fails, and code it can't make
+// sense of still turns into a stable stream of tokens, so two copies of the
+// same text always tokenize the same way.
 func tokenize(src []byte, sx *syntax) []token {
 	// Windows line endings must not change what a string literal hashes to.
 	if bytes.Contains(src, []byte("\r\n")) {
@@ -104,6 +229,9 @@ func tokenize(src []byte, sx *syntax) []token {
 			i++
 		}
 	}
+	// afterValue is true when the last token ends a value. It tells a
+	// JavaScript regular expression from a division.
+	afterValue := false
 	emit := func(norm, exact uint64) {
 		toks = append(toks, token{norm: norm, exact: exact, line: line})
 	}
@@ -141,6 +269,7 @@ func tokenize(src []byte, sx *syntax) []token {
 			start, startLine := i, line
 			i = scanTriple(src, i, &line)
 			toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
+			afterValue = true
 			continue
 		}
 		if sx.stringPrefix && isASCIILetter(c) {
@@ -152,6 +281,7 @@ func tokenize(src []byte, sx *syntax) []token {
 					i = scanQuoted(src, j, src[j], true, &line)
 				}
 				toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
+				afterValue = true
 				continue
 			}
 		}
@@ -159,12 +289,14 @@ func tokenize(src []byte, sx *syntax) []token {
 			start, startLine := i, line
 			i = scanQuoted(src, i, c, true, &line)
 			toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
+			afterValue = true
 			continue
 		}
 		if c == '`' && sx.backtick {
 			start, startLine := i, line
 			i = scanQuoted(src, i, c, sx != synGo, &line)
 			toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
+			afterValue = true
 			continue
 		}
 
@@ -180,6 +312,7 @@ func tokenize(src []byte, sx *syntax) []token {
 				i += size
 			}
 			word := src[start:i]
+			afterValue = true
 			if len(word) == 1 && word[0] == '$' {
 				emit(fnvHash('p', word), fnvHash('p', word))
 				continue
@@ -191,6 +324,8 @@ func tokenize(src []byte, sx *syntax) []token {
 			if sx.keywords[string(key)] {
 				h := fnvHash('k', key)
 				emit(h, h)
+				toks[len(toks)-1].keyword = true
+				afterValue = !sx.regexLiterals || !regexAfterKeyword[string(key)]
 			} else {
 				emit(0, fnvHash('i', key))
 			}
@@ -219,6 +354,7 @@ func tokenize(src []byte, sx *syntax) []token {
 			}
 			h := fnvHash('n', asciiLower(src[start:i]))
 			emit(h, h)
+			afterValue = true
 			continue
 		}
 
@@ -231,8 +367,17 @@ func tokenize(src []byte, sx *syntax) []token {
 			}
 			h := fnvHash('p', src[i:i+size])
 			emit(h, h)
+			afterValue = false
 			i += size
 			continue
+		}
+		if c == '/' && sx.regexLiterals && !afterValue {
+			if end, ok := scanRegex(src, i); ok {
+				emit(hashRegex, fnvHash('r', src[i:end]))
+				afterValue = true
+				i = end
+				continue
+			}
 		}
 		width := 1
 		if i+3 <= n && ops3[string(src[i:i+3])] {
@@ -242,6 +387,7 @@ func tokenize(src []byte, sx *syntax) []token {
 		}
 		h := fnvHash('p', src[i:i+width])
 		emit(h, h)
+		afterValue = valueEnd(src[i : i+width])
 		i += width
 	}
 	return toks

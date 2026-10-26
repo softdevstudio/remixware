@@ -28,6 +28,10 @@ func standardLicenseText(id string) string {
 	return strings.TrimSpace(strings.Join(keep, "\n"))
 }
 
+// unfinishedMark ends every line remixware notice writes for the user to
+// finish. An entry that still has one doesn't count as credit.
+const unfinishedMark = "before you ship this"
+
 // NoticeHeader starts a new third-party notices file.
 const NoticeHeader = `# Third-party notices
 
@@ -109,21 +113,38 @@ func writeNoticeEntry(b *strings.Builder, e *noticeEntry, texts *ComponentTexts,
 		fmt.Fprintf(b, "- Home: %s\n", s.URL)
 	}
 	fmt.Fprintf(b, "- Used in: %s\n\n", strings.Join(e.usedIn, ", "))
-	text := ""
+	// The component's own licence files come first. Every licence the
+	// copy carries needs its text: a file headed Apache-2.0 in an MIT
+	// project needs both.
+	var parts []string
+	covered := map[string]bool{}
+	ids := noticeLicenseIDs(s.License)
 	if texts != nil && strings.TrimSpace(texts.LicenseText) != "" {
-		text = strings.TrimSpace(texts.LicenseText)
-	} else {
-		var parts []string
-		for _, id := range noticeLicenseIDs(s.License) {
-			if t := standardLicenseText(id); t != "" {
-				parts = append(parts, t)
-			} else {
-				parts = append(parts, fmt.Sprintf("Full text of %s: https://spdx.org/licenses/%s.html (copy it here before you ship this)", id, id))
-				out.Warnings = append(out.Warnings, s.label()+": the "+id+" text isn't built in, copy it from https://spdx.org/licenses/"+id+".html")
-			}
+		own := strings.TrimSpace(texts.LicenseText)
+		parts = append(parts, own)
+		for _, id := range licensesIn(normText(own)) {
+			covered[strings.ToLower(id)] = true
 		}
-		text = strings.Join(parts, "\n\n")
+		if len(ids) == 1 {
+			covered[strings.ToLower(ids[0])] = true // the text is that licence, even if unnamed
+		}
 	}
+	for _, id := range ids {
+		if covered[strings.ToLower(id)] {
+			continue
+		}
+		switch t := standardLicenseText(id); {
+		case t != "":
+			parts = append(parts, t)
+		case strings.HasPrefix(id, "LicenseRef-") || id == LicenseNoAssertion || id == LicenseNone:
+			parts = append(parts, "Licence text: copy it from the source "+unfinishedMark+".")
+			out.Warnings = append(out.Warnings, s.label()+": the licence text isn't known, copy it from the source")
+		default:
+			parts = append(parts, fmt.Sprintf("Full text of %s: https://spdx.org/licenses/%s.html (copy it here %s)", id, id, unfinishedMark))
+			out.Warnings = append(out.Warnings, s.label()+": the "+id+" text isn't built in, copy it from https://spdx.org/licenses/"+id+".html")
+		}
+	}
+	text := strings.Join(parts, "\n\n")
 	// Copyright lines the licence text doesn't already carry.
 	var lines []string
 	lowText := strings.ToLower(text)
@@ -139,7 +160,7 @@ func writeNoticeEntry(b *strings.Builder, e *noticeEntry, texts *ComponentTexts,
 		}
 		b.WriteString("\n")
 	case len(s.Copyrights) == 0:
-		b.WriteString("Copyright: not known. Copy the copyright line from the source before you ship this.\n\n")
+		b.WriteString("Copyright: not known. Copy the copyright line from the source " + unfinishedMark + ".\n\n")
 		out.Warnings = append(out.Warnings, s.label()+": copyright line not known, copy it from the source")
 	}
 	b.WriteString("```text\n")

@@ -161,7 +161,6 @@ func scanossFinding(rel string, m scanossMatch, project string) Finding {
 	f := Finding{File: rel, Lines: span(lines), Source: src,
 		Match: Match{Kind: m.ID, Coverage: round2(cov), WholeFile: m.ID == "file"}}
 	f.score = cov * float64(f.Lines.len())
-	f.ID = findingID(rel, src)
 	return f
 }
 

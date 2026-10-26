@@ -65,6 +65,13 @@ content and config values only; never touch the theme).
   README.md.
 - In the sandbox, don't `rm -rf` with globs or variables (the safety check
   blocks it); delete named paths.
+- Any change to tokenizing or fingerprinting must bump `normVersion` in
+  fingerprint.go, so old indexes are refused instead of quietly matching
+  less. `TestFingerprintsMatchNormVersion` fails until the digest for the
+  new version is recorded in it.
+- Indexes and results files from elsewhere are untrusted input: keep
+  `Index.validate`, `Index.readable` and `projectPath` in the way of every
+  file read they could steer.
 
 ## State
 
@@ -73,7 +80,11 @@ Remixware JSON import with `--from`; policy file with allow rules; HTML,
 JSON and SPDX 2.3 reports; 15 syntax families; CRLF-safe. Benchmark on 14
 real projects plus 9 unrelated ones recorded in test/results (licences of
 all 14 detected as expected; 0 wrong sources; the only matches in the
-unrelated projects are typer's real copies of click). Not yet released.
+unrelated projects are typer's real copies of click). The first
+independent review found 16 problems (file headers hiding copyleft, EUPL
+read as GPL, crafted indexes reading local files, checks passing on empty
+scans, loose credit matching, SPDX snippets without byte ranges, and
+more); all were fixed with tests before release. Not yet released.
 
 ## Gaps and to-do
 
@@ -89,6 +100,12 @@ Known gaps, not planned yet:
   to finish the entry by hand.
 - The Flask docs theme in requests (a BSD text with an extra request) is
   reported as LicenseRef-Unrecognised, which is honest but means review.
+- Python namespace packages installed without RECORD files (rare, old
+  installers) take the licences of every distribution sharing the folder.
+- A licence file that points elsewhere and then quotes a different licence
+  for a binary (Go's crypto/internal/boring LICENSE: Go licence for the
+  code, OpenSSL for a .syso) is read as the quoted licence.
+- GPL-1.0 combinations are handled only roughly; it's rare.
 
 ## Next
 

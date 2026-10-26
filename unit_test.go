@@ -1,6 +1,10 @@
 package remixware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io/fs"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -73,6 +77,12 @@ func TestTokenizeLanguages(t *testing.T) {
 		{"python string prefixes", synPython, "x = rb'abc'\n", "x = 'zzzzz'\n"},
 		{"python prefixed docstring", synPython, "def f():\n    r\"\"\"Doc \"quoted\" text.\"\"\"\n    return 1\n", "def f():\n    'x'\n    return 1\n"},
 		{"js template literal", synJS, "const s = `a ${b} c`;\n", "const s = 'q';\n"},
+		// A quote, // or /* inside a regular expression must not start a
+		// string or a comment that swallows the code after it.
+		{"js regex with a quote", synJS, "x = s.replace(/'/g, \"\\\\'\");\ny = a / b;\n", "x = s.replace(/q/g, 'z');\ny = a / b;\n"},
+		{"js regex with slashes", synJS, "ok = /^https?:\\/\\//.test(u);\nn = 2;\n", "ok = /x/.test(u);\nn = 2;\n"},
+		{"js regex with a comment start", synJS, "p = p.replace(/\\/*$/, '');\nq = 1;\n", "p = p.replace(/x/, '');\nq = 1;\n"},
+		{"js regex class and keyword", synJS, "return /[/\"]/i.test(s);\n", "return /x/.test(s);\n"},
 		{"shell hash in variables", synShell, "n=${#arr}\necho $# # count\n", "n=${#arr}\necho $#\n"},
 		{"sql case and comments", synSQL, "SELECT id FROM t -- all\n", "select id from t\n"},
 		{"ruby block comment", synRuby, "=begin\nanything\n=end\nx = 1\n", "x = 1\n"},
@@ -86,6 +96,14 @@ func TestTokenizeLanguages(t *testing.T) {
 			t.Errorf("%s: %q and %q tokenize differently (%d vs %d tokens)", c.name, c.a, c.b, len(na), len(nb))
 		}
 		_ = ea
+	}
+	// Division stays division: after a name, a number, a closing bracket or n++.
+	for _, src := range []string{"a = b / 2; c = d / 3;\n", "x = (a) / b / c;\n", "y = arr[i] / n++ / 2;\n", "z = this / 2 / 3;\n"} {
+		for _, k := range tokenize([]byte(src), synJS) {
+			if k.norm == hashRegex {
+				t.Errorf("%q: division read as a regular expression", src)
+			}
+		}
 	}
 	// Rust lifetimes are not char literals that swallow the line.
 	if n := count("fn f<'a>(x: &'a str) -> &'a str { x }", synRust); n < 18 {
@@ -154,7 +172,7 @@ func TestWinnowingGuarantee(t *testing.T) {
 		out := make([]token, n)
 		for i := range out {
 			v := uint64(rng.Int63()) | 1
-			out[i] = token{norm: v, exact: v, line: int32(i/8 + 1)}
+			out[i] = token{norm: v, exact: v, line: int32(i/8 + 1), keyword: true}
 		}
 		return out
 	}
@@ -244,6 +262,26 @@ func TestDetectLicense(t *testing.T) {
 		{"MIT OR Apache-2.0", "# SPDX-License-Identifier: MIT OR Apache-2.0"},
 		{"", "Copyright 2020 Someone. All rights reserved."},
 		{"", "Use of this source code is governed by a BSD-style license that can be found in the LICENSE file."},
+		// Licences that name the GPL further on, in a compatibility list.
+		{"EUPL-1.2", "EUROPEAN UNION PUBLIC LICENCE v. 1.2\nEUPL © the European Union 2007, 2016\nThis European Union Public Licence (the 'EUPL') applies to the Work.\nAppendix\n'Compatible Licences' according to Article 5 EUPL are:\n- GNU General Public License (GPL) v. 2, v. 3"},
+		{"EUPL-1.1", "European Union Public Licence\nV. 1.1\nEUPL © the European Community 2007\nAppendix\n'Compatible Licences' are: GNU General Public License (GNU GPL) v. 2"},
+		{"CeCILL-2.1", "CeCILL FREE SOFTWARE LICENSE AGREEMENT\n\nVersion 2.1 dated 2013-06-21\n\nNotice\n5.3.4. COMPATIBILITY WITH THE GNU GPL: the GNU General Public License version 2 or 3"},
+		{"CeCILL-B", "CeCILL-B FREE SOFTWARE LICENSE AGREEMENT\n\nNotice\nThis Agreement is a Free Software license agreement"},
+		{"CeCILL-C", "CONTRAT DE LICENCE DE LOGICIEL LIBRE CeCILL-C\n\nAvertissement"},
+		// Licences that start like others.
+		{"Apache-1.1", "The Apache Software License, Version 1.1\n\nCopyright (c) 2000 The Apache Software Foundation.  All rights reserved.\n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:"},
+		{"CDDL-1.0", "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0\n\n1. Definitions.\n\n1.1. Contributor means each individual or entity that creates Modifications."},
+		{"CDDL-1.1", "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)\nVersion 1.1\n\n1. Definitions.\n\n1.1. Contributor means each individual or entity that creates Modifications."},
+		{"MIT", "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction.\n\nThe above copyright notice and this permission notice (including the next paragraph) shall be included in all copies or substantial portions of the Software."},
+		{"X11", "Permission is hereby granted, free of charge, to any person obtaining a copy of this software. The above copyright notice and this permission notice shall be included in all copies.\nExcept as contained in this notice, the name of the X Consortium shall not be used in advertising."},
+		{"JSON", "Copyright (c) 2002 JSON.org\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nThe Software shall be used for Good, not Evil."},
+		{"Unicode-3.0", "UNICODE LICENSE V3\n\nCOPYRIGHT AND PERMISSION NOTICE\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of data files and any associated documentation (the \"Data Files\") or software, provided that either (a) this copyright and permission notice appear with all copies of the Data Files or Software, or (b) this copyright and permission notice appear in associated Documentation."},
+		{"Unicode-DFS-2016", "UNICODE, INC. LICENSE AGREEMENT - DATA FILES AND SOFTWARE\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of the Unicode data files and any associated documentation (the \"Data Files\"), provided that either (a) this copyright and permission notice appear with all copies of the Data Files or Software."},
+		{"HPND", "Permission to use, copy, modify and distribute this software and its documentation for any purpose and without fee is hereby granted, provided that the above copyright notice appear in all copies."},
+		// A full GPL text says "or any later version" in its "how to apply"
+		// appendix; only a preface before the terms makes it "or later".
+		{"GPL-2.0-only", "GNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991\nPreamble\nTERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n0. This License applies\nHow to Apply These Terms\neither version 2 of the License, or (at your option) any later version."},
+		{"GPL-2.0-or-later", "This program is licensed under the GNU General Public License, version 2 or (at your option) any later version.\n\nGNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991\nTERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\nHow to Apply These Terms\neither version 2 of the License, or (at your option) any later version."},
 	}
 	for _, c := range cases {
 		if got := DetectLicense(c.text); got != c.want {
@@ -281,6 +319,13 @@ func TestCompatibility(t *testing.T) {
 		{"Unlicense", "GPL-2.0-only", baseOK},
 		{"Apache-2.0", "GPL-2.0-only", baseConflict},
 		{"Apache-2.0", "GPL-3.0-or-later", baseAttribution},
+		{"Apache-2.0", "GPL-2.0-or-later", baseReview},  // fits only under GPL-3.0
+		{"Apache-2.0", "LGPL-2.1-or-later", baseReview}, // fits only under LGPL-3.0
+		{"Apache-2.0", "LGPL-2.1-only", baseConflict},
+		{"Apache-2.0", "LGPL-3.0-only", baseAttribution},
+		{"Apache-1.1", "GPL-3.0-only", baseConflict},
+		{"Apache-1.1", "MIT", baseAttribution},
+		{"GPL-3.0-only", "LGPL-2.1-or-later", baseConflict},
 		{"GPL-3.0-or-later", "MIT", baseConflict},
 		{"GPL-3.0-only", "GPL-2.0-only", baseConflict},
 		{"GPL-2.0-or-later", "GPL-3.0-only", baseAttribution},
@@ -289,7 +334,28 @@ func TestCompatibility(t *testing.T) {
 		{"GPL-3.0-only", "GPL-2.0-or-later", baseReview},
 		{"AGPL-3.0-or-later", "MIT", baseConflict},
 		{"AGPL-3.0-only", "GPL-3.0-only", baseReview},
-		{"AGPL-3.0-only", "AGPL-3.0-or-later", baseAttribution},
+		{"AGPL-3.0-only", "AGPL-3.0-or-later", baseReview}, // the project can't move past 3.0
+		{"AGPL-3.0-or-later", "AGPL-3.0-only", baseAttribution},
+		{"GPL-3.0-only", "GPL-3.0-or-later", baseReview},
+		{"LGPL-2.1-only", "LGPL-2.1-or-later", baseReview},
+		{"GPL-1.0-only", "GPL-2.0-only", baseConflict},
+		{"GPL-2.0-only", "GPL-1.0-only", baseConflict},
+		{"GPL-1.0-or-later", "GPL-3.0-only", baseAttribution},
+		{"GPL-2.0-or-later", "GPL-1.0-or-later", baseReview},
+		{"GPL-3.0-only", "EUPL-1.2", baseConflict},
+		{"EUPL-1.2", "EUPL-1.2", baseAttribution},
+		{"EUPL-1.2", "GPL-3.0-only", baseReview},
+		{"CeCILL-2.1", "GPL-3.0-only", baseReview},
+		{"CeCILL-2.1", "MIT", baseConflict},
+		{"CeCILL-B", "MIT", baseAttribution},
+		{"LicenseRef-Proprietary", "LicenseRef-Proprietary", baseReview},
+		{"LicenseRef-Proprietary", "NONE", baseReview},
+		{"LicenseRef-Proprietary", "MIT", baseConflict},
+		{"Apache-2.0 WITH Commons-Clause", "MIT", baseConflict},
+		{"Apache-2.0 WITH LLVM-exception", "MIT", baseAttribution},
+		{"JSON", "MIT", baseReview},
+		{"LGPL-2.1-only", "LGPL-3.0-only", baseReview},
+		{"LGPL-3.0-only", "LGPL-2.1-only", baseConflict},
 		{"LGPL-2.1-only", "MIT", baseReview},
 		{"LGPL-2.1-only", "GPL-3.0-only", baseAttribution},
 		{"LGPL-3.0-only", "GPL-2.0-only", baseConflict},
@@ -313,6 +379,21 @@ func TestCompatibility(t *testing.T) {
 	}
 	if r := evaluate("GPL-3.0-only", "MIT").reason; !strings.Contains(r, "an MIT project") {
 		t.Errorf("reason reads %q", r)
+	}
+	if r := evaluate("Apache-2.0", "GPL-2.0-or-later").reason; !strings.Contains(r, "version 3") || !strings.Contains(r, "GPL-3.0 accepts") {
+		t.Errorf("Apache into GPL-2.0-or-later reads %q", r)
+	}
+	if r := evaluate("Apache-2.0", "LGPL-2.1-or-later").reason; !strings.Contains(r, "LGPL-3.0 accepts") {
+		t.Errorf("Apache into LGPL-2.1-or-later reads %q", r)
+	}
+	if r := evaluate("GPL-3.0-only", "LGPL-2.1-or-later").reason; !strings.Contains(r, "unless the whole program is released under GPL-3.0-only") {
+		t.Errorf("GPL into LGPL reads %q", r)
+	}
+	if r := evaluate("GPL-3.0-only", "EUPL-1.2").reason; strings.Contains(r, "can't be combined") {
+		t.Errorf("GPL into EUPL reads %q", r)
+	}
+	if r := evaluate("LicenseRef-Proprietary", "NONE").reason; !strings.Contains(r, "same owner") {
+		t.Errorf("proprietary into unlicensed reads %q", r)
 	}
 }
 
@@ -349,6 +430,52 @@ func writeTemp(t *testing.T, dir, name, content string) string {
 		t.Fatal(err)
 	}
 	return p
+}
+
+// A file's header can add to its component's licence or make it more
+// precise, but never hide a stricter one. Only comments count.
+func TestFileHeaderLicences(t *testing.T) {
+	const rust = "// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or\n" +
+		"// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license\n" +
+		"// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your\n" +
+		"// option. This file may not be copied, modified, or distributed\n" +
+		"// except according to those terms.\npub fn f() {}\n"
+	const gplLater = "/* This program is free software; you can redistribute it and/or modify it under the terms of\n" +
+		" * the GNU General Public License as published by the Free Software Foundation; either version 2\n" +
+		" * of the License, or (at your option) any later version. */\nint x;\n"
+	cases := []struct{ name, comp, file, src, want string }{
+		{"a mention of where the code came from", "GPL-3.0-or-later", "a.go",
+			"// Based on code from fastsort, released under the MIT license.\npackage x\n", "GPL-3.0-or-later AND MIT"},
+		{"a GPL file inside an MIT project", "MIT", "b.c", gplLater, "GPL-2.0-or-later AND MIT"},
+		{"a dual header that matches Cargo.toml", "MIT OR Apache-2.0", "c.rs", rust, ""},
+		{"a dual header and no other licence", "NONE", "d.rs", rust, "Apache-2.0 OR MIT"},
+		{"or later makes the full text precise", "GPL-2.0-only", "e.c", gplLater, "GPL-2.0-or-later"},
+		{"the component's own licence", "Apache-2.0", "f.go", "// Licensed under the Apache License, Version 2.0 (the \"License\");\npackage x\n", ""},
+		{"the only licence there is", "NONE", "g.py", "# Licensed under the MIT License.\nx = 1\n", "MIT"},
+		{"only where the code came from", "NONE", "h.py", "# Adapted from code released under the MIT License.\nx = 1\n", ""},
+		{"licence words in code", "MIT", "i.go", "package x\n\nconst notice = \"Licensed under the GNU General Public License\"\n", ""},
+		{"an SPDX tag in code", "MIT", "j.go", "package x\n\nconst tag = \"SPDX-License-Identifier: GPL-3.0-only\"\n", ""},
+		{"an SPDX tag in the header", "MIT", "k.go", "// SPDX-License-Identifier: GPL-2.0-only OR MIT\npackage x\n", "GPL-2.0-only OR MIT"},
+		{"a python docstring after a shebang", "NONE", "l.py", "#!/usr/bin/env python\n\"\"\"Licensed under the Apache License, Version 2.0.\"\"\"\nimport os\n", "Apache-2.0"},
+		{"a PHP header", "NONE", "m.php", "<?php\n/*\n * Licensed under the MIT License.\n */\nfunction f() {}\n", "MIT"},
+		{"a C header after an include guard", "NONE", "n.h", "#ifndef X_H\n#define X_H\n/* Licensed under the MIT License. */\nint x;\n", "MIT"},
+	}
+	dir := t.TempDir()
+	for _, c := range cases {
+		p := writeTemp(t, dir, c.file, c.src)
+		r := fingerprintSourceFile(pendingFile{abs: p, rel: c.file}, c.comp, true)
+		if r.sf == nil {
+			t.Fatalf("%s: not fingerprinted (%s)", c.name, r.skip)
+		}
+		if r.sf.License != c.want {
+			t.Errorf("%s: file licence %q, want %q", c.name, r.sf.License, c.want)
+		}
+	}
+	// With --license, the user has said what all the code is under.
+	p := writeTemp(t, dir, "o.c", gplLater)
+	if r := fingerprintSourceFile(pendingFile{abs: p, rel: "o.c"}, "LicenseRef-Proprietary", false); r.sf.License != "" {
+		t.Errorf("--license: file licence %q, want none of its own", r.sf.License)
+	}
 }
 
 func TestManifests(t *testing.T) {
@@ -461,6 +588,104 @@ func TestLicenceFiles(t *testing.T) {
 			t.Errorf("%s %.40q: licence %q with %d copyright lines, want %q with %d", c.name, c.text, expr, len(cr), c.license, c.copyrights)
 		}
 	}
+
+	// Several licence files: all apply, unless each names one licence of a
+	// choice in its file name, or a statement says the project is dual
+	// licensed.
+	apache, _ := licenseTextFS.ReadFile("licensetexts/Apache-2.0.txt")
+	unlicense := "This is free and unencumbered software released into the public domain.\n"
+	gpl := "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\nTERMS AND CONDITIONS\n0. Definitions.\n"
+	sets := []struct {
+		name  string
+		files map[string]string
+		want  string
+	}{
+		{"rust style", map[string]string{"LICENSE-MIT": string(mit), "LICENSE-APACHE": string(apache)}, "Apache-2.0 OR MIT"},
+		{"dual statement", map[string]string{"COPYING": "This project is dual-licensed under the Unlicense and MIT licenses.\n\nYou may use this code under the terms of either license.\n",
+			"LICENSE-MIT": string(mit), "UNLICENSE": unlicense}, "MIT OR Unlicense"},
+		{"licence and third-party licence", map[string]string{"LICENSE": gpl, "LICENSE-THIRD-PARTY": string(mit)}, "GPL-3.0-only AND MIT"},
+		{"two plain files", map[string]string{"LICENSE": string(mit), "COPYING": gpl}, "GPL-3.0-only AND MIT"},
+	}
+	for i, set := range sets {
+		var paths []string
+		for name, text := range set.files {
+			paths = append(paths, writeTemp(t, dir, filepath.Join(fmt.Sprintf("set%d", i), name), text))
+		}
+		sort.Strings(paths)
+		if expr, _, _, _ := licenseFromFiles(paths); expr != set.want {
+			t.Errorf("%s: licence %q, want %q", set.name, expr, set.want)
+		}
+	}
+}
+
+// A Cargo workspace member takes the workspace's licence.
+func TestCargoWorkspaceLicence(t *testing.T) {
+	dir := t.TempDir()
+	writeTemp(t, dir, "Cargo.toml", "[workspace]\nmembers = [\"crates/foo\"]\n\n[workspace.package]\nlicense = \"MIT OR Apache-2.0\"\nversion = \"0.4.0\"\n")
+	p := writeTemp(t, dir, "crates/foo/Cargo.toml", "[package]\nname = \"foo\"\nversion.workspace = true\nlicense = { workspace = true }\n")
+	m := readManifest(filepath.Dir(p), "Cargo.toml")
+	if m == nil || m.license != "MIT OR Apache-2.0" || m.version != "0.4.0" {
+		t.Errorf("workspace member: %+v", m)
+	}
+}
+
+// Two Python distributions that install into one namespace folder each get
+// their own files, by their RECORD; files no RECORD lists take both
+// licences.
+func TestPythonNamespacePackages(t *testing.T) {
+	dir := t.TempDir()
+	sp := filepath.Join(dir, "site-packages")
+	body := "def read_token(path):\n    with open(path) as f:\n        data = f.read()\n    return data.strip()\n"
+	writeTemp(t, sp, "google_auth-2.0.0.dist-info/METADATA", "Name: google-auth\nVersion: 2.0.0\nLicense: Apache 2.0\n\n")
+	writeTemp(t, sp, "google_auth-2.0.0.dist-info/top_level.txt", "google\n")
+	writeTemp(t, sp, "google_auth-2.0.0.dist-info/RECORD", "google/auth/creds.py,sha256=x,10\ngoogle_auth-2.0.0.dist-info/METADATA,,\n")
+	writeTemp(t, sp, "protobuf-4.0.0.dist-info/METADATA", "Name: protobuf\nVersion: 4.0.0\nLicense: BSD-3-Clause\n\n")
+	writeTemp(t, sp, "protobuf-4.0.0.dist-info/top_level.txt", "google\n")
+	writeTemp(t, sp, "protobuf-4.0.0.dist-info/RECORD", "google/protobuf/msg.py,sha256=y,10\n")
+	writeTemp(t, sp, "google/auth/creds.py", body)
+	writeTemp(t, sp, "google/protobuf/msg.py", body+"\n# protobuf\n")
+	writeTemp(t, sp, "google/stray.py", body+"\n# stray\n")
+	ix, err := BuildIndex([]string{sp}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, f := range ix.Files {
+		got[filepath.ToSlash(f.Path)] = ix.Components[f.Comp].Name + " " + ix.Components[f.Comp].License
+	}
+	want := map[string]string{"auth/creds.py": "google-auth Apache-2.0", "protobuf/msg.py": "protobuf BSD-3-Clause",
+		"stray.py": "site-packages/google Apache-2.0 AND BSD-3-Clause"}
+	for f, w := range want {
+		if got[f] != w {
+			t.Errorf("%s: %q, want %q (all: %v)", f, got[f], w, got)
+		}
+	}
+}
+
+// Indexing never follows a symbolic link out of the tree: a NOTICE that
+// links to a secret must not end up in the index or in a notice.
+func TestSymlinkedLicenceFilesAreNotRead(t *testing.T) {
+	dir := t.TempDir()
+	secret := writeTemp(t, dir, "secret.txt", "AWS_SECRET_ACCESS_KEY=hunter2\nPermission is hereby granted, free of charge\n")
+	up := filepath.Join(dir, "up")
+	writeTemp(t, up, "tool/main.go", "package main\n\nfunc main() {}\n")
+	for _, name := range []string{"NOTICE", "LICENSE"} {
+		if err := os.Symlink(secret, filepath.Join(up, "tool", name)); err != nil {
+			t.Skip("no symbolic links here:", err)
+		}
+	}
+	ix, err := BuildIndex([]string{up}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range ix.Components {
+		if strings.Contains(c.NoticeText+c.LicenseText, "hunter2") || c.License == "MIT-0" || c.License == "MIT" {
+			t.Errorf("%s read the linked file: licence %q, notice %q", c.Name, c.License, c.NoticeText)
+		}
+	}
+	if readSmall("/dev/zero", 1<<20) != "" {
+		t.Error("readSmall read a device")
+	}
 }
 
 func TestComponentNames(t *testing.T) {
@@ -548,6 +773,36 @@ func TestCredit(t *testing.T) {
 	if !credited("uses click@8.1.7 (bsd-3-clause)", versioned) || credited("click the button", versioned) {
 		t.Errorf("versioned key credit wrong")
 	}
+	// A longer name that starts the same is another project.
+	tool := Source{Key: "github.com/acme/tool", Component: "github.com/acme/tool", URL: "https://github.com/acme/tool", License: "Apache-2.0"}
+	for notice, want := range map[string]bool{
+		"## github.com/acme/tool-extras\n- source: github.com/acme/tool-extras": false,
+		"see https://github.com/acme/tool.":                                     true,
+		"code from github.com/acme/tool/v2/internal":                            true,
+		"evil.github.com/acme/tool":                                             false,
+	} {
+		if got := credited(notice, tool); got != want {
+			t.Errorf("%q: credited %v, want %v", notice, got, want)
+		}
+	}
+	// An entry remixware notice left unfinished isn't credit yet.
+	unfinished := "## errors\n\n- source: errors\n\ncopyright: not known. copy the copyright line from the source before you ship this.\n"
+	if credited(unfinished, plain) || !credited(unfinished+"\n## errors again\n- source: errors\n", plain) {
+		t.Errorf("unfinished entries counted as credit, or finished ones didn't")
+	}
+}
+
+// A notice carries the text of every licence the copy is under, not just
+// the component's own licence file.
+func TestNoticeCarriesEveryLicenceText(t *testing.T) {
+	mit := standardLicenseText("MIT")
+	res := &Results{Findings: []Finding{{File: "a.go", Lines: Range{1, 20}, Status: StatusAttributionMissing,
+		Source: Source{Key: "x", Component: "x", License: "Apache-2.0 AND MIT", Copyrights: []string{"Copyright 2020 X Ltd"}}}},
+		Texts: map[string]*ComponentTexts{"x": {LicenseText: mit}}}
+	nr := Notices(res, "", false)
+	if !strings.Contains(nr.Text, "Permission is hereby granted") || !strings.Contains(nr.Text, "Apache License") {
+		t.Errorf("notice lacks a licence text:\n%s", nr.Text)
+	}
 }
 
 func TestJoinPieces(t *testing.T) {
@@ -586,5 +841,44 @@ func TestJoinPieces(t *testing.T) {
 		if c.name == "lines removed from the copy" && out[0].Match.Kind != "edited" {
 			t.Errorf("%s: kind %s, want edited", c.name, out[0].Match.Kind)
 		}
+	}
+}
+
+// fingerprintDigest hashes the fingerprints of every fixture file, so a
+// change to tokenizing or fingerprinting shows up as a new digest.
+func fingerprintDigest(t *testing.T) string {
+	t.Helper()
+	var paths []string
+	filepath.WalkDir(filepath.Join("testdata", "upstream"), func(p string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() && languageFor(p) != nil {
+			paths = append(paths, p)
+		}
+		return nil
+	})
+	sort.Strings(paths)
+	h := sha256.New()
+	for _, p := range paths {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		sx := languageFor(p)
+		for _, f := range winnow(tokenize(data, sx), sx) {
+			fmt.Fprintf(h, "%x %x %d %d %d\n", f.hash, f.exact, f.pos, f.line, f.end)
+		}
+	}
+	return hex.EncodeToString(h.Sum(nil))[:16]
+}
+
+// Indexes record normVersion, and a scan refuses an index made with
+// another one. Any change to how files are tokenized or fingerprinted must
+// bump normVersion, or old indexes would load and quietly stop matching.
+// This test fails on such a change until both are updated.
+func TestFingerprintsMatchNormVersion(t *testing.T) {
+	want := map[int]string{2: "e2e87159540efb43"}[normVersion]
+	if got := fingerprintDigest(t); got != want {
+		t.Fatalf("the fingerprints of testdata/upstream changed (digest %s, want %q for normVersion %d). "+
+			"If tokenizing or fingerprinting changed, bump normVersion in fingerprint.go; then, or if only the fixtures changed, record the new digest here",
+			got, want, normVersion)
 	}
 }

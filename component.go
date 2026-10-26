@@ -2,6 +2,7 @@ package remixware
 
 import (
 	"bufio"
+	"encoding/csv"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -43,6 +44,7 @@ type manifest struct {
 	licFile  string
 	url      string
 	topLevel []string // Python: packages this distribution installs
+	record   []string // Python: the files this distribution installed, from its RECORD
 }
 
 func (m *manifest) purl() string {
@@ -133,12 +135,21 @@ func readManifest(dir, name string) *manifest {
 	return nil
 }
 
+// readSmall reads up to max bytes of a regular file. Symbolic links and
+// special files read as empty: a licence or notice file that links to
+// /etc/passwd, or to /dev/zero, must not end up in an index or a notice.
 func readSmall(path string, max int64) string {
+	if st, err := os.Lstat(path); err != nil || !st.Mode().IsRegular() {
+		return ""
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return ""
 	}
 	defer f.Close()
+	if st, err := f.Stat(); err != nil || !st.Mode().IsRegular() {
+		return ""
+	}
 	buf := make([]byte, max)
 	n, _ := f.Read(buf)
 	for n < int(max) {
@@ -304,25 +315,69 @@ func tomlSection(text, section string) map[string]string {
 				out[key] = val[1 : end+1]
 			}
 		case strings.HasPrefix(val, "{"):
-			// license = { text = "MIT" } or { file = "LICENSE" }
+			// license = { text = "MIT" } or { file = "LICENSE" }, and Cargo's
+			// license = { workspace = true }
 			for _, sub := range []string{"text", "file"} {
 				re := regexp.MustCompile(sub + `\s*=\s*["']([^"']+)["']`)
 				if m := re.FindStringSubmatch(val); m != nil {
 					out[key+"."+sub] = m[1]
 				}
 			}
+			if workspaceTrue.MatchString(val) {
+				out[key+".workspace"] = "true"
+			}
+		default:
+			// license.workspace = true
+			if i := strings.Index(val, "#"); i >= 0 {
+				val = strings.TrimSpace(val[:i])
+			}
+			out[key] = val
 		}
 	}
 	return out
 }
+
+var workspaceTrue = regexp.MustCompile(`workspace\s*=\s*true`)
 
 func readCargoToml(path string) *manifest {
 	pkg := tomlSection(readSmall(path, 256<<10), "package")
 	if pkg["name"] == "" {
 		return nil
 	}
-	return &manifest{kind: "cargo", name: pkg["name"], version: pkg["version"], license: pkg["license"],
-		licFile: pkg["license-file"], url: cleanRepoURL(pkg["repository"])}
+	// A crate in a workspace can take these from the workspace's
+	// Cargo.toml: license.workspace = true.
+	var ws map[string]string
+	inherit := func(key string) string {
+		if pkg[key+".workspace"] != "true" {
+			return pkg[key]
+		}
+		if ws == nil {
+			ws = cargoWorkspace(filepath.Dir(path))
+		}
+		return ws[key]
+	}
+	return &manifest{kind: "cargo", name: pkg["name"], version: inherit("version"), license: inherit("license"),
+		licFile: inherit("license-file"), url: cleanRepoURL(inherit("repository"))}
+}
+
+// cargoWorkspace returns the [workspace.package] table of the Cargo
+// workspace a crate folder belongs to: the nearest Cargo.toml at or above it
+// with a [workspace] table.
+func cargoWorkspace(dir string) map[string]string {
+	for i := 0; i < 8; i++ {
+		text := readSmall(filepath.Join(dir, "Cargo.toml"), 256<<10)
+		for _, line := range strings.Split(text, "\n") {
+			if strings.TrimSpace(line) == "[workspace]" {
+				return tomlSection(text, "workspace.package")
+			}
+		}
+		up := filepath.Dir(dir)
+		if up == dir {
+			break
+		}
+		dir = up
+	}
+	return map[string]string{}
 }
 
 func readPyproject(path string) *manifest {
@@ -423,13 +478,64 @@ func readDistInfo(dir string) (*manifest, []string) {
 	if len(m.topLevel) == 0 && m.name != "" {
 		m.topLevel = []string{strings.ReplaceAll(strings.ToLower(m.name), "-", "_")}
 	}
+	// RECORD lists every file the distribution installed, relative to
+	// site-packages. It is what tells two distributions that share a
+	// namespace package apart: google-auth and protobuf both install into
+	// google/.
+	if rec := readSmall(filepath.Join(dir, "RECORD"), 8<<20); rec != "" {
+		r := csv.NewReader(strings.NewReader(rec))
+		r.FieldsPerRecord = -1
+		r.LazyQuotes = true
+		for {
+			row, err := r.Read()
+			if err != nil {
+				break
+			}
+			if len(row) > 0 && row[0] != "" {
+				m.record = append(m.record, row[0])
+			}
+		}
+	}
 	return m, licFiles
 }
 
+// namedLicence maps what follows LICENSE- in a file name, as in LICENSE-MIT
+// or LICENSE.APACHE, to the start of the licence id it stands for.
+var namedLicence = map[string]string{"mit": "MIT", "apache": "Apache-", "apache2": "Apache-2.0", "apache-2.0": "Apache-2.0",
+	"apache-2": "Apache-2.0", "apache_2_0": "Apache-2.0", "apache2.0": "Apache-2.0", "bsd": "BSD-", "isc": "ISC",
+	"zlib": "Zlib", "unlicense": "Unlicense", "cc0": "CC0-", "boost": "BSL-", "bsl": "BSL-", "mpl": "MPL-",
+	"mpl2": "MPL-2.0", "mpl-2.0": "MPL-2.0", "gpl": "GPL-", "gpl2": "GPL-2.0", "gpl3": "GPL-3.0", "lgpl": "LGPL-",
+	"agpl": "AGPL-", "0bsd": "0BSD", "wtfpl": "WTFPL"}
+
+// licenceNamedBy returns the start of the licence id a licence file's name
+// names, as in LICENSE-MIT, LICENSE-APACHE or UNLICENSE, or "".
+func licenceNamedBy(base string) string {
+	low := strings.ToLower(base)
+	for _, ext := range []string{".txt", ".md", ".markdown", ".rst"} {
+		low = strings.TrimSuffix(low, ext)
+	}
+	if low == "unlicense" {
+		return "Unlicense"
+	}
+	for _, pre := range []string{"license", "licence", "copying"} {
+		if len(low) > len(pre)+1 && strings.HasPrefix(low, pre) && strings.ContainsRune("-_.", rune(low[len(pre)])) {
+			return namedLicence[low[len(pre)+1:]]
+		}
+	}
+	return ""
+}
+
 // licenseFromFiles reads licence files and names the licences in them.
+// Licence files usually all apply, joined with AND. Files that each carry
+// one licence in their name, such as LICENSE-MIT and LICENSE-APACHE, are a
+// choice, joined with OR: that is how Rust crates and many others say
+// "MIT or Apache-2.0". So is a short file that says the project is dual
+// licensed.
 func licenseFromFiles(paths []string) (expr string, from string, text string, copyrights []string) {
 	var ids []string
 	var froms []string
+	var option []bool // the file's licence is one of a choice
+	var choiceText string
 	for _, p := range paths {
 		t := readSmall(p, 256<<10)
 		if strings.TrimSpace(t) == "" {
@@ -437,6 +543,12 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		}
 		id := DetectLicense(t)
 		base := filepath.Base(p)
+		if id == "" && len(t) < 2000 && offersChoice(normText(t)) {
+			// "This project is dual-licensed under the Unlicense and MIT."
+			choiceText = normText(t)
+			copyrights = append(copyrights, copyrightLines(t, 10)...)
+			continue
+		}
 		if id == "" {
 			// REUSE: LICENSES/MIT.txt names the licence in the file name.
 			if dir := filepath.Base(filepath.Dir(p)); strings.EqualFold(dir, "LICENSES") {
@@ -470,9 +582,14 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		}
 		ids = append(ids, id)
 		froms = append(froms, base)
-		if text == "" || len(text) < 200 {
-			text = t
+		named := licenceNamedBy(base)
+		option = append(option, named != "" && strings.HasPrefix(id, named))
+		// Every licence file's text: a notice for an "Apache-2.0 AND MIT"
+		// component needs both.
+		if text != "" {
+			text += "\n\n----- " + base + " -----\n\n"
 		}
+		text += strings.TrimSpace(t)
 		copyrights = append(copyrights, copyrightLines(t, 10)...)
 	}
 	// An LGPL-3.0 project ships the GPL-3.0 text too, because the LGPL is
@@ -485,12 +602,14 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 	}
 	if hasLGPL3 {
 		var keep []string
-		for _, id := range ids {
+		var keepOpt []bool
+		for i, id := range ids {
 			if !strings.HasPrefix(id, "GPL-3.0") {
 				keep = append(keep, id)
+				keepOpt = append(keepOpt, option[i])
 			}
 		}
-		ids = keep
+		ids, option = keep, keepOpt
 	}
 	if len(ids) == 0 {
 		return "", "", "", dedupe(copyrights)
@@ -498,7 +617,41 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 	if len(text) > 64<<10 {
 		text = text[:64<<10]
 	}
-	return joinLicenses(ids), strings.Join(froms, ", "), text, dedupe(copyrights)
+	// A dual-licence statement makes every licence it names an option.
+	if choiceText != "" {
+		for i, id := range ids {
+			if !option[i] && mentionsLicence(choiceText, id) {
+				option[i] = true
+			}
+		}
+	}
+	var opts, rest []string
+	for i, id := range ids {
+		if option[i] {
+			opts = append(opts, id)
+		} else {
+			rest = append(rest, id)
+		}
+	}
+	if opts = dedupe(opts); len(opts) >= 2 {
+		sort.Strings(opts)
+		rest = append(rest, strings.Join(opts, " OR "))
+	} else {
+		rest = append(rest, opts...)
+	}
+	return joinLicenses(rest), strings.Join(froms, ", "), text, dedupe(copyrights)
+}
+
+// mentionsLicence reports whether a normalised text names a licence, by its
+// id ("mit", "unlicense", "apache 2 0") or by its full name.
+func mentionsLicence(t, id string) bool {
+	l := lookupLicense(id)
+	for _, name := range []string{l.ID, l.Name, strings.SplitN(l.ID, "-", 2)[0]} {
+		if n := strings.TrimSpace(normText(name)); len(n) >= 3 && strings.Contains(t, " "+n+" ") {
+			return true
+		}
+	}
+	return false
 }
 
 var (

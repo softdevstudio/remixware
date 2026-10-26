@@ -6,9 +6,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -338,6 +340,110 @@ func TestDamagedIndexIsRefused(t *testing.T) {
 	}
 }
 
+// An index from somewhere else is data, not instructions: a made-up one is
+// refused when it doesn't hold together, and its file paths can't make a
+// scan read files outside the folders it was made from.
+func TestCraftedIndexes(t *testing.T) {
+	dir := t.TempDir()
+	fresh := func() *Index {
+		ix, err := BuildIndex([]string{filepath.Join("testdata", "upstream")}, IndexOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return ix
+	}
+	refused := map[string]func(ix *Index){
+		"a missing file":              func(ix *Index) { ix.Files = append(ix.Files, nil) },
+		"a missing component":         func(ix *Index) { ix.Components = append(ix.Components, nil) },
+		"another version that isn't":  func(ix *Index) { ix.Files[0].Also = []int{999} },
+		"a component that isn't":      func(ix *Index) { ix.Files[0].Comp = -1 },
+		"a fingerprint past its file": func(ix *Index) { ix.Files[ix.fps[0].file].Tokens = 3 },
+	}
+	for name, spoil := range refused {
+		ix := fresh()
+		spoil(ix)
+		p := filepath.Join(dir, "spoiled.rmx")
+		if err := ix.Save(p); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadIndex(p); err == nil || !strings.Contains(err.Error(), "damaged") {
+			t.Errorf("%s: loaded (error %v)", name, err)
+		}
+	}
+
+	// A short file that claims a huge header or billions of fingerprints is
+	// refused without allocating for them.
+	for name, n := range map[string][2]uint64{"huge header": {1 << 30, 0}, "huge count": {0, 1 << 34}} {
+		var b bytes.Buffer
+		b.WriteString(indexMagic)
+		zw := gzip.NewWriter(&b)
+		head, _ := json.Marshal(indexHeader{Format: 1, K: kgramSize, W: windowSize, MinDistinct: minDistinct, Norm: normVersion})
+		var vb [binary.MaxVarintLen64]byte
+		if n[0] > 0 {
+			zw.Write(vb[:binary.PutUvarint(vb[:], n[0])])
+		} else {
+			zw.Write(vb[:binary.PutUvarint(vb[:], uint64(len(head)))])
+			zw.Write(head)
+			zw.Write(vb[:binary.PutUvarint(vb[:], n[1])])
+		}
+		zw.Close()
+		p := filepath.Join(dir, "huge.rmx")
+		os.WriteFile(p, b.Bytes(), 0o644)
+		var before, after runtime.MemStats
+		runtime.ReadMemStats(&before)
+		if _, err := LoadIndex(p); err == nil {
+			t.Errorf("%s: loaded", name)
+		}
+		runtime.ReadMemStats(&after)
+		if grew := after.TotalAlloc - before.TotalAlloc; grew > 64<<20 {
+			t.Errorf("%s: loading allocated %d MB", name, grew>>20)
+		}
+	}
+
+	// Paths that point outside the indexed folders, at a file that isn't
+	// source code, or at a device, are never read: the scan still finds
+	// the copy, but the report doesn't show the "source".
+	secret := writeTemp(t, dir, "local_settings.py", "SECRET_KEY = 'hunter2'\n")
+	for name, abs := range map[string]string{"outside the folders": secret, "not source code": "/etc/hostname",
+		"a device": "/dev/zero", "not clean": filepath.Join(dir, "x", "..", "local_settings.py")} {
+		ix := fresh()
+		for _, f := range ix.Files {
+			f.Abs = abs
+		}
+		if name == "outside the folders" {
+			ix.Roots = append(ix.Roots, "relative/root")
+		}
+		p := filepath.Join(dir, "paths.rmx")
+		if err := ix.Save(p); err != nil {
+			t.Fatal(err)
+		}
+		loaded, err := LoadIndex(p)
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		res, err := Scan(project("shopfront"), ScanOptions{Indexes: []*Index{loaded}})
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		Evaluate(res, nil, "")
+		if len(res.Findings) == 0 {
+			t.Errorf("%s: no findings", name)
+		}
+		var html bytes.Buffer
+		if err := WriteHTML(&html, res); err != nil {
+			t.Fatal(err)
+		}
+		for _, f := range res.Findings {
+			if f.Source.Abs != "" {
+				t.Errorf("%s: finding keeps the path %s", name, f.Source.Abs)
+			}
+		}
+		if strings.Contains(html.String(), "hunter2") {
+			t.Errorf("%s: the report shows the local file", name)
+		}
+	}
+}
+
 func TestSCANOSSImport(t *testing.T) {
 	dir := project("shopfront")
 	found, in, _, err := ImportResults(filepath.Join("testdata", "scanoss", "shopfront.json"), dir)
@@ -574,14 +680,24 @@ func TestNoticesFixAttribution(t *testing.T) {
 	if err := os.WriteFile(notesPath, append(existing, nr.Text...), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	// leftpadx has no copyright line anywhere, so its entry waits for one.
+	if len(nr.Warnings) != 1 || !strings.Contains(nr.Warnings[0], "leftpadx 1.0.4: copyright line not known") {
+		t.Errorf("warnings %v", nr.Warnings)
+	}
 	res = scanProject(t, dir, nil, ScanOptions{})
 	for _, f := range res.Findings {
-		if f.Status == StatusAttributionMissing {
-			t.Errorf("%s still misses attribution after notices were written", f.File)
+		if want := f.File == "web/pad.js"; (f.Status == StatusAttributionMissing) != want {
+			t.Errorf("%s: %s after notices were written", f.File, f.Status)
 		}
 	}
+	finished := strings.Replace(string(existing)+nr.Text, "Copyright: not known. Copy the copyright line from the source before you ship this.",
+		"Copyright (c) 2016 The leftpadx authors", 1)
+	if err := os.WriteFile(notesPath, []byte(finished), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res = scanProject(t, dir, nil, ScanOptions{})
 	if fails := Failures(res, []string{StatusAttributionMissing}); len(fails) != 0 {
-		t.Errorf("failures after notices: %v", fails)
+		t.Errorf("failures after notices were finished: %v", fails)
 	}
 	again, _ := os.ReadFile(notesPath)
 	nr2 := Notices(res, string(again), true)
@@ -603,6 +719,187 @@ func TestCopyWithHeaderIsAttributed(t *testing.T) {
 	res := scanProject(t, dir, nil, ScanOptions{})
 	if len(res.Findings) != 1 || res.Findings[0].Status != StatusAttributed || !res.Findings[0].Match.WholeFile {
 		t.Fatalf("findings %+v", res.Findings)
+	}
+}
+
+// A file the scan can't read is an error, not a quiet skip: the check
+// would pass without having looked at it.
+func TestUnreadableFilesAreErrors(t *testing.T) {
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("file permissions don't stop this user")
+	}
+	dir := copyTree(t, project("shopfront"))
+	locked := filepath.Join(dir, "internal", "files", "order.go")
+	if err := os.Chmod(locked, 0); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(locked, 0o644)
+	_, err := Scan(dir, ScanOptions{Indexes: []*Index{upstream(t)}})
+	if err == nil || !strings.Contains(err.Error(), "internal/files/order.go") {
+		t.Errorf("scan with an unreadable file: %v", err)
+	}
+}
+
+// Look-alike lines must not shift a match: "let a = a.chars()" and "let b =
+// b.chars()" have the same shape, and only the names say which is which.
+// A whole file of near-identical functions copied as is is one finding.
+func TestMatchesLineUpWithTheirSource(t *testing.T) {
+	dir := t.TempDir()
+	lev := "pub fn levenshtein(a: &str, b: &str) -> usize {\n" +
+		"    let a: Vec<char> = a.chars().collect();\n" +
+		"    let b: Vec<char> = b.chars().collect();\n" +
+		"    let mut prev: Vec<usize> = (0..=b.len()).collect();\n" +
+		"    let mut cur = vec![0; b.len() + 1];\n" +
+		"    for i in 1..=a.len() {\n" +
+		"        cur[0] = i;\n" +
+		"        for j in 1..=b.len() {\n" +
+		"            let cost = if a[i - 1] == b[j - 1] { 0 } else { 1 };\n" +
+		"            cur[j] = (prev[j] + 1).min(cur[j - 1] + 1).min(prev[j - 1] + cost);\n" +
+		"        }\n" +
+		"        std::mem::swap(&mut prev, &mut cur);\n" +
+		"    }\n" +
+		"    prev[b.len()]\n" +
+		"}\n"
+	head := strings.Repeat("// Licensed under the MIT license.\n", 9) + "\n"
+	writeTemp(t, dir, "up/strdist/Cargo.toml", "[package]\nname = \"strdist\"\nversion = \"0.3.0\"\nlicense = \"MIT\"\n")
+	writeTemp(t, dir, "up/strdist/src/lib.rs", head+lev)
+	var many strings.Builder
+	for i := 0; i < 30; i++ {
+		fmt.Fprintf(&many, "func get%d(m map[string]int, key string) (int, bool) {\n\tv, ok := m[key+\"-%d\"]\n\tif !ok {\n\t\treturn 0, false\n\t}\n\treturn v * %d, true\n}\n\n", i, i, i+2)
+	}
+	writeTemp(t, dir, "up/getters/LICENSE", string(mustRead(t, filepath.Join("licensetexts", "MIT.txt"))))
+	writeTemp(t, dir, "up/getters/get.go", "package getters\n\n"+many.String())
+	writeTemp(t, dir, "proj/dist.rs", lev)
+	writeTemp(t, dir, "proj/get.go", "package getters\n\n"+many.String())
+	ix, err := BuildIndex([]string{filepath.Join(dir, "up")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := scanProject(t, filepath.Join(dir, "proj"), nil, ScanOptions{Indexes: []*Index{ix}})
+	got := map[string]string{}
+	for _, f := range res.Findings {
+		got[f.File] += fmt.Sprintf("%s<-%s ", f.Lines, f.Source.Lines)
+	}
+	if want := "1-15<-11-25 "; got["dist.rs"] != want {
+		t.Errorf("dist.rs: %q, want %q", got["dist.rs"], want)
+	}
+	if want := "1-241<-1-241 "; got["get.go"] != want {
+		t.Errorf("get.go: %q, want %q", got["get.go"], want)
+	}
+}
+
+// Two copies from one source file into one project file are two findings
+// with two IDs.
+func TestFindingIDsAreUnique(t *testing.T) {
+	dir := t.TempDir()
+	src := mustRead(t, filepath.Join("testdata", "upstream", "fastcsv", "fastcsv.go"))
+	writeTemp(t, dir, "csv/a.go", "package csv\n\n"+mergeFunc+"\n"+string(src[strings.Index(string(src), "func "):]))
+	ixDir := t.TempDir()
+	writeTemp(t, ixDir, "merge/LICENSE", string(mustRead(t, filepath.Join("licensetexts", "MIT.txt"))))
+	writeTemp(t, ixDir, "merge/merge.go", "package merge\n\n"+mergeFunc+"\n\nvar x = 1\n\n"+strings.ReplaceAll(mergeFunc, "Merge", "MergeAgain"))
+	ix, err := BuildIndex([]string{ixDir}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeTemp(t, dir, "csv/b.go", "package csv\n\n"+mergeFunc+"\n\nfunc unrelated() int {\n\treturn 42\n}\n\n"+strings.ReplaceAll(mergeFunc, "Merge", "MergeAgain"))
+	res := scanProject(t, dir, nil, ScanOptions{Indexes: []*Index{ix, upstream(t)}})
+	seen := map[string]bool{}
+	for _, f := range res.Findings {
+		if seen[f.ID] {
+			t.Errorf("ID %s used twice", f.ID)
+		}
+		seen[f.ID] = true
+	}
+	if len(res.Findings) < 2 {
+		t.Errorf("findings %+v", res.Findings)
+	}
+}
+
+// An index with many near-identical files, like many versions of one
+// generated file, can't make the work for one scanned file grow without
+// bound: past the limit, the files sharing the most are followed up, and
+// the copy is still found.
+func TestManyNearIdenticalFilesStayBounded(t *testing.T) {
+	old := maxHitsPerFile
+	maxHitsPerFile = 300
+	defer func() { maxHitsPerFile = old }()
+	dir := t.TempDir()
+	var body strings.Builder
+	for i := 0; i < 12; i++ {
+		fmt.Fprintf(&body, "func step%d(x, y int) int {\n\tif x > %d {\n\t\treturn x*%d + y\n\t}\n\tfor k := 0; k < %d; k++ {\n\t\ty += k ^ x\n\t}\n\treturn y - %d\n}\n\n", i, i*7+3, i*5+2, i+9, i*3+1)
+	}
+	writeTemp(t, dir, "up/comp/LICENSE", string(mustRead(t, filepath.Join("licensetexts", "MIT.txt"))))
+	for v := 0; v < 40; v++ {
+		writeTemp(t, dir, fmt.Sprintf("up/comp/v%02d.go", v), fmt.Sprintf("package comp\n\nconst V = %d\n\n", v)+body.String())
+	}
+	writeTemp(t, dir, "proj/copy.go", "package proj\n\n"+body.String())
+	ix, err := BuildIndex([]string{filepath.Join(dir, "up")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := scanProject(t, filepath.Join(dir, "proj"), nil, ScanOptions{Indexes: []*Index{ix}})
+	if len(res.Findings) != 1 || res.Findings[0].Lines.len() < 100 {
+		t.Fatalf("findings %+v", res.Findings)
+	}
+}
+
+func mustRead(t *testing.T, path string) []byte {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+
+// mergeFunc is a function long enough to be reported when copied.
+const mergeFunc = "func Merge(a, b []int) []int {\n\tout := make([]int, 0, len(a)+len(b))\n\ti, j := 0, 0\n" +
+	"\tfor i < len(a) && j < len(b) {\n\t\tif a[i] <= b[j] {\n\t\t\tout = append(out, a[i])\n\t\t\ti++\n" +
+	"\t\t} else {\n\t\t\tout = append(out, b[j])\n\t\t\tj++\n\t\t}\n\t}\n\tout = append(out, a[i:]...)\n" +
+	"\tout = append(out, b[j:]...)\n\treturn out\n}\n"
+
+// A header that only says where the code came from can't make GPL code
+// pass as MIT: the copy keeps both licences and is a conflict in an
+// unlicensed project.
+func TestHeaderCantHideCopyleft(t *testing.T) {
+	dir := t.TempDir()
+	writeTemp(t, dir, "up/gplmerge/COPYING", "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\nTERMS AND CONDITIONS\n0. Definitions.\n")
+	writeTemp(t, dir, "up/gplmerge/merge.go", "// Based on code from fastmerge, released under the MIT license.\n\npackage merge\n\n"+mergeFunc)
+	writeTemp(t, dir, "proj/merge.go", "package proj\n\n"+mergeFunc)
+	ix, err := BuildIndex([]string{filepath.Join(dir, "up")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := scanProject(t, filepath.Join(dir, "proj"), nil, ScanOptions{Indexes: []*Index{ix}})
+	if len(res.Findings) != 1 {
+		t.Fatalf("findings %+v", res.Findings)
+	}
+	if f := res.Findings[0]; f.Status != StatusConflict || f.Source.License != "GPL-3.0-only AND MIT" {
+		t.Errorf("%s from %s: %s", f.Status, f.Source.License, f.Reason)
+	}
+}
+
+// A table of constants is the same in every language that has it, like
+// SHA-256's round constants in Go and in C: it isn't code that was copied.
+func TestConstantTablesDontMatch(t *testing.T) {
+	dir := t.TempDir()
+	var rows strings.Builder
+	for r := 0; r < 8; r++ {
+		rows.WriteString("\t")
+		for c := 0; c < 8; c++ {
+			fmt.Fprintf(&rows, "0x%08x, ", uint32((r*8+c+1)*0x9e3779b9))
+		}
+		rows.WriteString("\n")
+	}
+	writeTemp(t, dir, "up/sha/COPYING", "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\nTERMS AND CONDITIONS\n0. Definitions.\n")
+	writeTemp(t, dir, "up/sha/k.c", "static const unsigned int K[64] = {\n"+rows.String()+"};\n")
+	writeTemp(t, dir, "proj/k.go", "package sha\n\nvar _K = [64]uint32{\n"+rows.String()+"}\n")
+	ix, err := BuildIndex([]string{filepath.Join(dir, "up")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res := scanProject(t, filepath.Join(dir, "proj"), nil, ScanOptions{Indexes: []*Index{ix}}); len(res.Findings) > 0 {
+		t.Errorf("a table of constants matched: %+v", res.Findings[0])
 	}
 }
 
@@ -644,12 +941,26 @@ func TestReports(t *testing.T) {
 			t.Errorf("file %s has no SHA1", f.FileName)
 		}
 	}
-	for _, s := range doc.Snippets {
+	byFile := map[string]string{}
+	for _, f := range doc.Files {
+		byFile[f.SPDXID] = strings.TrimPrefix(f.FileName, "./")
+	}
+	for i, s := range doc.Snippets {
 		if !ids[s.SnippetFromFile] {
 			t.Errorf("snippet %s points to missing file %s", s.SPDXID, s.SnippetFromFile)
 		}
-		if s.LicenseConcluded == "" || len(s.Ranges) == 0 {
+		// SPDX 2.3 needs a byte range on every snippet; the line range
+		// comes second. The bytes must hold exactly the reported lines.
+		if s.LicenseConcluded == "" || len(s.Ranges) != 2 || s.Ranges[0].Start.Offset < 1 || s.Ranges[1].Start.LineNumber < 1 {
 			t.Errorf("snippet %s: %+v", s.SPDXID, s)
+			continue
+		}
+		data := mustRead(t, filepath.Join(project("shopfront"), filepath.FromSlash(byFile[s.SnippetFromFile])))
+		got := string(data[s.Ranges[0].Start.Offset-1 : s.Ranges[0].End.Offset])
+		lines := strings.SplitAfter(string(data), "\n")
+		want := strings.Join(lines[res.Findings[i].Lines.Start-1:res.Findings[i].Lines.End], "")
+		if got != want {
+			t.Errorf("snippet %s: bytes %d-%d hold %.40q..., want lines %s", s.SPDXID, s.Ranges[0].Start.Offset, s.Ranges[0].End.Offset, got, res.Findings[i].Lines)
 		}
 	}
 
