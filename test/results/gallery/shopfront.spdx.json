@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "shopfront copied code",
-  "documentNamespace": "https://remixware.com/spdx/shopfront-019829f5acd8add9",
+  "documentNamespace": "https://remixware.com/spdx/shopfront-c46f091f86a27e8d",
   "creationInfo": {
-    "created": "2026-10-26T09:49:54Z",
+    "created": "2026-10-26T10:43:30Z",
     "creators": [
-      "Tool: remixware-0.1.0"
+      "Tool: remixware-0.1.1"
     ]
   },
   "files": [
@@ -151,7 +151,7 @@
       "licenseInfoInSnippets": [
         "MPL-2.0"
       ],
-      "copyrightText": "(c) under Patent Claims infringed by Covered Software in the absence of",
+      "copyrightText": "NOASSERTION",
       "comment": "Matches example.net/mplcache, lru.go lines 6-57 (copied with some edits). Remixware status: attribution-missing."
     },
     {

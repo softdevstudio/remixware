@@ -1127,17 +1127,46 @@ func firstLines(s string, n int) string {
 	return s[:i]
 }
 
-var copyrightLine = regexp.MustCompile(`(?i)^(?:copyright\b|\(c\)\s|©)`)
+var (
+	copyrightLine = regexp.MustCompile(`(?i)^(?:copyright\b|\(c\)\s|©)`)
+	copyrightYear = regexp.MustCompile(`\b(1[89]\d\d|20\d\d)\b`)
+	// A placeholder in a template: "<Jahr>", "[fullname]". An e-mail address
+	// in angle brackets isn't one.
+	copyrightPlaceholder = regexp.MustCompile(`<[^<>@]*>|\[[^\]]*\]`)
+	listItemMark         = regexp.MustCompile(`(?i)(^|\s)\([ab]\)\s`)
+	// What follows a licence document's own copyright: "Everyone is
+	// permitted to copy and distribute verbatim copies of this license
+	// document" (the GNU licences, Artistic 2.0, LPPL, SSPL), "Permission to
+	// copy and distribute verbatim copies of this document is granted"
+	// (OpenLDAP). A manual's "Permission is granted to make and distribute
+	// verbatim copies of this document provided ..." is about the work itself
+	// and doesn't count.
+	licenceDocument = regexp.MustCompile(`(?i)verbatim\s+copies\s+of\s+this\s+licen[cs]e\s+document|copy\s+and\s+distribute\s+verbatim\s+copies\s+of\s+this\s+document\s+is\s+granted`)
+)
+
+// copyrightText trims comment marks and spaces from a line.
+func copyrightText(raw string) string {
+	l := strings.TrimSpace(raw)
+	l = strings.TrimSpace(strings.TrimLeft(l, "/#*-;!<>\"' \t"))
+	return strings.TrimSpace(strings.TrimRight(l, "*/ \t"))
+}
 
 // copyrightLines returns the copyright statements in a text, such as
-// "Copyright (c) 2019 Ada Lovelace", without template placeholders.
+// "Copyright (c) 2019 Ada Lovelace", without template placeholders and
+// without the lines of a licence's own text that only look like one: item
+// "(c)" of a licence's list, a defined term, or the licence document's own
+// copyright, which belongs to the licence and not to the code.
 func copyrightLines(text string, max int) []string {
 	var out []string
 	seen := map[string]bool{}
-	for _, raw := range strings.Split(text, "\n") {
-		l := strings.TrimSpace(raw)
-		l = strings.TrimSpace(strings.TrimLeft(l, "/#*-;!<>\"' \t"))
-		l = strings.TrimSpace(strings.TrimRight(l, "*/ \t"))
+	lines := strings.Split(text, "\n")
+	listBefore := false // a lettered list, "(a) ..." or "(b) ...", came before this line
+	for i, raw := range lines {
+		l := copyrightText(raw)
+		inList := listBefore
+		if !listBefore && strings.ContainsAny(l, "(") && listItemMark.MatchString(l) {
+			listBefore = true
+		}
 		if len(l) < 10 || len(l) > 200 || !copyrightLine.MatchString(l) {
 			continue
 		}
@@ -1147,8 +1176,21 @@ func copyrightLines(text string, max int) []string {
 			l = strings.TrimSpace(strings.TrimSuffix(l[:m[0]+1], ";"))
 		}
 		low := strings.ToLower(l)
-		if strings.ContainsAny(l, "<[") && (strings.Contains(low, "year") || strings.Contains(low, "owner") ||
+		hasYear := copyrightYear.MatchString(l)
+		if (strings.ContainsAny(l, "<[") || !hasYear) && (strings.Contains(low, "year") || strings.Contains(low, "owner") ||
 			strings.Contains(low, "holder") || strings.Contains(low, "yyyy") || strings.Contains(low, "name of")) {
+			continue // "Copyright (c) <year> <copyright holders>", "Copyright (C) year  name of author"
+		}
+		if !hasYear && (copyrightPlaceholder.MatchString(l) || strings.Contains(l, "___") || copyrightHolder(l) == "") {
+			continue // "Copyright (C) [dates of first publication] ...", "Copyright (c) ..."
+		}
+		if inList && strings.HasPrefix(low, "(c)") && !hasYear && !strings.HasPrefix(strings.TrimSpace(low[3:]), "copyright") {
+			continue // "(c) under Patent Claims infringed by ...", item (c) of a licence's list
+		}
+		if len(low) > len("copyright") && strings.HasPrefix(low, "copyright") && strings.ContainsRune("\"'”’", []rune(low[len("copyright"):])[0]) {
+			continue // `"Copyright" - Includes rights under copyright ...`, a defined term
+		}
+		if licenceDocumentCopyright(lines, i) {
 			continue
 		}
 		bad := false
@@ -1172,6 +1214,24 @@ func copyrightLines(text string, max int) []string {
 		}
 	}
 	return out
+}
+
+// licenceDocumentCopyright reports whether the copyright line at lines[i]
+// is a licence document's own, followed within a few lines, before any
+// other copyright line, by the licence's permission to copy the document
+// verbatim.
+func licenceDocumentCopyright(lines []string, i int) bool {
+	var after strings.Builder
+	after.WriteString(copyrightText(lines[i]))
+	for j := i + 1; j < len(lines) && j <= i+5; j++ {
+		l := copyrightText(lines[j])
+		if copyrightLine.MatchString(l) {
+			break
+		}
+		after.WriteString(" ")
+		after.WriteString(l)
+	}
+	return licenceDocument.MatchString(after.String())
 }
 
 var copyrightTail = regexp.MustCompile(`[.;] +(Use of this|Licensed |Released |Distributed |This (file|program|library|software|code|project)|See |Permission |SPDX-|Redistribution|All files|For licens)`)

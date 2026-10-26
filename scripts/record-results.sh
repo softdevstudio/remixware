@@ -66,8 +66,14 @@ cp -R testdata/projects/shopfront "$loop"
   echo '$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet'
   "$bin" check . --index "$root/$ix" --fail-on attribution-missing --quiet || echo "(exit $?)"
   echo
-  echo "(the copyright line notice asked for, filled in by hand in THIRD_PARTY_NOTICES.md)"
-  sed -i.bak 's/^Copyright: not known\..*/Copyright (c) 2016 The leftpadx authors/' THIRD_PARTY_NOTICES.md && rm -f THIRD_PARTY_NOTICES.md.bak
+  echo "(the two entries notice couldn't finish, filled in by hand in THIRD_PARTY_NOTICES.md)"
+  awk '
+    /^## / { src = "" }
+    /^- Source: / { src = $3 }
+    /^Copyright: not known\./ && src == "leftpadx@1.0.4" { print "Copyright (c) 2016 The leftpadx authors"; next }
+    /^Copyright: not known\./ && src == "example.net/mplcache" { print "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go."; next }
+    { print }
+  ' THIRD_PARTY_NOTICES.md > THIRD_PARTY_NOTICES.md.new && mv THIRD_PARTY_NOTICES.md.new THIRD_PARTY_NOTICES.md
   echo
   echo '$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet'
   "$bin" check . --index "$root/$ix" --fail-on attribution-missing --quiet || echo "(exit $?)"

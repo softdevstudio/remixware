@@ -802,21 +802,26 @@ func TestNoticesFixAttribution(t *testing.T) {
 	if err := os.WriteFile(notesPath, append(existing, nr.Text...), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	// leftpadx has no copyright line anywhere, so its entry waits for one.
-	if len(nr.Warnings) != 1 || !strings.Contains(nr.Warnings[0], "leftpadx 1.0.4: copyright line not known") {
+	// leftpadx and mplcache have no copyright line anywhere, so their
+	// entries wait for one. (mplcache's MPL-2.0 text has an item "(c) under
+	// Patent Claims ...", which isn't a copyright line.)
+	sort.Strings(nr.Warnings)
+	if len(nr.Warnings) != 2 || !strings.Contains(nr.Warnings[0], "example.net/mplcache: copyright line not known") ||
+		!strings.Contains(nr.Warnings[1], "leftpadx 1.0.4: copyright line not known") {
 		t.Errorf("warnings %v", nr.Warnings)
 	}
 	res = scanProject(t, dir, nil, ScanOptions{})
+	waiting := map[string]bool{"web/pad.js": true, "internal/cache/lru.go": true}
 	for _, f := range res.Findings {
-		if want := f.File == "web/pad.js"; (f.Status == StatusAttributionMissing) != want {
+		if (f.Status == StatusAttributionMissing) != waiting[f.File] {
 			t.Errorf("%s: %s after notices were written", f.File, f.Status)
 		}
-		if f.File == "web/pad.js" && !strings.Contains(f.Reason, "isn't finished") {
-			t.Errorf("web/pad.js: the reason doesn't say its entry waits: %s", f.Reason)
+		if waiting[f.File] && !strings.Contains(f.Reason, "isn't finished") {
+			t.Errorf("%s: the reason doesn't say its entry waits: %s", f.File, f.Reason)
 		}
 	}
-	finished := strings.Replace(string(existing)+nr.Text, "Copyright: not known. Copy the copyright line from the source before you ship this.",
-		"Copyright (c) 2016 The leftpadx authors", 1)
+	finished := finishNoticeEntry(string(existing)+nr.Text, "leftpadx@1.0.4", "Copyright (c) 2016 The leftpadx authors")
+	finished = finishNoticeEntry(finished, "example.net/mplcache", "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go.")
 	if err := os.WriteFile(notesPath, []byte(finished), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -828,6 +833,45 @@ func TestNoticesFixAttribution(t *testing.T) {
 	nr2 := Notices(res, string(again), true)
 	if len(nr2.Written) != 0 {
 		t.Errorf("second run wrote %v again", nr2.Written)
+	}
+}
+
+// finishNoticeEntry does what a person does with an entry remixware notice
+// couldn't finish: puts the copyright line in place of the request for it.
+func finishNoticeEntry(notices, key, line string) string {
+	parts := strings.Split(notices, "\n## ")
+	for i, p := range parts {
+		if strings.Contains(p, "- Source: "+key+"\n") {
+			parts[i] = strings.Replace(p, "Copyright: not known. Copy the copyright line from the source before you ship this.", line, 1)
+		}
+	}
+	return strings.Join(parts, "\n## ")
+}
+
+// The notice for one MPL-2.0 library doesn't credit another: the MPL text
+// they share holds no copyright line of either.
+func TestLicenceTextIsNotCredit(t *testing.T) {
+	ix := upstream(t)
+	for _, c := range ix.Components {
+		if c.Name == "example.net/mplcache" && len(c.Copyrights) != 0 {
+			t.Errorf("mplcache copyrights %q, want none: its LICENSE is the bare MPL-2.0 text", c.Copyrights)
+		}
+	}
+	dir := copyTree(t, project("shopfront"))
+	notesPath := filepath.Join(dir, "THIRD_PARTY_NOTICES.md")
+	existing, _ := os.ReadFile(notesPath)
+	other := "\n## github.com/someone/other-mpl-lib\n\n- Source: github.com/someone/other-mpl-lib\n- Licence: MPL-2.0\n\n```text\n" +
+		standardLicenseText("MPL-2.0") + "\n```\n"
+	if err := os.WriteFile(notesPath, append(existing, other...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res := scanProject(t, dir, nil, ScanOptions{})
+	f := findingOf(res, "internal/cache/lru.go")
+	if f == nil {
+		t.Fatal("no finding for internal/cache/lru.go")
+	}
+	if f.Status != StatusAttributionMissing {
+		t.Errorf("lru.go is %s (%s), want attribution-missing: another library's MPL notice isn't credit for mplcache", f.Status, f.Reason)
 	}
 }
 

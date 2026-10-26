@@ -193,18 +193,23 @@ func TestNoticeLoop(t *testing.T) {
 
 	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 5 findings", "internal/cache/lru.go")
 	expect(t, cli("notice", proj, "--index", ix, "--out", notes), exitOK,
-		"added 5 entries", "not written: example.org/gplsort", "finish by hand: leftpadx 1.0.4: copyright line not known")
+		"added 5 entries", "not written: example.org/gplsort", "finish by hand: leftpadx 1.0.4: copyright line not known",
+		"finish by hand: example.net/mplcache: copyright line not known")
 	after, _ := os.ReadFile(notes)
 	if !bytes.HasPrefix(after, before) || len(after) <= len(before) {
 		t.Fatalf("notices file not appended to")
 	}
-	// The entry notice couldn't finish doesn't count until someone does.
-	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 1 finding breaks", "web/pad.js")
+	// The entries notice couldn't finish don't count until someone does.
+	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 2 findings break", "web/pad.js", "internal/cache/lru.go")
 	const todo = "Copyright: not known. Copy the copyright line from the source before you ship this."
-	if !bytes.Contains(after, []byte(todo)) {
-		t.Fatalf("no line to finish in the notices:\n%s", after)
+	if bytes.Count(after, []byte(todo)) != 2 {
+		t.Fatalf("not two lines to finish in the notices:\n%s", after)
 	}
-	finished := bytes.Replace(after, []byte(todo), []byte("Copyright (c) 2016 The leftpadx authors"), 1)
+	finished := finishEntry(after, "leftpadx@1.0.4", "Copyright (c) 2016 The leftpadx authors")
+	finished = finishEntry(finished, "example.net/mplcache", "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go.")
+	if bytes.Contains(finished, []byte(todo)) {
+		t.Fatalf("entries left unfinished:\n%s", finished)
+	}
 	os.WriteFile(notes, finished, 0o644)
 	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitOK, "PASS")
 	// With its notice there, the MPL-2.0 copy is left for review.
@@ -217,6 +222,18 @@ func TestNoticeLoop(t *testing.T) {
 	// Without --out the entries go to standard output.
 	r := cli("notice", fixture("projects", "shopfront"), "--index", ix, "--quiet")
 	expect(t, r, exitOK, "# Third-party notices", "Copyright (c) 2021 Mira Okafor")
+}
+
+// finishEntry puts a line in place of the copyright line the notice entry
+// for key asks for, as a person finishing the notices would.
+func finishEntry(notices []byte, key, line string) []byte {
+	parts := strings.Split(string(notices), "\n## ")
+	for i, p := range parts {
+		if strings.Contains(p, "- Source: "+key+"\n") {
+			parts[i] = strings.Replace(p, "Copyright: not known. Copy the copyright line from the source before you ship this.", line, 1)
+		}
+	}
+	return []byte(strings.Join(parts, "\n## "))
 }
 
 func copyDir(t *testing.T, src, dst string) {

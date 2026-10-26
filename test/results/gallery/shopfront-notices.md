@@ -41,6 +41,8 @@ SOFTWARE.
 - Home: https://example.net/mplcache
 - Used in: `internal/cache/lru.go` lines 2-52
 
+Copyright: not known. Copy the copyright line from the source before you ship this.
+
 ```text
 Mozilla Public License Version 2.0
 ==================================

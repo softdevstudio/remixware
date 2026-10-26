@@ -1,6 +1,6 @@
 {
-  "tool": "remixware 0.1.0",
-  "created": "2026-10-26T09:49:54Z",
+  "tool": "remixware 0.1.1",
+  "created": "2026-10-26T10:43:30Z",
   "project": "testdata/projects/shopfront",
   "project_license": "MIT",
   "project_license_from": "LICENSE",
@@ -44,9 +44,6 @@
         "purl": "pkg:golang/example.net/mplcache",
         "license": "MPL-2.0",
         "license_from": "LICENSE",
-        "copyrights": [
-          "(c) under Patent Claims infringed by Covered Software in the absence of"
-        ],
         "via": "index"
       },
       "match": {
@@ -97,7 +94,7 @@
             14,
             48
           ],
-          "url": "https://github.com/mokafor/fastcsv",
+          "url": "https://example.com/mokafor/fastcsv",
           "purl": "pkg:github/mokafor/fastcsv",
           "license": "MIT",
           "license_from": "SCANOSS (license file)",
@@ -239,7 +236,7 @@
             9,
             36
           ],
-          "url": "https://github.com/nhaddad/agplwiki",
+          "url": "https://example.org/nhaddad/agplwiki",
           "purl": "pkg:github/nhaddad/agplwiki",
           "license": "AGPL-3.0-or-later",
           "license_from": "SCANOSS (license file)",
@@ -355,7 +352,7 @@
         1
       ],
       "source": {
-        "key": "pkg:npm/tinychart@2.0.1",
+        "key": "pkg:generic/tinychart@2.0.1",
         "component": "tinychart",
         "version": "2.0.1",
         "file": "dist/tinychart.min.js",
@@ -363,8 +360,8 @@
           0,
           0
         ],
-        "url": "https://www.npmjs.com/package/tinychart",
-        "purl": "pkg:npm/tinychart",
+        "url": "https://example.net/tinychart",
+        "purl": "pkg:generic/tinychart",
         "license": "NOASSERTION",
         "license_from": "SCANOSS (no licence reported)",
         "via": "scanoss"

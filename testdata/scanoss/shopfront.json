@@ -16,7 +16,7 @@
       "component": "fastcsv",
       "version": "1.4.0",
       "latest": "1.4.2",
-      "url": "https://github.com/mokafor/fastcsv",
+      "url": "https://example.com/mokafor/fastcsv",
       "file": "fastcsv-1.4.0/fastcsv.go",
       "file_url": "https://api.osskb.org/file_contents/00000000000000000000000000000001",
       "licenses": [
@@ -37,7 +37,7 @@
       "vendor": "nhaddad",
       "component": "agplwiki",
       "version": "0.4.0",
-      "url": "https://github.com/nhaddad/agplwiki",
+      "url": "https://example.org/nhaddad/agplwiki",
       "file": "agplwiki-0.4.0/agplwiki/text.py",
       "licenses": [
         {"name": "AGPL-3.0-or-later", "source": "license_file", "copyleft": "yes"},
@@ -56,7 +56,7 @@
       "vendor": "",
       "component": "leftpadx",
       "version": "1.0.4",
-      "url": "https://www.npmjs.com/package/leftpadx",
+      "url": "https://example.net/leftpadx",
       "file": "package/index.js",
       "licenses": [
         {"name": "ISC", "source": "component_declared", "copyleft": "no"}
@@ -70,10 +70,10 @@
       "lines": "all",
       "oss_lines": "all",
       "matched": "100%",
-      "purl": ["pkg:npm/tinychart"],
+      "purl": ["pkg:generic/tinychart"],
       "component": "tinychart",
       "version": "2.0.1",
-      "url": "https://www.npmjs.com/package/tinychart",
+      "url": "https://example.net/tinychart",
       "file": "dist/tinychart.min.js",
       "licenses": [],
       "status": "pending"

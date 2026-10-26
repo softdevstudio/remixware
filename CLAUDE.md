@@ -104,6 +104,16 @@ index format 2 adds file checksums. Released 2026-10-26 as v0.1.0: five
 archives plus SHA256SUMS, checked by downloading the Linux build,
 verifying its checksum and running it on the fixtures.
 
+0.1.1 (2026-10-26): the independent review of remixware.com found that
+copyright lines were read from inside licence texts (item "(c) under
+Patent Claims ..." of the MPL-2.0, "(c) You must retain ..." of a wrapped
+Apache-2.0 text, the FSF's line at the top of the GPL). A copyright line
+counts as credit, so another library's notice with the same licence text
+credited the copy. `copyrightLines` now skips lettered list items, licence
+documents' own copyrights and templates; checked against all 826 SPDX
+licence texts and 1,300 real licence files. The SCANOSS fixture links to
+example domains (it linked an unrelated real npm package).
+
 ## Gaps and to-do
 
 Known gaps, not planned yet:

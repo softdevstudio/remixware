@@ -466,6 +466,75 @@ Copyright 2014 CloudFlare. All rights reserved. Use of this source code is
 	if h := copyrightHolder("Copyright (c) 2019-2024 Ada Lovelace. All rights reserved."); h != "Ada Lovelace" {
 		t.Errorf("copyrightHolder = %q", h)
 	}
+
+	// Lines of a licence's own text that only look like copyright lines.
+	// Taken for one, they would credit every component whose notice carries
+	// the same licence text.
+	notCopyrights := map[string]string{
+		"MPL-2.0 item": `2.3. Limitations on Grant Scope
+(a) for any code that a Contributor has removed from Covered Software;
+    or
+(b) for infringements caused by: (i) Your and any other third party's
+    modifications of Covered Software, or (ii) the combination of its
+    Contributions with other software (except as part of its Contributor
+    Version); or
+(c) under Patent Claims infringed by Covered Software in the absence of
+    its Contributions.`,
+		"Apache-2.0 item, wrapped": `      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and`,
+		"MPL-1.1 item": `     (b) Contributor APIs.
+     (c)    Representations.`,
+		"Unicode item in a sentence": `or Software are furnished to do so, provided that (a) the above
+copyright notice(s) and this permission notice appear with all copies
+of the Data Files or Software, (b) both the above copyright notice(s)
+and this permission notice appear in associated documentation, and
+(c) there is clear notice in each modified Data File or in the`,
+		"GPL-3.0 document": `                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.`,
+		"GPL-2.0 document": ` Copyright (C) 1989, 1991 Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.`,
+		"OpenLDAP document": `Copyright 1999-2003 The OpenLDAP Foundation, Redwood City,
+California, USA.  All Rights Reserved.  Permission to copy and
+distribute verbatim copies of this document is granted.`,
+		"GPL-3.0 sentence":    "copyright holder, and you cure the violation prior to 30 days after",
+		"template, no marks":  "    Copyright (C) year  name of author",
+		"template, German":    "Copyright (c) <Jahr> <Copyright Inhaber>",
+		"template, brackets":  "Copyright (c) [fullname]",
+		"template, blanks":    "Copyright (C) ______ _______________________.",
+		"template, dots":      "Copyright (c) ...",
+		"defined term":        `"Copyright" - Includes rights under copyright and under neighbouring rights and similarly related sets of rights under the law of the relevant jurisdiction under Section 6.4.`,
+		"Artistic-2.0 item":   "(b) ensure that the Modified Version ...\n(c) allow anyone who receives a copy of the Modified Version to",
+		"MS-PL item, capital": "(A) No Trademark License\n(B) If you bring a patent claim\n(C) If you distribute any portion of the software, you must retain",
+	}
+	for name, text := range notCopyrights {
+		if got := copyrightLines(text, 10); len(got) != 0 {
+			t.Errorf("%s: copyrightLines = %q, want none", name, got)
+		}
+	}
+	// And real ones, some without a year, that have to stay.
+	copyrights := map[string]string{
+		"no year":            "Copyright (c) Microsoft Corporation.",
+		"e-mail, no year":    "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+		"(c) without a list": "Files: debian/*\n(c) Joey Hess <joeyh@debian.org>",
+		"(c) Copyright":      "(a) first item\n(C) Copyright IBM Corp.",
+		"before the GPL text": "Copyright (C) 2019 Tomas Lindqvist\nGNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n" +
+			"Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>\nEveryone is permitted to copy and distribute verbatim copies\nof this license document, but changing it is not allowed.",
+		"a manual's notice": "Copyright (C) 1991, 1992 Hans-Hermann Bode\n\nPermission is granted to make and distribute verbatim copies of this  document provided that the copyright notice and this permission notice are preserved on all copies.",
+	}
+	for name, text := range copyrights {
+		if got := copyrightLines(text, 10); len(got) != 1 || strings.Contains(got[0], "Free Software") {
+			t.Errorf("%s: copyrightLines = %q, want the one copyright line", name, got)
+		}
+	}
 }
 
 func writeTemp(t *testing.T, dir, name, content string) string {

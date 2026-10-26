@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1
+
+- Copyright lines no longer come from inside a licence's own text. Item
+  (c) of a licence's list, such as the MPL-2.0's "(c) under Patent Claims
+  infringed by Covered Software" or the Apache-2.0's "(c) You must retain
+  ...", was taken for a copyright line, and so was a licence document's own
+  copyright, such as the Free Software Foundation's at the top of the GPL.
+  A copyright line counts as credit, so a notices file carrying the same
+  licence text for another library could credit the copied code. Templates
+  such as "Copyright (C) year  name of author" are skipped too. A component
+  under one of those licences with no copyright line of its own now gets a
+  notice entry that asks for one, as other components already did.
+- The README lists `index --max-common` and `--quiet`, and every language
+  Remixware reads.
+
 ## 0.1.0
 
 First release.

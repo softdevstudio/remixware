@@ -30,6 +30,8 @@ unpack it and put `remixware` on your PATH. The archives are
 `remixware_linux_amd64.tar.gz`, `remixware_linux_arm64.tar.gz`,
 `remixware_darwin_arm64.tar.gz`, `remixware_darwin_amd64.tar.gz` and
 `remixware_windows_amd64.zip`, and `SHA256SUMS` lists their checksums.
+The archives hold the program and its README, licence and notices with no
+folder around them, so unpack one into an empty folder.
 
 Or build it with Go 1.24 or later. Remixware uses only the Go standard
 library:
@@ -242,6 +244,7 @@ quietly switch a rule off.
 
 ```text
 remixware index <folder>... [--out FILE] [--name N] [--version V] [--license EXPR] [--exclude PATTERN]
+                            [--max-common N] [--quiet]
 remixware scan [project] (--index FILE | --from FILE)... [--html F] [--json F] [--spdx F]
 remixware check [project] (--index FILE | --from FILE)... [--fail-on LIST] [--html F] [--json F]
 remixware notice [project] (--index FILE | --from FILE)... [--out FILE] [--all]
@@ -251,6 +254,9 @@ remixware version
 
 `scan`, `check` and `notice` also take `--license`, `--policy`,
 `--exclude`, `--include-deps`, `--min-tokens`, `--min-lines` and `--quiet`.
+For `index`, `--max-common N` drops fingerprints found in more than N
+components (0, the default, picks a value; -1 keeps them all), and
+`--quiet` prints nothing but errors.
 `remixware help <command>` lists a command's flags. Flags can come before or
 after the project folder.
 
@@ -311,8 +317,10 @@ such as a run of near-identical lines or Go's `sort.Interface` methods,
 isn't matched, and neither are tables of numbers or strings with no names
 in them, such as a hash function's constants.
 
-Go, C and C++, Java, C#, Kotlin, Swift, Scala, JavaScript and TypeScript,
-Rust, Python, Ruby, PHP, shell, Perl, SQL, Lua, CSS and a few more are read.
+Remixware reads Go, C and C++, Objective-C, Java, C#, Dart, Kotlin, Swift,
+Scala, JavaScript and TypeScript (with Vue and Svelte files), Rust, Python,
+Ruby, PHP, shell, Perl, SQL, Lua, CSS and SCSS, R, Julia, Elixir, Nim,
+PowerShell and Tcl.
 Generated, minified and binary files are skipped, and so are files over
 2 MB.
 
