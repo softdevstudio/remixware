@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -30,7 +31,9 @@ Usage:
 
 scan, check and notice compare the project with --index files made by
 remixware index, with --from results files written by the SCANOSS scanner
-(scanoss-py scan -o results.json), or with both.
+(scanoss-py scan -o results.json), with the SCANOSS service itself
+(--scanoss, which sends fingerprints of your files, never the code), or with
+several of these.
 
 Run "remixware help <command>" for a command's flags.
 Remixware flags licensing questions. It is not legal advice.
@@ -216,12 +219,13 @@ func cmdIndex(args []string, stdout, stderr io.Writer) error {
 }
 
 type compareOpts struct {
-	indexes, from, exclude    multi
-	jsonOut, htmlOut, spdxOut string
-	license, policy, failOn   string
-	minTokens, minLines       int
-	includeDeps, quiet, all   bool
-	out                       string
+	indexes, from, exclude             multi
+	jsonOut, htmlOut, spdxOut          string
+	license, policy, failOn            string
+	minTokens, minLines                int
+	includeDeps, quiet, all, scanoss   bool
+	out                                string
+	scanossURL, scanossKey, scanossOut string
 }
 
 func compareFlags(cmd string, stderr io.Writer) (*flag.FlagSet, *compareOpts) {
@@ -230,6 +234,10 @@ func compareFlags(cmd string, stderr io.Writer) (*flag.FlagSet, *compareOpts) {
 	fs.SetOutput(stderr)
 	fs.Var(&o.indexes, "index", "index file made by remixware index (repeatable)")
 	fs.Var(&o.from, "from", "results file from the SCANOSS scanner or from remixware scan --json (repeatable)")
+	fs.BoolVar(&o.scanoss, "scanoss", false, "also ask the SCANOSS service: sends fingerprints of the project's files, never the code")
+	fs.StringVar(&o.scanossURL, "scanoss-url", "", "SCANOSS service URL (default: $SCANOSS_SCAN_URL, or "+remixware.DefaultSCANOSSURL+", or "+remixware.SCANOSSKeyURL+" with a key)")
+	fs.StringVar(&o.scanossKey, "scanoss-key", "", "SCANOSS API key (default: $SCANOSS_API_KEY)")
+	fs.StringVar(&o.scanossOut, "scanoss-out", "", "save what the SCANOSS service found to this file, which --from reads")
 	fs.StringVar(&o.license, "license", "", "the project's licence, as an SPDX expression, instead of its licence file")
 	fs.StringVar(&o.policy, "policy", "", "policy file (default: .remixware.json in the project, if there is one)")
 	fs.IntVar(&o.minTokens, "min-tokens", 0, fmt.Sprintf("smallest match to report, in tokens (default %d)", remixware.DefaultMinTokens))
@@ -286,8 +294,11 @@ func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpt
 	if len(pos) == 1 {
 		project = pos[0]
 	}
-	if len(o.indexes) == 0 && len(o.from) == 0 {
-		return nil, nil, nil, errors.New("nothing to compare with: pass --index (made by remixware index) or --from (a SCANOSS results file)")
+	if !o.scanoss && (o.scanossURL != "" || o.scanossKey != "" || o.scanossOut != "") {
+		return nil, nil, nil, errors.New("--scanoss-url, --scanoss-key and --scanoss-out go with --scanoss, which asks the SCANOSS service")
+	}
+	if len(o.indexes) == 0 && len(o.from) == 0 && !o.scanoss {
+		return nil, nil, nil, errors.New("nothing to compare with: pass --index (made by remixware index), --from (a SCANOSS results file) or --scanoss (the SCANOSS service)")
 	}
 	var pol *remixware.Policy
 	if o.policy != "" {
@@ -329,8 +340,48 @@ func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpt
 		}
 		res.Add(found, in, texts)
 	}
+	if o.scanoss {
+		if err := askSCANOSS(res, pol, o, progress); err != nil {
+			return nil, nil, nil, err
+		}
+	}
 	remixware.Evaluate(res, pol, o.license)
 	return res, pol, o, nil
+}
+
+// askSCANOSS sends the project's fingerprints to the SCANOSS service and
+// adds what it found to the results.
+func askSCANOSS(res *remixware.Results, pol *remixware.Policy, o *compareOpts, progress func(string, ...any)) error {
+	sopt := remixware.SCANOSSOptions{URL: o.scanossURL, APIKey: o.scanossKey,
+		Exclude: append(append([]string{}, o.exclude...), pol.Ignore...), IncludeDeps: o.includeDeps, Progress: progress}
+	if sopt.URL == "" {
+		sopt.URL = os.Getenv("SCANOSS_SCAN_URL")
+	}
+	if sopt.APIKey == "" {
+		sopt.APIKey = os.Getenv("SCANOSS_API_KEY")
+	}
+	r, err := remixware.ScanSCANOSS(res.Project, sopt)
+	if err != nil {
+		return err
+	}
+	if o.scanossOut != "" {
+		data, err := r.JSON()
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(o.scanossOut, data, 0o644); err != nil {
+			return err
+		}
+		if progress != nil {
+			progress("wrote %s", o.scanossOut)
+		}
+	}
+	found, in, err := r.Findings(res.Project)
+	if err != nil {
+		return err
+	}
+	res.Add(found, in, nil)
+	return nil
 }
 
 func pick(flagValue, policyValue int) int {
@@ -396,6 +447,9 @@ func header(w io.Writer, res *remixware.Results) {
 				comma(in.Files), plural(in.Files, "file", "files")))
 		case "scanoss":
 			ins = append(ins, fmt.Sprintf("%s (SCANOSS, %s %s)", in.Path, comma(in.Matches), plural(in.Matches, "match", "matches")))
+		case "scanoss-api":
+			ins = append(ins, fmt.Sprintf("the SCANOSS service at %s (%s %s sent, %s %s)", serviceHost(in.Path), comma(in.Files),
+				plural(in.Files, "file", "files"), comma(in.Matches), plural(in.Matches, "match", "matches")))
 		default:
 			ins = append(ins, in.Path)
 		}
@@ -537,6 +591,12 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 		return exitUsage, fmt.Errorf("no source files to check in %s%s; check the folder, --exclude and the policy's ignore list",
 			shownPath(res.Project), skippedNote(res))
 	}
+	for _, in := range res.Inputs {
+		if in.Kind == "scanoss-api" && in.Files == 0 && len(o.indexes) == 0 {
+			return exitUsage, fmt.Errorf("no source files to send to SCANOSS in %s; check the folder, --exclude and the policy's ignore list",
+				shownPath(res.Project))
+		}
+	}
 	if !o.quiet {
 		header(stdout, res)
 	}
@@ -564,7 +624,7 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		fmt.Fprintf(stdout, "FAIL: %d %s the policy (fail on: %s).\n", len(fails), noun, strings.Join(failOn, ", "))
 		if hasStatus(fails, remixware.StatusAttributionMissing) {
-			fmt.Fprintln(stdout, "Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)")
+			fmt.Fprintln(stdout, "Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index, --from or --scanoss flags)")
 		}
 		return exitFail, nil
 	}
@@ -673,6 +733,14 @@ func cmdNotice(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "added %d %s to %s: %s\n", len(nr.Written), plural(len(nr.Written), "entry", "entries"), o.out, strings.Join(nr.Written, ", "))
 	}
 	return nil
+}
+
+// serviceHost shows a service URL by its host.
+func serviceHost(u string) string {
+	if p, err := url.Parse(u); err == nil && p.Host != "" {
+		return p.Host
+	}
+	return u
 }
 
 // shownPath shows a folder inside the current one by its relative path.

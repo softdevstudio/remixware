@@ -75,46 +75,13 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 	projLicense, _ := DetectProjectLicense(abs)
 	cs := classifyIndexes(opt.Indexes, abs, projLicense)
 
-	var files, unreadable []string
-	err = filepath.WalkDir(abs, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			if path == abs {
-				return err
-			}
-			unreadable = append(unreadable, relSlash(abs, path))
-			return nil
-		}
-		rel := relSlash(abs, path)
-		if d.IsDir() {
-			if path == abs {
-				return nil
-			}
-			if skipIndexDirs[d.Name()] || (!opt.IncludeDeps && skipDirs[d.Name()]) || matchAny(opt.Exclude, rel) {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if matchAny(opt.Exclude, rel) || skipIndexDirs[d.Name()] || (!opt.IncludeDeps && skipDirs[d.Name()]) {
-			return nil
-		}
-		if d.Type()&fs.ModeSymlink != 0 {
-			// Links aren't followed, but a check says how many it passed
-			// over: a linked file or folder of code isn't checked.
-			if st, err := os.Stat(path); languageFor(d.Name()) != nil || (err == nil && st.IsDir()) {
-				res.Skipped["symlink"]++
-			}
-			return nil
-		}
-		if !d.Type().IsRegular() || languageFor(d.Name()) == nil {
-			return nil
-		}
-		files = append(files, path)
-		return nil
-	})
+	files, symlinks, unreadable, err := projectFiles(abs, opt.Exclude, opt.IncludeDeps, isSource)
 	if err != nil {
 		return nil, err
 	}
-	sort.Strings(files)
+	if symlinks > 0 {
+		res.Skipped["symlink"] = symlinks
+	}
 	progress("scanning %d source files", len(files))
 
 	type fileOut struct {
@@ -197,6 +164,54 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 	res.Findings = mergeFindings(all)
 	res.pruneTexts()
 	return res, nil
+}
+
+// isSource reports whether a scan reads a file with this name.
+func isSource(name string) bool { return languageFor(name) != nil }
+
+// projectFiles lists the files of a project (abs, with links resolved) that
+// want accepts by name, sorted, outside version control folders and, unless
+// includeDeps, dependency folders, and not matching exclude. Symbolic links
+// aren't followed; the links to wanted files or to folders are counted.
+// unreadable lists the folders that couldn't be read, relative to abs.
+func projectFiles(abs string, exclude []string, includeDeps bool, want func(string) bool) (files []string, symlinks int, unreadable []string, err error) {
+	err = filepath.WalkDir(abs, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if path == abs {
+				return err
+			}
+			unreadable = append(unreadable, relSlash(abs, path))
+			return nil
+		}
+		rel := relSlash(abs, path)
+		if d.IsDir() {
+			if path == abs {
+				return nil
+			}
+			if skipIndexDirs[d.Name()] || (!includeDeps && skipDirs[d.Name()]) || matchAny(exclude, rel) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if matchAny(exclude, rel) || skipIndexDirs[d.Name()] || (!includeDeps && skipDirs[d.Name()]) {
+			return nil
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			// Links aren't followed, but a check says how many it passed
+			// over: a linked file or folder of code isn't checked.
+			if st, err := os.Stat(path); want(d.Name()) || (err == nil && st.IsDir()) {
+				symlinks++
+			}
+			return nil
+		}
+		if !d.Type().IsRegular() || !want(d.Name()) {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	sort.Strings(files)
+	return files, symlinks, unreadable, err
 }
 
 // indexClasses says what the files and components of each index are to one

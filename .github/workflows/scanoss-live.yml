@@ -1,0 +1,61 @@
+name: SCANOSS live check
+
+# Run by hand (Actions > SCANOSS live check > Run workflow): asks the real
+# SCANOSS service about copies of known open source with remixware scan
+# --scanoss, and reports what it found as annotations. It isn't part of CI,
+# so the free service's limits and availability never hold up a build or a
+# release.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - name: Build
+        run: go build -o remixware ./cmd/remixware
+      - name: Ask SCANOSS about copies of logrus
+        run: |
+          set -u
+          git clone -q --depth 1 --branch v1.9.3 https://github.com/sirupsen/logrus.git /tmp/logrus
+          mkdir -p /tmp/proj/internal/logging /tmp/proj/internal/fields
+          # A whole file, and part of another inside code of our own.
+          cp /tmp/logrus/text_formatter.go /tmp/proj/internal/logging/format.go
+          {
+            echo 'package fields'
+            echo
+            echo '// Count reports how many fields a map holds.'
+            echo 'func Count(m map[string]interface{}) int { return len(m) }'
+            echo
+            sed -n '/^func (entry \*Entry) WithFields/,/^}/p' /tmp/logrus/entry.go
+          } > /tmp/proj/internal/fields/fields.go
+          printf 'Copyright 2026 Example\n\nLicensed under the Apache License, Version 2.0.\n' > /tmp/proj/LICENSE
+          if ! ./remixware scan /tmp/proj --scanoss --license Apache-2.0 --json findings.json --scanoss-out scanoss.json > scan.txt 2> scan.err; then
+            echo "::error::remixware scan --scanoss failed: $(tr '\n' ' ' < scan.err | cut -c1-900)"
+            exit 1
+          fi
+          cat scan.err scan.txt
+          python3 - <<'PY'
+          import json, sys
+          r = json.load(open("findings.json"))
+          ins = [i for i in r["inputs"] if i["kind"] == "scanoss-api"]
+          print(f"::notice::SCANOSS: {ins[0]['files']} files sent, {ins[0]['matches']} matches")
+          ok = {"internal/logging/format.go": False, "internal/fields/fields.go": False}
+          for f in r["findings"][:8]:
+              s = f["source"]
+              print(f"::notice::{f['file']}:{f['lines'][0]}-{f['lines'][1]} {f['match']['kind']} of {s.get('component')} {s.get('version', '')} ({s.get('license')}) {s.get('file', '')} -> {f['status']}")
+              if f["file"] in ok and "logrus" in (s.get("component", "") + s.get("purl", "")).lower():
+                  ok[f["file"]] = True
+          for path, found in ok.items():
+              if not found:
+                  print(f"::error::SCANOSS didn't trace {path} to logrus")
+          sys.exit(0 if all(ok.values()) else 1)
+          PY

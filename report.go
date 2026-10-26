@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -116,6 +117,12 @@ func WriteHTML(w io.Writer, res *Results) error {
 			inputs = append(inputs, fmt.Sprintf("%s (index: %s components, %s files)", filepath.Base(in.Path), comma(in.Components), comma(in.Files)))
 		case "scanoss":
 			inputs = append(inputs, fmt.Sprintf("%s (SCANOSS results: %s matches)", filepath.Base(in.Path), comma(in.Matches)))
+		case "scanoss-api":
+			host := in.Path
+			if u, err := url.Parse(in.Path); err == nil && u.Host != "" {
+				host = u.Host
+			}
+			inputs = append(inputs, fmt.Sprintf("the SCANOSS service at %s (%s files sent, %s matches)", host, comma(in.Files), comma(in.Matches)))
 		default:
 			inputs = append(inputs, fmt.Sprintf("%s (earlier Remixware findings)", filepath.Base(in.Path)))
 		}

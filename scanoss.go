@@ -81,16 +81,27 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept)}, r.Texts, nil
 		}
 	}
+	findings, err := scanossFindings(probe, path+" is not a SCANOSS results file", project)
+	if err != nil {
+		return nil, Input{}, nil, err
+	}
+	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings)}, nil, nil
+}
+
+// scanossFindings reads SCANOSS results, an object that maps each scanned
+// file to its list of matches, into findings. Paths that would point outside
+// the project are left out. what names the results in an error.
+func scanossFindings(results map[string]json.RawMessage, what, project string) ([]Finding, error) {
 	var findings []Finding
-	files := make([]string, 0, len(probe))
-	for f := range probe {
+	files := make([]string, 0, len(results))
+	for f := range results {
 		files = append(files, f)
 	}
 	sort.Strings(files)
 	for _, file := range files {
 		var matches []scanossMatch
-		if err := json.Unmarshal(probe[file], &matches); err != nil {
-			return nil, Input{}, nil, fmt.Errorf("%s is not a SCANOSS results file: the entry for %q isn't a list of matches", path, file)
+		if err := json.Unmarshal(results[file], &matches); err != nil {
+			return nil, fmt.Errorf("%s: the entry for %q isn't a list of matches", what, file)
 		}
 		rel, ok := projectPath(file)
 		if !ok {
@@ -103,7 +114,7 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			findings = append(findings, scanossFinding(rel, m, project))
 		}
 	}
-	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings)}, nil, nil
+	return findings, nil
 }
 
 // projectPath cleans a path from a results file. It reports false for

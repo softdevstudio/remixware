@@ -2,9 +2,15 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -256,4 +262,80 @@ func copyDir(t *testing.T, src, dst string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// fakeService answers like the SCANOSS service: a fastcsv match for the
+// file whose MD5 is match, no match for the rest. It remembers the API key
+// it was sent.
+func fakeService(t *testing.T, match string, status int) (*httptest.Server, *string) {
+	t.Helper()
+	key := new(string)
+	line := regexp.MustCompile(`(?m)^file=([0-9a-f]{32}),\d+,(.*)$`)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		*key = r.Header.Get("x-api-key")
+		if status != 0 {
+			http.Error(w, "no", status)
+			return
+		}
+		f, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "no file", http.StatusBadRequest)
+			return
+		}
+		data, _ := io.ReadAll(f)
+		out := map[string]json.RawMessage{}
+		for _, m := range line.FindAllStringSubmatch(string(data), -1) {
+			out[m[2]] = json.RawMessage(`[{"id": "none"}]`)
+			if m[1] == match {
+				out[m[2]] = json.RawMessage(`[{"id": "snippet", "lines": "2-45", "oss_lines": "2-45", "matched": "100%",
+					"purl": ["pkg:github/mokafor/fastcsv"], "vendor": "mokafor", "component": "fastcsv", "version": "1.4.0",
+					"file": "fastcsv.go", "licenses": [{"name": "MIT", "source": "component_declared"}]}]`)
+			}
+		}
+		json.NewEncoder(w).Encode(out)
+	}))
+	t.Cleanup(srv.Close)
+	return srv, key
+}
+
+func TestSCANOSSFlags(t *testing.T) {
+	shop := fixture("projects", "shopfront")
+	data, err := os.ReadFile(filepath.Join(shop, "internal", "csvio", "split.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sum := md5.Sum(data)
+	srv, key := fakeService(t, hex.EncodeToString(sum[:]), 0)
+	t.Setenv("SCANOSS_API_KEY", "")
+	t.Setenv("SCANOSS_SCAN_URL", "")
+
+	expect(t, cli("scan", shop, "--scanoss", "--scanoss-url", srv.URL), exitOK,
+		"the SCANOSS service at 127.0.0.1", "files sent, 1 match", "internal/csvio/split.go:2-45", "mokafor/fastcsv 1.4.0", "snippet (SCANOSS)")
+	expect(t, cli("check", shop, "--scanoss", "--scanoss-url", srv.URL), exitFail, "FAIL: 1 finding breaks", "same --index, --from or --scanoss flags")
+
+	// The answers saved with --scanoss-out read back with --from.
+	saved := filepath.Join(t.TempDir(), "scanoss.json")
+	expect(t, cli("scan", shop, "--scanoss", "--scanoss-url", srv.URL, "--scanoss-out", saved, "--quiet"), exitOK, "internal/csvio/split.go:2-45")
+	expect(t, cli("scan", shop, "--from", saved), exitOK, "internal/csvio/split.go:2-45", "SCANOSS, 1 match")
+
+	// The key comes from the flag or from SCANOSS_API_KEY.
+	expect(t, cli("scan", shop, "--scanoss", "--scanoss-url", srv.URL, "--scanoss-key", "flag-key", "--quiet"), exitOK)
+	if *key != "flag-key" {
+		t.Errorf("key sent %q", *key)
+	}
+	t.Setenv("SCANOSS_API_KEY", "env-key")
+	t.Setenv("SCANOSS_SCAN_URL", srv.URL)
+	expect(t, cli("scan", shop, "--scanoss", "--quiet"), exitOK, "internal/csvio/split.go")
+	if *key != "env-key" {
+		t.Errorf("key sent %q", *key)
+	}
+	t.Setenv("SCANOSS_API_KEY", "")
+
+	// Mistakes end with exit 2: options without --scanoss, a refused key,
+	// nothing to send.
+	expect(t, cli("scan", shop, "--index", upstreamIndex(t), "--scanoss-key", "k"), exitUsage, "go with --scanoss")
+	bad, _ := fakeService(t, "", http.StatusUnauthorized)
+	expect(t, cli("check", shop, "--scanoss", "--scanoss-url", bad.URL), exitUsage, "Check the API key")
+	expect(t, cli("check", t.TempDir(), "--scanoss", "--scanoss-url", srv.URL), exitUsage, "no source files to send to SCANOSS")
+	expect(t, cli("check", shop), exitUsage, "--scanoss (the SCANOSS service)")
 }
