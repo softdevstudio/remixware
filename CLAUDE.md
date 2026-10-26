@@ -187,7 +187,10 @@ a tab-led Markdown hole, cleaned index lines no longer matching raw
 headers, and a findings cap refusing amalgamations. All fixed with tests;
 the fixtures and the benchmark corpus (234 outputs, both index versions)
 give the same results as 0.1.1 apart from the notice hint. A site review
-found 17 wording problems, fixed before publishing.
+found 17 wording problems, fixed before publishing. Released 2026-10-26
+as v0.2.0: five archives plus SHA256SUMS. The downloaded Linux build was
+checked (checksum, fixtures, and the live answer replayed to it through
+`--scanoss`), and remixware.com went up with its gallery recorded from it.
 
 ## Gaps and to-do
 
