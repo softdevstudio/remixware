@@ -29,7 +29,7 @@ ATTRIBUTION MISSING  web/util.js:3-25
 
 9 findings: 2 conflict, 1 no license, 5 attribution missing, 1 attributed.
 FAIL: 5 findings break the policy (fail on: attribution-missing).
-Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index, --from or --scanoss flags)
 (exit 1)
 
 $ remixware notice . --index upstream.rmx --out THIRD_PARTY_NOTICES.md
@@ -58,7 +58,7 @@ ATTRIBUTION MISSING  web/pad.js:1-28
 
 9 findings: 2 conflict, 1 no license, 2 attribution missing, 4 attributed.
 FAIL: 2 findings break the policy (fail on: attribution-missing).
-Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index, --from or --scanoss flags)
 (exit 1)
 
 (the two entries notice couldn't finish, filled in by hand in THIRD_PARTY_NOTICES.md)

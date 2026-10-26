@@ -1,4 +1,4 @@
-$ remixware 0.1.1: remixware scan proj --scanoss --license Apache-2.0 (answer replayed)
+$ remixware 0.2.0: remixware scan proj --scanoss --license Apache-2.0 (answer replayed)
 
 SCANOSS: sending the fingerprints of 2 files to 127.0.0.1:PORT in 1 request
 Project proj

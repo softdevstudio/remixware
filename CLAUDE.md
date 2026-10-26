@@ -169,6 +169,26 @@ Released as v0.1.1 the same day; the downloaded Linux build was checked
 (checksum, fixtures, the MPL credit case), and remixware.com went up with
 its gallery recorded from it.
 
+0.2.0 (2026-10-26): `--scanoss` asks the SCANOSS service directly.
+`wfp.go` makes scanoss.py's fingerprints (byte for byte on its golden
+files and on 3,399 real files); `scanossapi.go` sends them with numbered
+names. The live check workflow got no answer: the free service turned
+GitHub's runners away until 2026-11-01 (monthly limit), scanoss-py too.
+With the owner's OK, the request captured from Remixware went out from
+his Mac through the linked built-in browser pane, and the answer,
+replayed to Remixware, traced both logrus copies (test/results/live).
+Reviews: the first found 11 problems (an answer leaving files out was
+accepted, so a check could pass; redirects carried the key; answer text
+could drive the terminal; unbounded work; odd file names lost; URL
+secrets in reports). A re-check found those fixes' cleaning too broad
+(credited code failing, files with everyday Unicode names dropped so
+`check --from` could pass, quadratic copyright work). A final check found
+a tab-led Markdown hole, cleaned index lines no longer matching raw
+headers, and a findings cap refusing amalgamations. All fixed with tests;
+the fixtures and the benchmark corpus (234 outputs, both index versions)
+give the same results as 0.1.1 apart from the notice hint. A site review
+found 17 wording problems, fixed before publishing.
+
 ## Gaps and to-do
 
 Known gaps, not planned yet:

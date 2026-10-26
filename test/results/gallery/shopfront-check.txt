@@ -48,4 +48,4 @@ ATTRIBUTION MISSING  web/util.js:3-25
 
 9 findings: 2 conflict, 1 no license, 5 attribution missing, 1 attributed.
 FAIL: 8 findings break the policy (fail on: conflict, no-license, attribution-missing).
-Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index, --from or --scanoss flags)

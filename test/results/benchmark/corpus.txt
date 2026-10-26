@@ -17,7 +17,7 @@ zlib         v1.3.1   https://github.com/madler/zlib            c      Zlib     
 cjson        v1.7.18  https://github.com/DaveGamble/cJSON       c      MIT            / MIT            ok  88 files, 24663 lines
 
 Licences found as expected: 14 of 14
-Index: 52 components, 2784 files, 514366 lines, 305183 fingerprints, 6106089 bytes
+Index: 52 components, 2784 files, 514366 lines, 305183 fingerprints, 6106095 bytes
 
 Components found inside the projects:
   github.com/sirupsen/logrus (logrus)           MIT                    46 files  (logrus)
