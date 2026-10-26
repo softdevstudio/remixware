@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -61,7 +62,23 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			if err := json.Unmarshal(data, &r); err != nil {
 				return nil, Input{}, nil, fmt.Errorf("%s: %v", path, err)
 			}
-			return r.Findings, Input{Kind: "remixware", Path: path, Matches: len(r.Findings)}, r.Texts, nil
+			// A findings file may come from another machine or another
+			// person: its paths are never read, and its files must be
+			// inside the project.
+			var kept []Finding
+			for _, f := range r.Findings {
+				rel, ok := projectPath(f.File)
+				if !ok {
+					continue
+				}
+				f.File = rel
+				f.Source.Abs = ""
+				for i := range f.Also {
+					f.Also[i].Abs = ""
+				}
+				kept = append(kept, f)
+			}
+			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept)}, r.Texts, nil
 		}
 	}
 	var findings []Finding
@@ -75,18 +92,35 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 		if err := json.Unmarshal(probe[file], &matches); err != nil {
 			return nil, Input{}, nil, fmt.Errorf("%s is not a SCANOSS results file: the entry for %q isn't a list of matches", path, file)
 		}
+		rel, ok := projectPath(file)
+		if !ok {
+			continue
+		}
 		for _, m := range matches {
 			if m.ID != "file" && m.ID != "snippet" {
 				continue
 			}
-			findings = append(findings, scanossFinding(file, m, project))
+			findings = append(findings, scanossFinding(rel, m, project))
 		}
 	}
 	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings)}, nil, nil
 }
 
-func scanossFinding(file string, m scanossMatch, project string) Finding {
-	rel := filepath.ToSlash(strings.TrimPrefix(file, "./"))
+// projectPath cleans a path from a results file. It reports false for
+// paths that would point outside the project.
+func projectPath(p string) (string, bool) {
+	p = strings.ReplaceAll(p, "\\", "/")
+	if p == "" || strings.HasPrefix(p, "/") || filepath.VolumeName(p) != "" || (len(p) > 1 && p[1] == ':') {
+		return "", false
+	}
+	c := path.Clean(p)
+	if c == "." || c == ".." || strings.HasPrefix(c, "../") {
+		return "", false
+	}
+	return c, true
+}
+
+func scanossFinding(rel string, m scanossMatch, project string) Finding {
 	lines := parseRanges(m.Lines)
 	if len(lines) == 0 {
 		// "all": the whole file.

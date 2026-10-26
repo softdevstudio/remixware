@@ -101,7 +101,9 @@ func WriteHTML(w io.Writer, res *Results) error {
 		if f.Match.Coverage > 0 {
 			rf.Coverage = fmt.Sprintf("%.0f%%", f.Match.Coverage*100)
 		}
-		rf.Yours = readExcerpt(filepath.Join(res.Project, filepath.FromSlash(f.File)), f.Lines)
+		if rel, ok := projectPath(f.File); ok {
+			rf.Yours = readExcerpt(filepath.Join(res.Project, filepath.FromSlash(rel)), f.Lines)
+		}
 		if f.Source.Abs != "" {
 			rf.Theirs = readExcerpt(f.Source.Abs, f.Source.Lines)
 		}

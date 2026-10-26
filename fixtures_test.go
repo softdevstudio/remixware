@@ -674,3 +674,48 @@ func TestScanErrors(t *testing.T) {
 		t.Errorf("foreign JSON read as results")
 	}
 }
+
+// A results file can come from someone else. Its paths must not make
+// Remixware read files outside the project into a report.
+func TestResultsFilesCantReadOutsideTheProject(t *testing.T) {
+	dir := t.TempDir()
+	secret := writeTemp(t, dir, "secret.txt", "TOP-SECRET-LINE-1\nTOP-SECRET-LINE-2\nTOP-SECRET-LINE-3\n")
+	match := `[{"id":"file","lines":"all","oss_lines":"all","matched":"100%","component":"x","licenses":[{"name":"MIT","source":"license_file"}]}]`
+	scanoss := filepath.Join(dir, "scanoss.json")
+	os.WriteFile(scanoss, []byte(`{"../secret.txt": `+match+`, "/etc/passwd": `+match+`, "C:\\Windows\\win.ini": `+match+
+		`, "web/pad.js": `+match+`}`), 0o644)
+	proj := project("shopfront")
+	found, _, _, err := ImportResults(scanoss, proj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(found) != 1 || found[0].File != "web/pad.js" {
+		t.Fatalf("findings %+v", found)
+	}
+
+	// A Remixware findings file whose source points at a private file.
+	res := scanProject(t, proj, nil, ScanOptions{})
+	res.Findings[0].Source.Abs = secret
+	res.Findings[1].File = "../../" + filepath.Base(dir) + "/secret.txt"
+	var js bytes.Buffer
+	WriteJSON(&js, res)
+	path := filepath.Join(dir, "findings.json")
+	os.WriteFile(path, js.Bytes(), 0o644)
+	back, in, texts, err := ImportResults(path, proj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(back) != len(res.Findings)-1 {
+		t.Errorf("read %d findings, want %d (the one outside the project dropped)", len(back), len(res.Findings)-1)
+	}
+	out, _ := NewResults(proj)
+	out.Add(back, in, texts)
+	Evaluate(out, nil, "")
+	var html bytes.Buffer
+	if err := WriteHTML(&html, out); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(html.String(), "TOP-SECRET") {
+		t.Errorf("the report holds a file from outside the project")
+	}
+}
