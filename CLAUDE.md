@@ -110,6 +110,15 @@ content and config values only; never touch the theme).
   `test/results/gallery`.
 - An independent review agent looks at code and site before a release is
   called done.
+- Check the site after a deploy once, and stop: the Cloudflare Pages
+  check on the site commit (`gh api
+  repos/photozeitgeist/remixware.com/commits/SHA/check-runs`) plus one page
+  not fetched before in the session, or a fetched one with a query added
+  (`?v=0.2.1`). WebFetch keeps each address's copy for about 15 minutes,
+  so fetching the same address again returns the old page. Never re-fetch
+  it, wait out a cache or blame Cloudflare. If a page looks stale, say so
+  in one line and move on. (2026-10-26: rechecking the homepage's stored
+  copy wasted the owner's usage.)
 - CI never touches the network. `.github/workflows/scanoss-live.yml` (run by
   hand: `gh api -X POST repos/softdevstudio/remixware/actions/workflows/scanoss-live.yml/dispatches -f ref=main`)
   asks the real SCANOSS service about copies of logrus and reports what it
