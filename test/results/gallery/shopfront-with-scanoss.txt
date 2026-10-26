@@ -15,15 +15,17 @@ NO LICENSE           internal/format/bytes.go:2-24
                      No licence was found, so nobody has given permission to copy this code. Remove
                      it or ask the author.
 
-REVIEW               internal/cache/lru.go:2-52
-                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
-                     MPL-2.0 applies file by file: keep the copied code in its own file under
-                     MPL-2.0, keep its notice, and publish your changes to that file.
-
 REVIEW               web/vendor.min.js:1
                      tinychart 2.0.1, dist/tinychart.min.js (NOASSERTION), whole file (SCANOSS), 100% match
                      No licence information was found for this source. Check its repository before
                      keeping the copy.
+
+ATTRIBUTION MISSING  internal/cache/lru.go:2-52
+                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
+                     MPL-2.0 applies file by file: keep the copied code in its own file under
+                     MPL-2.0, keep its notice, and publish your changes to that file. Its copyright
+                     line and licence text also have to ship with your copy: until your notices
+                     carry them, this counts as attribution missing.
 
 ATTRIBUTION MISSING  internal/csvio/split.go:2-45
                      example.com/fastcsv, fastcsv.go:2-45 (MIT), copied as is, 100% match
@@ -51,4 +53,4 @@ ATTRIBUTED           internal/net/retry.go:13-46
                      licence text and any NOTICE text the project ships, and mark files you
                      changed.
 
-10 findings: 2 conflict, 1 no license, 2 review, 4 attribution missing, 1 attributed.
+10 findings: 2 conflict, 1 no license, 1 review, 5 attribution missing, 1 attributed.

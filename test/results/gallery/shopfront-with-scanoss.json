@@ -1,6 +1,6 @@
 {
   "tool": "remixware 0.1.0",
-  "created": "2026-10-26T08:11:37Z",
+  "created": "2026-10-26T09:11:47Z",
   "project": "testdata/projects/shopfront",
   "project_license": "MIT",
   "project_license_from": "LICENSE",
@@ -55,8 +55,8 @@
         "tokens": 306,
         "whole_file": true
       },
-      "status": "review",
-      "reason": "MPL-2.0 applies file by file: keep the copied code in its own file under MPL-2.0, keep its notice, and publish your changes to that file."
+      "status": "attribution-missing",
+      "reason": "MPL-2.0 applies file by file: keep the copied code in its own file under MPL-2.0, keep its notice, and publish your changes to that file. Its copyright line and licence text also have to ship with your copy: until your notices carry them, this counts as attribution missing."
     },
     {
       "id": "RW-116557ad",
@@ -380,10 +380,10 @@
   ],
   "counts": {
     "attributed": 1,
-    "attribution-missing": 4,
+    "attribution-missing": 5,
     "conflict": 2,
     "no-license": 1,
-    "review": 2
+    "review": 1
   },
   "texts": {
     "agplwiki@0.4.0": {

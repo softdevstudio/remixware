@@ -1,4 +1,4 @@
 clean: licence=Apache-2.0 files=5 lines=173 findings=0 
 firmware: licence=GPL-2.0-only files=4 lines=151 findings=3 attribution-missing=1 conflict=2
-shopfront-with-scanoss: licence=MIT files=11 lines=474 findings=10 attributed=1 attribution-missing=4 conflict=2 no-license=1 review=2
-shopfront: licence=MIT files=11 lines=474 findings=9 attributed=1 attribution-missing=4 conflict=2 no-license=1 review=1
+shopfront-with-scanoss: licence=MIT files=11 lines=474 findings=10 attributed=1 attribution-missing=5 conflict=2 no-license=1 review=1
+shopfront: licence=MIT files=11 lines=474 findings=9 attributed=1 attribution-missing=5 conflict=2 no-license=1
