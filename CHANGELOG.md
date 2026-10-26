@@ -20,6 +20,9 @@
 - Minified `.min.js` and `.min.css` files go to SCANOSS too, since it can
   name a whole minified library. Remixware's own scan still skips them.
 - JSON reports list the service as an input of kind `scanoss-api`.
+- SCANOSS answers write a missing vendor as "None". Remixware no longer
+  puts "None/" in front of such a component's name, in results files read
+  with `--from` too.
 
 ## 0.1.1
 
