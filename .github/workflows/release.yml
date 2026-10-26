@@ -91,7 +91,10 @@ jobs:
           rw=stage/remixware${{ matrix.ext }}
           out=$($rw version)
           [ "$(echo "$out" | tr -d '\r')" = "remixware ${{ needs.plan.outputs.version }}" ] || { echo "::error::version printed $out"; exit 1; }
-          $rw licenses | grep -q "GPL-3.0-only" || { echo "::error::licenses does not list GPL-3.0-only"; exit 1; }
+          # Output goes to a file before grep reads it: with pipefail, grep -q
+          # closing a pipe early makes the writer die of SIGPIPE.
+          $rw licenses > licenses.txt
+          grep -q "GPL-3.0-only" licenses.txt || { echo "::error::licenses does not list GPL-3.0-only"; exit 1; }
           $rw index testdata/upstream --out smoke.rmx > index.txt 2>&1 || { sed 's/^/::error::/' index.txt | head -20; exit 1; }
           grep -q "Indexed 10 files" index.txt || { sed 's/^/::error::/' index.txt | head -20; exit 1; }
           # check must fail on a project with licence conflicts, and pass on a clean one.
@@ -145,8 +148,12 @@ jobs:
           set -eu
           n=$(ls dist | wc -l)
           [ "$n" = 5 ] || { echo "::error::expected 5 archives, found $n: $(ls dist | tr '\n' ' ')"; exit 1; }
-          for f in dist/*.tar.gz; do tar -tzf "$f" | grep -q '^./remixware$' || { echo "::error::$f has no remixware binary"; exit 1; }; done
-          unzip -l dist/remixware_windows_amd64.zip | grep -q 'remixware.exe' || { echo "::error::zip has no remixware.exe"; exit 1; }
+          for f in dist/*.tar.gz; do
+            tar -tzf "$f" > list.txt
+            grep -q '^./remixware$' list.txt || { echo "::error::$f has no remixware binary"; exit 1; }
+          done
+          unzip -l dist/remixware_windows_amd64.zip > list.txt
+          grep -q 'remixware.exe' list.txt || { echo "::error::zip has no remixware.exe"; exit 1; }
       - name: Checksums
         run: |
           set -eux
