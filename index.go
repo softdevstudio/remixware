@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,7 +29,18 @@ type SourceFile struct {
 	Copyrights []string `json:"cr,omitempty"`
 	Lines      int      `json:"n"`
 	Tokens     int      `json:"t"`
+	Sum        string   `json:"h"`              // SHA-256 of the file's bytes, first 16 bytes in hex
 	Also       []int    `json:"also,omitempty"` // other components (often other versions) holding the same file
+}
+
+// indexFormat is the version of the index file layout. 2 added each file's
+// checksum.
+const indexFormat = 2
+
+// fileSum returns the checksum an index keeps of a file's bytes.
+func fileSum(data []byte) string {
+	h := sha256.Sum256(data)
+	return hex.EncodeToString(h[:16])
 }
 
 type indexHeader struct {
@@ -106,7 +118,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 	if progress == nil {
 		progress = func(string, ...any) {}
 	}
-	ix := &Index{indexHeader: indexHeader{Format: 1, Tool: "remixware " + Version,
+	ix := &Index{indexHeader: indexHeader{Format: indexFormat, Tool: "remixware " + Version,
 		Created: time.Now().UTC().Format(time.RFC3339), K: kgramSize, W: windowSize, MinDistinct: minDistinct,
 		Norm: normVersion, Skipped: map[string]int{}}}
 
@@ -144,7 +156,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 		go func() {
 			defer wg.Done()
 			for i := range next {
-				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License, opt.License == "")
+				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License)
 			}
 		}()
 	}
@@ -358,6 +370,7 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 		info := dirs[p]
 		m := info.manifest
 		if m != nil {
+			m.fromWorkspace(root)
 			c.Name, c.Version, c.URL, c.PURL = m.name, m.version, m.url, m.purl()
 			if m.license != "" {
 				if l := NormalizeLicense(m.license); licenseCategory(l) != CatUnknown {
@@ -369,8 +382,10 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 		for _, f := range info.licenseFiles {
 			licPaths = append(licPaths, filepath.Join(p, f))
 		}
-		if m != nil && m.licFile != "" {
-			licPaths = append(licPaths, filepath.Join(p, m.licFile))
+		// A licence file the manifest names counts only inside the indexed
+		// folder: "../../secret.key" stays out of the index.
+		if m != nil && m.licFile != "" && m.licFile != root && within(m.licFile, root) {
+			licPaths = append(licPaths, m.licFile)
 		}
 		if info.reuseDir {
 			sub, _ := os.ReadDir(filepath.Join(p, "LICENSES"))
@@ -521,9 +536,9 @@ func manifestFile(kind string) string {
 }
 
 // fingerprintSourceFile reads and fingerprints one file. Its own licence
-// comes from the comments at its top (see fileLicense), unless the user
-// named the licence of all the code with --license.
-func fingerprintSourceFile(p pendingFile, compLicense string, headers bool) fileResult {
+// comes from the comments at its top (see fileLicense). That holds with
+// --license too, which only sets what the component's licence is.
+func fingerprintSourceFile(p pendingFile, compLicense string) fileResult {
 	data, skip := readSource(p.abs)
 	if skip != "" {
 		return fileResult{skip: skip}
@@ -531,17 +546,15 @@ func fingerprintSourceFile(p pendingFile, compLicense string, headers bool) file
 	sx := languageFor(p.abs)
 	toks := tokenize(data, sx)
 	fps := winnow(toks, sx)
-	sf := &SourceFile{Comp: p.comp, Path: p.rel, Abs: p.abs, Lines: countLines(data), Tokens: len(toks)}
+	sf := &SourceFile{Comp: p.comp, Path: p.rel, Abs: p.abs, Lines: countLines(data), Tokens: len(toks), Sum: fileSum(data)}
 	head := leadingComments(data, sx, 16<<10)
-	if headers {
-		// An SPDX tag is the file's own explicit statement of its licence.
-		if id := spdxTagLicense(head); id != "" {
-			if !strings.EqualFold(id, NormalizeLicense(compLicense)) {
-				sf.License = id
-			}
-		} else {
-			sf.License = fileLicense(compLicense, headerLicense(head), head)
+	// An SPDX tag is the file's own explicit statement of its licence.
+	if id := spdxTagLicense(head); id != "" {
+		if !sameLicense(id, compLicense) {
+			sf.License = id
 		}
+	} else {
+		sf.License = fileLicense(compLicense, headerLicense(head), head)
 	}
 	sf.Copyrights = copyrightLines(head, 5)
 	h := sha256.New()
@@ -732,21 +745,51 @@ func (ix *Index) Save(path string) error {
 	return os.Rename(tmp, path)
 }
 
-// LoadIndex reads an index written by Save.
+// maxIndexExpansion is how many times its size an index may unpack to.
+// Real ones unpack to two or three times their size: fingerprints barely
+// compress. More than this is a damaged or made-up file built to fill
+// memory.
+const maxIndexExpansion = 64
+
+var errUnpacksTooFar = errors.New("it unpacks to far more than an index holds")
+
+// unpackLimit stops reading after n bytes with errUnpacksTooFar, unless
+// the data ends there.
+type unpackLimit struct {
+	r io.Reader
+	n int64
+}
+
+func (l *unpackLimit) Read(p []byte) (int, error) {
+	if l.n <= 0 {
+		var one [1]byte
+		if n, err := l.r.Read(one[:]); n == 0 && err != nil {
+			return 0, err
+		}
+		return 0, errUnpacksTooFar
+	}
+	if int64(len(p)) > l.n {
+		p = p[:l.n]
+	}
+	n, err := l.r.Read(p)
+	l.n -= int64(n)
+	return n, err
+}
+
+// LoadIndex reads an index written by Save. Index files can come from
+// anywhere, so everything in one is checked before it is used: a damaged
+// or made-up file is refused, and can't make Remixware use much more
+// memory than the file's real contents need.
 func LoadIndex(path string) (*Index, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	// Deflate packs at most about 1,000 bytes into one, so the file's size
-	// caps how much it can hold: a small file that claims a lot is damaged,
-	// and memory is set aside only for what it can really hold.
 	st, err := f.Stat()
 	if err != nil {
 		return nil, err
 	}
-	capacity := uint64(st.Size())*1100 + 1<<16
 	magic := make([]byte, len(indexMagic))
 	if _, err := io.ReadFull(f, magic); err != nil || string(magic) != indexMagic {
 		return nil, fmt.Errorf("%s is not a Remixware index (make one with remixware index)", path)
@@ -755,37 +798,47 @@ func LoadIndex(path string) (*Index, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: damaged index (%v)", path, err)
 	}
-	br := bufio.NewReaderSize(zr, 1<<20)
+	limit := st.Size()*maxIndexExpansion + 1<<20
+	br := bufio.NewReaderSize(&unpackLimit{r: zr, n: limit}, 1<<20)
+	damaged := func(what string, err error) error {
+		if errors.Is(err, errUnpacksTooFar) {
+			what = errUnpacksTooFar.Error()
+		}
+		return fmt.Errorf("%s: damaged index (%s)", path, what)
+	}
 	n, err := binary.ReadUvarint(br)
-	if err != nil || n > 1<<30 || n > capacity {
-		return nil, fmt.Errorf("%s: damaged index header", path)
+	if err != nil || n > uint64(limit) {
+		return nil, damaged("a header longer than the file can hold", err)
 	}
 	// Read what is there rather than trust the length: a damaged or made-up
 	// file can't make Remixware allocate memory it doesn't need.
 	head, err := io.ReadAll(io.LimitReader(br, int64(n)))
 	if err != nil || uint64(len(head)) != n {
-		return nil, fmt.Errorf("%s: damaged index header", path)
+		return nil, damaged("bad header", err)
 	}
 	ix := &Index{Path: path}
 	if err := json.Unmarshal(head, &ix.indexHeader); err != nil {
 		return nil, fmt.Errorf("%s: damaged index header: %v", path, err)
 	}
-	if ix.Format != 1 || ix.K != kgramSize || ix.W != windowSize || ix.MinDistinct != minDistinct || ix.Norm != normVersion {
+	head = nil
+	if ix.Format != indexFormat || ix.K != kgramSize || ix.W != windowSize || ix.MinDistinct != minDistinct || ix.Norm != normVersion {
 		return nil, fmt.Errorf("%s was made by %s with other settings: rebuild it with remixware index", path, ix.Tool)
 	}
 	if err := ix.validate(); err != nil {
 		return nil, fmt.Errorf("%s: damaged index (%v)", path, err)
 	}
 	count, err := binary.ReadUvarint(br)
-	if err != nil || count > capacity/indexRecordSize {
-		return nil, fmt.Errorf("%s: damaged index", path)
+	if err != nil || count > uint64(limit)/indexRecordSize {
+		return nil, damaged("more fingerprints than the file can hold", err)
 	}
-	ix.fps = make([]indexFP, 0, count)
+	// Fingerprints don't compress below about 8 bytes each, so the file's
+	// size bounds what is set aside for them up front.
+	ix.fps = make([]indexFP, 0, min(count, uint64(st.Size())/8+1024))
 	var rec [indexRecordSize]byte
 	nfiles := uint32(len(ix.Files))
 	for i := uint64(0); i < count; i++ {
 		if _, err := io.ReadFull(br, rec[:]); err != nil {
-			return nil, fmt.Errorf("%s: damaged index (it ends early)", path)
+			return nil, damaged("it ends early", err)
 		}
 		p := indexFP{
 			hash:  binary.LittleEndian.Uint64(rec[0:]),
@@ -796,21 +849,24 @@ func LoadIndex(path string) (*Index, error) {
 			end:   binary.LittleEndian.Uint32(rec[24:]),
 		}
 		if p.file >= nfiles {
-			return nil, fmt.Errorf("%s: damaged index (bad file number)", path)
+			return nil, damaged("bad file number", nil)
 		}
 		if f := ix.Files[p.file]; int64(p.pos)+kgramSize > int64(f.Tokens) || p.line < 1 || p.line > p.end || int64(p.end) > int64(max(f.Lines, 1)) {
-			return nil, fmt.Errorf("%s: damaged index (a fingerprint outside its file)", path)
+			return nil, damaged("a fingerprint outside its file", nil)
+		}
+		// Sorted by hash, file and place, each once: a file of repeated
+		// records is made up, however well it packs.
+		if k := len(ix.fps); k > 0 {
+			q := ix.fps[k-1]
+			if p.hash < q.hash || p.hash == q.hash && (p.file < q.file || p.file == q.file && p.pos <= q.pos) {
+				return nil, damaged("fingerprints out of order", nil)
+			}
 		}
 		ix.fps = append(ix.fps, p)
 	}
 	// Reading to the end makes gzip check its checksum.
 	if _, err := br.ReadByte(); err != io.EOF {
-		return nil, fmt.Errorf("%s: damaged index (checksum failed or data after the end)", path)
-	}
-	for i := 1; i < len(ix.fps); i++ {
-		if ix.fps[i].hash < ix.fps[i-1].hash {
-			return nil, fmt.Errorf("%s: damaged index (not sorted)", path)
-		}
+		return nil, damaged("checksum failed or data after the end", err)
 	}
 	return ix, nil
 }
@@ -822,10 +878,16 @@ func (ix *Index) validate() error {
 		if c == nil {
 			return fmt.Errorf("component %d is missing", i)
 		}
+		if len(c.License) > maxLicenseExpr {
+			return fmt.Errorf("component %d has a licence expression too long to be real", i)
+		}
 	}
 	for i, f := range ix.Files {
 		if f == nil {
 			return fmt.Errorf("file %d is missing", i)
+		}
+		if len(f.License) > maxLicenseExpr {
+			return fmt.Errorf("file %d has a licence expression too long to be real", i)
 		}
 		if f.Comp < 0 || f.Comp >= len(ix.Components) {
 			return fmt.Errorf("file %d has a bad component number", i)
@@ -835,27 +897,53 @@ func (ix *Index) validate() error {
 				return fmt.Errorf("file %d has a bad component number", i)
 			}
 		}
-		if f.Tokens < 0 || f.Lines < 0 {
+		// A source file is at most maxFileSize bytes, so it can't hold more
+		// tokens or lines than that.
+		if f.Tokens < 0 || f.Lines < 0 || f.Tokens > maxFileSize || f.Lines > maxFileSize {
 			return fmt.Errorf("file %d has a bad size", i)
 		}
 	}
 	return nil
 }
 
+// maxLicenseExpr is the longest licence expression an index may hold.
+const maxLicenseExpr = 4096
+
+// localPath reports whether p can name a place on this machine: absolute
+// and clean, so "/project/../etc" can't pass for a folder in the project.
+// Paths in an index made on another system aren't.
+func localPath(p string) bool {
+	return p != "" && filepath.IsAbs(p) && filepath.Clean(p) == p
+}
+
 // readable reports whether a scan may read an indexed file again: it must
 // be an absolute, clean path to a source file inside one of the folders
-// the index was made from. An index made elsewhere, or made up, can't
-// point a scan at other files on this machine.
+// the index was made from. The file is used only when its bytes still
+// match the checksum the index holds (see sourceTokens), so an index made
+// elsewhere, or made up, can't show a scan's report any file the index's
+// maker didn't already have.
 func (ix *Index) readable(p string) bool {
-	if p == "" || !filepath.IsAbs(p) || filepath.Clean(p) != p || languageFor(p) == nil {
+	if !localPath(p) || languageFor(p) == nil {
 		return false
 	}
 	for _, r := range ix.Roots {
-		if filepath.IsAbs(r) && p != filepath.Clean(r) && within(p, filepath.Clean(r)) {
+		if localPath(r) && p != r && within(p, r) {
 			return true
 		}
 	}
 	return false
+}
+
+// rootOf returns the folder the index was made from that holds p, the
+// innermost one if several do, or "".
+func (ix *Index) rootOf(p string) string {
+	best := ""
+	for _, r := range ix.Roots {
+		if localPath(r) && within(p, r) && len(r) > len(best) {
+			best = r
+		}
+	}
+	return best
 }
 
 // LicenseCounts returns how many components carry each licence.

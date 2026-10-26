@@ -70,8 +70,10 @@ content and config values only; never touch the theme).
   less. `TestFingerprintsMatchNormVersion` fails until the digest for the
   new version is recorded in it.
 - Indexes and results files from elsewhere are untrusted input: keep
-  `Index.validate`, `Index.readable` and `projectPath` in the way of every
-  file read they could steer.
+  `Index.validate`, `Index.readable`, the checksum checks (`sourceTokens`,
+  `unchangedComponents`) and `projectPath` in the way of every file read
+  they could steer, and keep `LoadIndex` from allocating for what a file
+  only claims. A change to the index layout bumps `indexFormat`.
 
 ## State
 
@@ -84,7 +86,12 @@ unrelated projects are typer's real copies of click). The first
 independent review found 16 problems (file headers hiding copyleft, EUPL
 read as GPL, crafted indexes reading local files, checks passing on empty
 scans, loose credit matching, SPDX snippets without byte ranges, and
-more); all were fixed with tests before release. Not yet released.
+more). The second found 13 more, several from the first round's fixes:
+an index holding the project hid its sub-folders, crafted indexes could
+still show local files or crash a scan, review verdicts passed check
+without a notice, "Alternatively" headers read as AND, identical large
+files split into many findings, and others. All were fixed with tests
+before release; index format 2 adds file checksums. Not yet released.
 
 ## Gaps and to-do
 
@@ -98,6 +105,12 @@ Known gaps, not planned yet:
 - Licence texts outside the eight built in are taken from the component's
   own licence file; when the index doesn't have it, `notice` asks the user
   to finish the entry by hand.
+- A licence file holding the full texts of two licences is read as the
+  first, unless the second is a condition such as the Commons Clause.
+- When a manifest and a licence file name different licences, the
+  manifest's wins.
+- Symbolic links in a project are counted, not followed: code in a linked
+  file or folder isn't checked unless it's in the project too.
 - The Flask docs theme in requests (a BSD text with an extra request) is
   reported as LicenseRef-Unrecognised, which is honest but means review.
 - Python namespace packages installed without RECORD files (rare, old

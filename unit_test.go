@@ -282,10 +282,58 @@ func TestDetectLicense(t *testing.T) {
 		// appendix; only a preface before the terms makes it "or later".
 		{"GPL-2.0-only", "GNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991\nPreamble\nTERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n0. This License applies\nHow to Apply These Terms\neither version 2 of the License, or (at your option) any later version."},
 		{"GPL-2.0-or-later", "This program is licensed under the GNU General Public License, version 2 or (at your option) any later version.\n\nGNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991\nTERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\nHow to Apply These Terms\neither version 2 of the License, or (at your option) any later version."},
+		// The Commons Clause is a condition on the licence it comes with,
+		// wherever it is in the file.
+		{"Apache-2.0 AND LicenseRef-Commons-Clause", text("Apache-2.0") + "\n\n" + commonsClauseText},
+		{"Apache-2.0 AND LicenseRef-Commons-Clause", commonsClauseText + "\n\n" + text("Apache-2.0")},
+		{"LicenseRef-Commons-Clause", commonsClauseText},
 	}
 	for _, c := range cases {
 		if got := DetectLicense(c.text); got != c.want {
 			t.Errorf("DetectLicense(%.60q...) = %q, want %q", c.text, got, c.want)
+		}
+	}
+}
+
+const commonsClauseText = `"Commons Clause" License Condition v1.0
+
+The Software is provided to you by the Licensor under the License, as defined
+below, subject to the following condition.
+
+Without limiting other conditions in the License, the grant of rights under the
+License will not include, and the License does not grant to you, the right to
+Sell the Software.`
+
+// Expressions compare by what they say, not how they are written, and a
+// licence joined to itself is there once.
+func TestCanonicalLicences(t *testing.T) {
+	same := [][2]string{
+		{"MIT OR Apache-2.0", "Apache-2.0 OR MIT"},
+		{"(MIT OR Apache-2.0) AND Zlib", "Zlib AND (Apache-2.0 OR MIT)"},
+		{"MIT AND MIT", "MIT"},
+		{"MIT AND (MIT OR GPL-2.0-only)", "MIT"},
+		{"MIT OR (MIT AND GPL-2.0-only)", "MIT"},
+		{"(Apache-2.0 OR MIT) AND (Apache-2.0 OR MIT OR Zlib)", "Apache-2.0 OR MIT"},
+		{"mit or apache-2.0", "MIT OR Apache-2.0"},
+	}
+	for _, c := range same {
+		if !sameLicense(c[0], c[1]) {
+			t.Errorf("%q and %q differ: %q, %q", c[0], c[1], canonicalLicense(c[0]), canonicalLicense(c[1]))
+		}
+	}
+	if sameLicense("MIT", "MIT OR Apache-2.0") || sameLicense("MIT AND GPL-2.0-only", "MIT") {
+		t.Errorf("different licences compare equal")
+	}
+	joins := map[string][]string{
+		"BSD-3-Clause AND GPL-2.0-only":     {"BSD-3-Clause AND GPL-2.0-only", "BSD-3-Clause"},
+		"BSD-3-Clause":                      {"BSD-3-Clause", "BSD-3-Clause OR GPL-2.0-only"},
+		"(Apache-2.0 OR MIT) AND Zlib":      {"Zlib", "MIT OR Apache-2.0", "Apache-2.0 OR MIT"},
+		LicenseNone:                         {"", " "},
+		"LicenseRef-Commons-Clause AND MIT": {"MIT", "", "LicenseRef-Commons-Clause"},
+	}
+	for want, in := range joins {
+		if got := joinLicenses(in); got != want {
+			t.Errorf("joinLicenses(%q) = %q, want %q", in, got, want)
 		}
 	}
 }
@@ -459,11 +507,24 @@ func TestFileHeaderLicences(t *testing.T) {
 		{"a python docstring after a shebang", "NONE", "l.py", "#!/usr/bin/env python\n\"\"\"Licensed under the Apache License, Version 2.0.\"\"\"\nimport os\n", "Apache-2.0"},
 		{"a PHP header", "NONE", "m.php", "<?php\n/*\n * Licensed under the MIT License.\n */\nfunction f() {}\n", "MIT"},
 		{"a C header after an include guard", "NONE", "n.h", "#ifndef X_H\n#define X_H\n/* Licensed under the MIT License. */\nint x;\n", "MIT"},
+		{"the old Mozilla tri-licence", "MPL-2.0", "p.c", mozillaTri, "(GPL-2.0-or-later OR LGPL-2.1-or-later OR MPL-1.1) AND MPL-2.0"},
+		{"BSD, or alternatively the GPL", "BSD-3-Clause", "q.c", bsdOrGPL, "BSD-3-Clause OR GPL-2.0-only"},
+		{"either the GPL or the CDDL", "CDDL-1.0", "r.java", gplOrCDDL, "CDDL-1.0 OR GPL-2.0-only"},
+		{"a word about origins in another sentence", "NONE", "s.js",
+			"/*!\n * oldjs v1.2\n * Copyright (c) 2012 Jane Roe\n * Originally written for the Foo project.\n * Released under the MIT license.\n */\nvar x = 1;\n", "MIT"},
+		{"portions of the copyright", "NONE", "t.go",
+			"// Copyright (c) 2015 Sam Poe. Portions copyright (c) 2014 Lee Doe.\n// Licensed under the MIT License.\npackage x\n", "MIT"},
+		{"a header after 'use strict'", "NONE", "u.js",
+			"'use strict';\n/**\n * tinylib v2.1.0\n * Released under the MIT license.\n */\nfunction f() {}\n", "MIT"},
+		{"Apache's warranty wording is no choice", "NONE", "v.go",
+			"// Licensed under the Apache License, Version 2.0 (the \"License\"). Distributed on an \"AS IS\" BASIS,\n" +
+				"// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n// Its tables are under the MIT License.\npackage x\n",
+			"Apache-2.0 AND MIT"},
 	}
 	dir := t.TempDir()
 	for _, c := range cases {
 		p := writeTemp(t, dir, c.file, c.src)
-		r := fingerprintSourceFile(pendingFile{abs: p, rel: c.file}, c.comp, true)
+		r := fingerprintSourceFile(pendingFile{abs: p, rel: c.file}, c.comp)
 		if r.sf == nil {
 			t.Fatalf("%s: not fingerprinted (%s)", c.name, r.skip)
 		}
@@ -471,12 +532,70 @@ func TestFileHeaderLicences(t *testing.T) {
 			t.Errorf("%s: file licence %q, want %q", c.name, r.sf.License, c.want)
 		}
 	}
-	// With --license, the user has said what all the code is under.
-	p := writeTemp(t, dir, "o.c", gplLater)
-	if r := fingerprintSourceFile(pendingFile{abs: p, rel: "o.c"}, "LicenseRef-Proprietary", false); r.sf.License != "" {
-		t.Errorf("--license: file licence %q, want none of its own", r.sf.License)
+	// --license sets the component's licence; a file's own header still
+	// counts, SPDX tags included.
+	up := filepath.Join(dir, "up")
+	writeTemp(t, up, "o.c", gplLater)
+	writeTemp(t, up, "w.go", "// SPDX-License-Identifier: GPL-2.0-only\npackage x\n")
+	ix, err := BuildIndex([]string{up}, IndexOptions{License: "LicenseRef-Proprietary"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, f := range ix.Files {
+		got[f.Path] = f.License
+	}
+	if got["o.c"] != "GPL-2.0-or-later AND LicenseRef-Proprietary" || got["w.go"] != "GPL-2.0-only" {
+		t.Errorf("--license: file licences %q", got)
 	}
 }
+
+const mozillaTri = `/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above.
+ * ***** END LICENSE BLOCK ***** */
+int x;
+`
+
+const bsdOrGPL = `/*
+ * Copyright (c) 2004, Example Networks
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * Alternatively, this software may be distributed under the terms of the
+ * GNU General Public License ("GPL") version 2 as published by the Free
+ * Software Foundation.
+ */
+int x;
+`
+
+const gplOrCDDL = `/*
+ * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common Development
+ * and Distribution License("CDDL") (collectively, the "License").  You
+ * may not use this file except in compliance with the License.
+ */
+class X {}
+`
 
 func TestManifests(t *testing.T) {
 	dir := t.TempDir()
@@ -623,9 +742,42 @@ func TestCargoWorkspaceLicence(t *testing.T) {
 	dir := t.TempDir()
 	writeTemp(t, dir, "Cargo.toml", "[workspace]\nmembers = [\"crates/foo\"]\n\n[workspace.package]\nlicense = \"MIT OR Apache-2.0\"\nversion = \"0.4.0\"\n")
 	p := writeTemp(t, dir, "crates/foo/Cargo.toml", "[package]\nname = \"foo\"\nversion.workspace = true\nlicense = { workspace = true }\n")
+	writeTemp(t, dir, "crates/foo/src/lib.rs", "pub fn f() -> u32 { 1 }\n")
 	m := readManifest(filepath.Dir(p), "Cargo.toml")
+	m.fromWorkspace(dir)
 	if m == nil || m.license != "MIT OR Apache-2.0" || m.version != "0.4.0" {
 		t.Errorf("workspace member: %+v", m)
+	}
+	licenceOf := func(root, name string) *Component {
+		t.Helper()
+		ix, err := BuildIndex([]string{root}, IndexOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, c := range ix.Components {
+			if c.Name == name {
+				return c
+			}
+		}
+		t.Fatalf("no component %s in %+v", name, ix.Components)
+		return nil
+	}
+	if c := licenceOf(dir, "foo"); c.License != "MIT OR Apache-2.0" || c.Version != "0.4.0" {
+		t.Errorf("indexing the workspace: %s %s", c.License, c.Version)
+	}
+	// Indexing the crates folder alone reads nothing above it: the crate's
+	// own licence file is what there is.
+	writeTemp(t, dir, "crates/foo/COPYING", "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n\nTERMS AND CONDITIONS\n")
+	if c := licenceOf(filepath.Join(dir, "crates"), "foo"); c.License != "GPL-3.0-only" {
+		t.Errorf("indexing below the workspace: %s from %s", c.License, c.LicenseFrom)
+	}
+	// A licence file named in a manifest counts only inside the indexed
+	// folder.
+	writeTemp(t, dir, "secret/license.key", "Licensed to ACME. Permission granted to XXXX-SECRET-KEY.\n")
+	writeTemp(t, dir, "vendor/evil/Cargo.toml", "[package]\nname = \"evil\"\nlicense-file = \"../../secret/license.key\"\n")
+	writeTemp(t, dir, "vendor/evil/src/lib.rs", "pub fn g() -> u32 { 2 }\n")
+	if c := licenceOf(filepath.Join(dir, "vendor"), "evil"); strings.Contains(c.LicenseText, "SECRET") || c.License != LicenseNone {
+		t.Errorf("a licence file outside the indexed folder was read: %s %q", c.License, c.LicenseText)
 	}
 }
 
@@ -822,6 +974,11 @@ func TestJoinPieces(t *testing.T) {
 		{"same code twice in the source", []Finding{piece(36, 47, 335, 346, 54), piece(36, 47, 357, 368, 54)}, []Range{{36, 47}, {36, 47}}},
 		{"far apart", []Finding{piece(1, 20, 1, 20, 100), piece(200, 220, 200, 220, 100)}, []Range{{1, 20}, {200, 220}}},
 		{"source order reversed", []Finding{piece(1, 20, 100, 120, 100), piece(21, 40, 1, 20, 100)}, []Range{{1, 20}, {21, 40}}},
+		// A test file of look-alike cases: pieces lined up with other cases
+		// of the source sit between the pieces of the copy.
+		{"look-alikes in between", []Finding{piece(1, 680, 1, 680, 2800), piece(522, 548, 485, 513, 140),
+			piece(548, 740, 548, 740, 950), piece(700, 760, 740, 800, 300), piece(735, 900, 735, 900, 800)},
+			[]Range{{1, 900}, {522, 548}, {700, 760}}},
 	}
 	for _, c := range cases {
 		out := joinPieces(c.in)

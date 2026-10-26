@@ -174,6 +174,8 @@ func skippedText(k string) string {
 		return "over 2 MB"
 	case "unreadable":
 		return "unreadable"
+	case "symlink":
+		return "symbolic links, not followed"
 	}
 	return k
 }

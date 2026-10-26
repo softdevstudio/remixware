@@ -91,14 +91,22 @@ folders, where it gets none. Code with no licence at all is reported as
   such as `LICENSE-MIT` and `LICENSE-APACHE`, or a short file saying the
   project is dual licensed: those are a choice (`Apache-2.0 OR MIT`).
 - A crate whose `Cargo.toml` says `license.workspace = true` takes the
-  licence of its workspace.
+  licence of its workspace, when the workspace is inside the indexed
+  folder. A licence file that a manifest names counts only inside the
+  indexed folder too.
+- A licence text with a condition on top, such as the Commons Clause after
+  the Apache License, counts as both.
 - Python distributions that install into one folder, such as `google/`, are
   told apart by their `RECORD` files.
 - A file's own header can say more. An `SPDX-License-Identifier` line in the
   comments at its top is that file's licence. A licence notice there that
   names something other than the component's licence is counted along with
   it, so a header can't hide a stricter licence: a file headed MIT inside a
-  GPL project counts as both. Only comments count, not code.
+  GPL project counts as both. A header that offers a choice including the
+  component's licence ("BSD, or alternatively the GPL", "either the GPL or
+  the CDDL") is the file's own, wider grant and counts as written. Only
+  comments count, not code. Headers count with `--license` too, which sets
+  the licence of the components, not of each file.
 - Symbolic links are never followed and only regular files are read, so a
   `NOTICE` that links to a file elsewhere on the machine stays out of the
   index.
@@ -108,17 +116,22 @@ remixware index ./some-project --name github.com/acme/tool --version v1.2.0 --ou
 remixware index ~/src/old-product --license LicenseRef-Proprietary --out ours.rmx
 ```
 
-Folders that an index already covers are skipped when you scan, so
-indexing your own `vendor` folder doesn't report every vendored file as a
-copy. An index that holds the project itself (because you indexed a folder
-above it) doesn't hide it: the project's files are still scanned, and
-nothing is reported as copied from the project's own code.
-`node_modules`, `vendor`, `third_party` and virtual environments aren't
-scanned unless you pass `--include-deps`, and `.git` never is.
+An index of a folder inside your project, such as your own `vendor`
+folder, declares it as third-party code: the scan skips that folder while
+it still holds what was indexed, so its files aren't reported as copies of
+themselves, and the rest of the project is still checked for code copied
+from it. An index of a folder above the project holds the project itself
+and declares none of it: every file of the project is scanned, and nothing
+is reported as copied from the project's own code. `node_modules`,
+`vendor`, `third_party` and virtual environments aren't scanned unless you
+pass `--include-deps`, and `.git` never is. Symbolic links aren't followed
+in the project either, and the scan says how many it passed over.
 
 An index is data. One made on another machine, or by someone else, can't
-make a scan read files outside the folders it was indexed from, and an
-index that doesn't hold together is refused as damaged.
+show a scan any file on your machine that it doesn't hold: an indexed file
+is read back only when its bytes still match the checksum in the index. An
+index that doesn't hold together, or that unpacks to far more than its
+size, is refused as damaged.
 
 ## With SCANOSS
 
@@ -149,7 +162,7 @@ Every finding has a status:
 |---|---|
 | `conflict` | The copied code's licence can't be combined with your project's licence as it stands, for example GPL code in an MIT project. |
 | `no-license` | No licence was found for the source, so nobody has given permission to copy it. |
-| `review` | A person has to look: a file-level copyleft licence such as MPL-2.0 or LGPL, code that fits only if your project moves to another licence version (Apache-2.0 into GPL-2.0-or-later), a licence text Remixware doesn't recognise, or the same code also found under stricter terms. |
+| `review` | A person has to look: a file-level copyleft licence such as MPL-2.0 or LGPL, code that fits only if your project moves to another licence version (Apache-2.0 into GPL-2.0-or-later), a licence text Remixware doesn't recognise, or the same code also found under stricter terms. A copy that also needs its notice shows as `attribution-missing` until your notices have it. |
 | `attribution-missing` | The licence allows the copy, but its copyright line and licence text have to ship with your code, and your notice files don't have them. |
 | `attributed` | Allowed, and credited: your notice files name the source, or the copied file kept its original copyright header. |
 | `allowed` | Accepted by a rule in your policy file. |

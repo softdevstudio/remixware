@@ -145,7 +145,7 @@ func TestScanShopfront(t *testing.T) {
 		t.Errorf("project licence %q", res.ProjectLicense)
 	}
 	checkFindings(t, res, []want{
-		{StatusReview, "internal/cache/lru.go", Range{2, 52}, "example.net/mplcache", "MPL-2.0"},
+		{StatusAttributionMissing, "internal/cache/lru.go", Range{2, 52}, "example.net/mplcache", "MPL-2.0"},
 		{StatusAttributionMissing, "internal/csvio/split.go", Range{2, 45}, "example.com/fastcsv", "MIT"},
 		{StatusConflict, "internal/files/order.go", Range{7, 46}, "example.org/gplsort", "GPL-3.0-or-later"},
 		{StatusNoLicense, "internal/format/bytes.go", Range{2, 24}, "upstream", LicenseNone},
@@ -377,7 +377,7 @@ func TestCraftedIndexes(t *testing.T) {
 		var b bytes.Buffer
 		b.WriteString(indexMagic)
 		zw := gzip.NewWriter(&b)
-		head, _ := json.Marshal(indexHeader{Format: 1, K: kgramSize, W: windowSize, MinDistinct: minDistinct, Norm: normVersion})
+		head, _ := json.Marshal(indexHeader{Format: indexFormat, K: kgramSize, W: windowSize, MinDistinct: minDistinct, Norm: normVersion})
 		var vb [binary.MaxVarintLen64]byte
 		if n[0] > 0 {
 			zw.Write(vb[:binary.PutUvarint(vb[:], n[0])])
@@ -442,6 +442,117 @@ func TestCraftedIndexes(t *testing.T) {
 			t.Errorf("%s: the report shows the local file", name)
 		}
 	}
+
+	// An index claiming to be made from "/" that points at a local file of
+	// the right size still can't show it: the file's bytes don't match the
+	// checksum the index holds, which its maker would need the file for.
+	secretPy := writeTemp(t, dir, "secret/settings.py", "DATABASES = {'default': {'PASSWORD': 'hunter2-db-password'}}\n")
+	data, _ := os.ReadFile(secretPy)
+	ix := fresh()
+	ix.Roots = []string{"/"}
+	for _, f := range ix.Files {
+		f.Abs, f.Tokens = secretPy, len(tokenize(data, languageFor(secretPy)))
+	}
+	ix.fps = nil // positions would point past the file; matches aren't the point here
+	res := scanWith(t, ix, project("shopfront"))
+	var html bytes.Buffer
+	WriteHTML(&html, res)
+	if strings.Contains(html.String(), "hunter2") {
+		t.Errorf("roots \"/\": the report shows the local file")
+	}
+	if !ix.readable(secretPy) || ix.sourceTokens(ix.Files[0]) != nil {
+		t.Errorf("roots \"/\": a file whose checksum doesn't match was read")
+	}
+
+	// Licence expressions nested too deep for any real one are read as one
+	// unrecognised licence, and absurdly long ones make the index damaged.
+	deep := strings.Repeat("(", 100) + "MIT" + strings.Repeat(")", 100)
+	if e := parseLicenseExpr(deep); e.op != "" || e.id != deep {
+		t.Errorf("deep expression parsed as %v", e)
+	}
+	ix = fresh()
+	ix.Components[0].License = strings.Repeat("(", 5000) + "MIT" + strings.Repeat(")", 5000)
+	if _, err := saveAndLoad(t, ix); err == nil || !strings.Contains(err.Error(), "too long") {
+		t.Errorf("a 10,000-character licence: %v", err)
+	}
+
+	// Fingerprints that all claim the start of their files load (they fit
+	// in their files) but can't make the scan step outside either file.
+	ix = fresh()
+	var kept []indexFP
+	seen := map[[2]uint64]bool{}
+	for _, f := range ix.fps {
+		f.pos, f.line, f.end = 0, 1, 1
+		if k := [2]uint64{f.hash, uint64(f.file)}; !seen[k] {
+			seen[k] = true
+			kept = append(kept, f)
+		}
+	}
+	ix.fps = kept
+	loaded, err := saveAndLoad(t, ix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	scanWith(t, loaded, project("shopfront"))
+
+	// A file of one record repeated, or a header that unpacks to gigabytes,
+	// is refused before it fills memory.
+	ix = fresh()
+	ix.fps = make([]indexFP, 1<<20)
+	for i := range ix.fps {
+		ix.fps[i] = indexFP{hash: 7, file: 0, pos: 0, line: 1, end: 1}
+	}
+	if _, err := saveAndLoad(t, ix); err == nil || !strings.Contains(err.Error(), "more fingerprints than the file can hold") {
+		t.Errorf("a million repeated records: %v", err)
+	}
+	ix.fps = ix.fps[:1000]
+	if _, err := saveAndLoad(t, ix); err == nil || !strings.Contains(err.Error(), "out of order") {
+		t.Errorf("a thousand repeated records: %v", err)
+	}
+	ix = fresh()
+	ix.Tool = strings.Repeat("x", 64<<20)
+	ix.fps = nil
+	if _, err := saveAndLoad(t, ix); err == nil || !strings.Contains(err.Error(), "longer than the file can hold") {
+		t.Errorf("a header that unpacks to 64 MB: %v", err)
+	}
+	// A small file whose header unpacks to megabytes of nothing.
+	var b bytes.Buffer
+	b.WriteString(indexMagic)
+	zw := gzip.NewWriter(&b)
+	var vb [binary.MaxVarintLen64]byte
+	zw.Write(vb[:binary.PutUvarint(vb[:], 32<<20)])
+	zw.Write(bytes.Repeat([]byte(" "), 32<<20))
+	zw.Close()
+	p := filepath.Join(dir, "bomb.rmx")
+	os.WriteFile(p, b.Bytes(), 0o644)
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	if _, err := LoadIndex(p); err == nil || !strings.Contains(err.Error(), "longer than the file can hold") {
+		t.Errorf("a gzip bomb: %v", err)
+	}
+	runtime.ReadMemStats(&after)
+	if grew := after.TotalAlloc - before.TotalAlloc; grew > 64<<20 {
+		t.Errorf("a gzip bomb: loading allocated %d MB", grew>>20)
+	}
+}
+
+func saveAndLoad(t *testing.T, ix *Index) (*Index, error) {
+	t.Helper()
+	p := filepath.Join(t.TempDir(), "crafted.rmx")
+	if err := ix.Save(p); err != nil {
+		t.Fatal(err)
+	}
+	return LoadIndex(p)
+}
+
+func scanWith(t *testing.T, ix *Index, dir string) *Results {
+	t.Helper()
+	res, err := Scan(dir, ScanOptions{Indexes: []*Index{ix}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	Evaluate(res, nil, "")
+	return res
 }
 
 func TestSCANOSSImport(t *testing.T) {
@@ -487,7 +598,7 @@ func TestIndexAndSCANOSSTogether(t *testing.T) {
 		}
 		t.Fatalf("%d findings, want 10", len(res.Findings))
 	}
-	wantCounts := map[string]int{StatusConflict: 2, StatusNoLicense: 1, StatusReview: 2, StatusAttributionMissing: 4, StatusAttributed: 1}
+	wantCounts := map[string]int{StatusConflict: 2, StatusNoLicense: 1, StatusReview: 1, StatusAttributionMissing: 5, StatusAttributed: 1}
 	for s, n := range wantCounts {
 		if res.Counts[s] != n {
 			t.Errorf("%s: %d, want %d (%v)", s, res.Counts[s], n, res.Counts)
@@ -540,12 +651,19 @@ func writePolicy(t *testing.T, body string) *Policy {
 }
 
 func statusOf(res *Results, file string) string {
-	for _, f := range res.Findings {
-		if f.File == file {
-			return f.Status
-		}
+	if f := findingOf(res, file); f != nil {
+		return f.Status
 	}
 	return ""
+}
+
+func findingOf(res *Results, file string) *Finding {
+	for i, f := range res.Findings {
+		if f.File == file {
+			return &res.Findings[i]
+		}
+	}
+	return nil
 }
 
 func TestPolicyRules(t *testing.T) {
@@ -597,9 +715,10 @@ func TestPolicyLicenseAndNoticeFiles(t *testing.T) {
 	if s := statusOf(res, "internal/net/retry.go"); s != StatusAttributionMissing {
 		t.Errorf("retry.go: %s", s)
 	}
-	// AGPL code still can't go into a GPL-3.0 project unchanged.
-	if s := statusOf(res, "scripts/slug.py"); s != StatusReview {
-		t.Errorf("slug.py: %s", s)
+	// AGPL code goes into a GPL-3.0 project with a review, and needs its
+	// notice like the rest: without one, attribution is missing.
+	if f := findingOf(res, "scripts/slug.py"); f == nil || f.Status != StatusAttributionMissing || !strings.Contains(f.Reason, "network clause") {
+		t.Errorf("slug.py: %+v", f)
 	}
 	// The --license flag wins over the policy.
 	Evaluate(res, pol, "Apache-2.0")
@@ -1041,3 +1160,211 @@ func TestResultsFilesCantReadOutsideTheProject(t *testing.T) {
 		t.Errorf("the report holds a file from outside the project")
 	}
 }
+
+// An index that holds the project, made from a folder above it, doesn't
+// hide any of it: a vendored GPL copy with its own licence file is still
+// found, and code a sub-module shares with the root isn't reported as
+// copied from the project's own code. Only an index of a folder inside the
+// project declares that folder, and only while it still holds what the
+// index has.
+func TestIndexThatHoldsTheProject(t *testing.T) {
+	src := t.TempDir()
+	gpl := string(mustRead(t, filepath.Join("testdata", "upstream", "gplsort", "natural.go")))
+	copying := string(mustRead(t, filepath.Join("testdata", "upstream", "gplsort", "COPYING")))
+	csv := string(mustRead(t, filepath.Join("testdata", "upstream", "fastcsv", "fastcsv.go")))
+	mit := string(mustRead(t, filepath.Join("testdata", "projects", "shopfront", "LICENSE")))
+	writeTemp(t, src, "gplsort/COPYING", copying)
+	writeTemp(t, src, "gplsort/go.mod", "module example.org/gplsort\n")
+	writeTemp(t, src, "gplsort/natural.go", gpl)
+	proj := filepath.Join(src, "myproj")
+	writeTemp(t, proj, "LICENSE", mit)
+	writeTemp(t, proj, "go.mod", "module example.com/myproj\n")
+	writeTemp(t, proj, "internal/natsort/COPYING", copying)
+	writeTemp(t, proj, "internal/natsort/natural.go", gpl)
+	writeTemp(t, proj, "csv.go", csv)
+	writeTemp(t, proj, "tools/go.mod", "module example.com/myproj/tools\n")
+	writeTemp(t, proj, "tools/csv.go", csv)
+
+	all, err := BuildIndex([]string{src}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := scanWith(t, all, proj)
+	var got []string
+	for _, f := range res.Findings {
+		got = append(got, f.File+" "+f.Status+" "+f.Source.Component)
+	}
+	if strings.Join(got, "|") != "internal/natsort/natural.go conflict example.org/gplsort" || res.Skipped["declared"] != 0 {
+		t.Errorf("index of the folder above: %q, skipped %v", got, res.Skipped)
+	}
+
+	// An index of ./internal declares natsort: its copy is skipped, and a
+	// project file copied from it is reported.
+	writeTemp(t, proj, "sort.go", gpl)
+	inner, err := BuildIndex([]string{filepath.Join(proj, "internal")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res = scanWith(t, inner, proj)
+	got = nil
+	for _, f := range res.Findings {
+		got = append(got, f.File+" "+f.Status)
+	}
+	if strings.Join(got, "|") != "sort.go conflict" || res.Skipped["declared"] != 1 {
+		t.Errorf("index of ./internal: %q, skipped %v", got, res.Skipped)
+	}
+
+	// A made-up index that names natsort as its own, without holding its
+	// files, can't hide it from a real one.
+	fake := &Index{indexHeader: indexHeader{Format: indexFormat, K: kgramSize, W: windowSize, MinDistinct: minDistinct, Norm: normVersion,
+		Roots:      []string{filepath.Join(proj, "internal")},
+		Components: []*Component{{Key: "x", Name: "x", Root: filepath.Join(proj, "internal", "natsort"), License: "MIT"}},
+		Files:      []*SourceFile{{Comp: 0, Path: "natural.go", Abs: filepath.Join(proj, "internal", "natsort", "natural.go"), Lines: 1, Tokens: 20, Sum: "00"}}}}
+	gplOnly, err := BuildIndex([]string{filepath.Join(src, "gplsort")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err = Scan(proj, ScanOptions{Indexes: []*Index{gplOnly, fake}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Skipped["declared"] != 0 || findingOf(res, "internal/natsort/natural.go") == nil {
+		t.Errorf("a made-up index hid a folder: skipped %v, findings %d", res.Skipped, len(res.Findings))
+	}
+}
+
+// Symbolic links aren't followed, and the scan says how many it passed.
+func TestSymlinksAreCounted(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links need privileges on Windows")
+	}
+	dir := t.TempDir()
+	writeTemp(t, dir, "real/natural.go", string(mustRead(t, filepath.Join("testdata", "upstream", "gplsort", "natural.go"))))
+	proj := filepath.Join(dir, "proj")
+	writeTemp(t, proj, "main.go", "package main\n\nfunc main() {}\n")
+	if err := os.Symlink(filepath.Join(dir, "real", "natural.go"), filepath.Join(proj, "linked.go")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(dir, "real"), filepath.Join(proj, "src")); err != nil {
+		t.Fatal(err)
+	}
+	res := scanProject(t, proj, nil, ScanOptions{})
+	if res.Skipped["symlink"] != 2 || res.FilesScanned != 1 {
+		t.Errorf("skipped %v, scanned %d", res.Skipped, res.FilesScanned)
+	}
+}
+
+// A copy that needs a review needs its notice too: until the notices carry
+// it, it counts as attribution missing, so check fails on it by default.
+func TestReviewStillNeedsItsNotice(t *testing.T) {
+	cases := []struct{ license, project string }{
+		{"JSON", "MIT"},
+		{"Apache-2.0", "GPL-2.0-or-later"},
+		{"GPL-3.0-only", "GPL-3.0-or-later"},
+		{"LGPL-2.1-only", "LGPL-3.0-only"},
+		{"MPL-2.0", "MIT"},
+	}
+	for _, c := range cases {
+		dir := t.TempDir()
+		src := Source{Key: "lib@1.0", Component: "lib", Version: "1.0", License: c.license, Via: "index",
+			Copyrights: []string{"Copyright (c) 2020 Lib Authors"}}
+		res := &Results{Project: dir, Findings: []Finding{{File: "a.go", Lines: Range{1, 30}, Source: src}}}
+		Evaluate(res, nil, c.project)
+		if f := res.Findings[0]; f.Status != StatusAttributionMissing || !strings.Contains(f.Reason, "until your notices carry them") {
+			t.Errorf("%s in %s, no notice: %s: %s", c.license, c.project, f.Status, f.Reason)
+		}
+		writeTemp(t, dir, "THIRD_PARTY_NOTICES.md", "## lib\n\n- Source: lib@1.0\n")
+		Evaluate(res, nil, c.project)
+		if f := res.Findings[0]; f.Status != StatusReview || !strings.HasPrefix(f.Reason, "Credited") {
+			t.Errorf("%s in %s, credited: %s: %s", c.license, c.project, f.Status, f.Reason)
+		}
+	}
+	// A licence nobody recognises asks for a look, not for a notice.
+	res := &Results{Project: t.TempDir(), Findings: []Finding{{File: "a.go", Lines: Range{1, 30},
+		Source: Source{Key: "x", Component: "x", License: "LicenseRef-Custom", Via: "index"}}}}
+	Evaluate(res, nil, "MIT")
+	if res.Findings[0].Status != StatusReview {
+		t.Errorf("unknown licence: %s", res.Findings[0].Status)
+	}
+}
+
+// A licence named inside another licence's text isn't its text: a notice
+// for code under LGPL-2.1 and MPL-2.0 asks for the LGPL text, which the
+// MPL only names.
+func TestNoticeLeavesNoTextOut(t *testing.T) {
+	mpl := standardLicenseText("MPL-2.0")
+	if !strings.Contains(normText(mpl), " gnu lesser general public license ") {
+		t.Fatal("the MPL-2.0 text no longer names the LGPL; pick another text for this test")
+	}
+	res := &Results{Findings: []Finding{{File: "w.go", Lines: Range{1, 30}, Status: StatusAttributionMissing,
+		Source: Source{Key: "m", Component: "m", License: "LGPL-2.1-only AND MPL-2.0", Copyrights: []string{"Copyright (C) 2019 Lib Authors"}}}},
+		Texts: map[string]*ComponentTexts{"m": {LicenseText: mpl}}}
+	nr := Notices(res, "", false)
+	if !strings.Contains(nr.Text, "LGPL-2.1-only") || !strings.Contains(nr.Text, unfinishedMark) || len(nr.Warnings) != 1 {
+		t.Errorf("the LGPL text isn't asked for:\n%s\nwarnings %v", nr.Text, nr.Warnings)
+	}
+	// Two licence files, each its own text, are both there.
+	both := standardLicenseText("Apache-2.0") + "\n\n----- LICENSE-MIT -----\n\n" + standardLicenseText("MIT")
+	res.Findings[0].Source.License = "Apache-2.0 AND MIT"
+	res.Texts["m"] = &ComponentTexts{LicenseText: both}
+	if nr := Notices(res, "", false); len(nr.Warnings) != 0 || strings.Count(nr.Text, "Permission is hereby granted") != 1 {
+		t.Errorf("texts of two licence files: warnings %v", nr.Warnings)
+	}
+}
+
+// A whole file copied with its header keeps its attribution even when the
+// header and the manifest write the same choice in another order.
+func TestCopyWithDualHeaderIsAttributed(t *testing.T) {
+	dir := t.TempDir()
+	body := "// Copyright 2014 The Rust Project Developers. See the COPYRIGHT\n" +
+		"// file at the top-level directory of this distribution.\n//\n" +
+		"// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or\n" +
+		"// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license\n" +
+		"// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your\n" +
+		"// option. This file may not be copied, modified, or distributed\n" +
+		"// except according to those terms.\n\n" + rustLevenshtein
+	writeTemp(t, dir, "up/oldcrate/Cargo.toml", "[package]\nname = \"oldcrate\"\nversion = \"0.3.0\"\nlicense = \"MIT OR Apache-2.0\"\n")
+	writeTemp(t, dir, "up/oldcrate/src/lib.rs", body)
+	writeTemp(t, dir, "proj/LICENSE", string(mustRead(t, filepath.Join("testdata", "projects", "shopfront", "LICENSE"))))
+	writeTemp(t, dir, "proj/lib.rs", body)
+	ix, err := BuildIndex([]string{filepath.Join(dir, "up")}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := scanWith(t, ix, filepath.Join(dir, "proj"))
+	if len(res.Findings) != 1 || res.Findings[0].Status != StatusAttributed {
+		for _, f := range res.Findings {
+			t.Logf("%s %s %s: %s", f.Status, f.File, f.Source.License, f.Reason)
+		}
+		t.Fatalf("%d findings, want one attributed", len(res.Findings))
+	}
+}
+
+const rustLevenshtein = `pub fn levenshtein(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    let mut cur = vec![0; b.len() + 1];
+    for i in 1..=a.len() {
+        cur[0] = i;
+        for j in 1..=b.len() {
+            let cost = if a[i - 1] == b[j - 1] { 0 } else { 1 };
+            cur[j] = (prev[j] + 1).min(cur[j - 1] + 1).min(prev[j - 1] + cost);
+        }
+        std::mem::swap(&mut prev, &mut cur);
+    }
+    prev[b.len()]
+}
+
+pub fn closest<'a>(word: &str, options: &[&'a str]) -> Option<&'a str> {
+    let mut best: Option<(&'a str, usize)> = None;
+    for &option in options {
+        let distance = levenshtein(word, option);
+        match best {
+            Some((_, d)) if d <= distance => {}
+            _ => best = Some((option, distance)),
+        }
+    }
+    best.map(|(option, _)| option)
+}
+`

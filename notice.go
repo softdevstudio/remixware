@@ -3,6 +3,7 @@ package remixware
 import (
 	"embed"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -27,6 +28,10 @@ func standardLicenseText(id string) string {
 	}
 	return strings.TrimSpace(strings.Join(keep, "\n"))
 }
+
+// licenseTextSeparator is the line licenseFromFiles puts between the
+// licence files it keeps for one component.
+var licenseTextSeparator = regexp.MustCompile(`\n\n----- [^\n]+ -----\n\n`)
 
 // unfinishedMark ends every line remixware notice writes for the user to
 // finish. An entry that still has one doesn't count as credit.
@@ -122,10 +127,17 @@ func writeNoticeEntry(b *strings.Builder, e *noticeEntry, texts *ComponentTexts,
 	if texts != nil && strings.TrimSpace(texts.LicenseText) != "" {
 		own := strings.TrimSpace(texts.LicenseText)
 		parts = append(parts, own)
-		for _, id := range licensesIn(normText(own)) {
-			covered[strings.ToLower(id)] = true
+		// Which licences the component's text holds: each of its licence
+		// files is read on its own. A licence a text only names, as the
+		// MPL names the GPL, isn't in it.
+		for _, part := range licenseTextSeparator.Split(own, -1) {
+			if id := DetectLicense(part); id != "" {
+				for _, l := range parseLicenseExpr(id).leaves() {
+					covered[strings.ToLower(l.id)] = true
+				}
+			}
 		}
-		if len(ids) == 1 {
+		if len(ids) == 1 && len(covered) == 0 {
 			covered[strings.ToLower(ids[0])] = true // the text is that licence, even if unnamed
 		}
 	}

@@ -97,7 +97,7 @@ func TestScanCommand(t *testing.T) {
 	js, html, spdx := filepath.Join(dir, "f.json"), filepath.Join(dir, "r.html"), filepath.Join(dir, "s.spdx.json")
 	r := cli("scan", fixture("projects", "shopfront"), "--index", ix, "--json", js, "--html", html, "--spdx", spdx)
 	expect(t, r, exitOK, "Project licence: MIT (from LICENSE)", "CONFLICT", "internal/files/order.go:7-46",
-		"9 findings: 2 conflict, 1 no license, 1 review, 4 attribution missing, 1 attributed.")
+		"9 findings: 2 conflict, 1 no license, 5 attribution missing, 1 attributed.")
 	for _, p := range []string{js, html, spdx} {
 		if st, err := os.Stat(p); err != nil || st.Size() == 0 {
 			t.Errorf("%s not written", p)
@@ -130,10 +130,12 @@ func TestScanFromSCANOSS(t *testing.T) {
 func TestCheckCommand(t *testing.T) {
 	ix := upstreamIndex(t)
 	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix), exitFail,
-		"FAIL: 7 findings break the policy (fail on: conflict, no-license, attribution-missing).", "remixware notice")
+		"FAIL: 8 findings break the policy (fail on: conflict, no-license, attribution-missing).", "remixware notice")
 	expect(t, cli("check", fixture("projects", "clean"), "--index", ix), exitOK, "PASS")
 	expect(t, cli("check", fixture("projects", "firmware"), "--index", ix, "--fail-on", "conflict"), exitFail, "FAIL: 2 findings")
-	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--fail-on", "review"), exitFail, "FAIL: 1 finding breaks")
+	// The MPL-2.0 copy needs a review and its notice: until the notice is
+	// there, it counts as attribution missing (see TestNoticeLoop).
+	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--fail-on", "review"), exitOK, "PASS")
 	expect(t, cli("check", fixture("projects", "shopfront"), "--index", ix, "--fail-on", "nonsense"), exitUsage, `unknown status "nonsense"`)
 	// The project's licence can be given on the command line.
 	expect(t, cli("check", fixture("projects", "firmware"), "--index", ix, "--license", "GPL-3.0-or-later", "--fail-on", "conflict"),
@@ -158,7 +160,7 @@ func TestCheckThatScansNothingFails(t *testing.T) {
 	// files are still checked, and still copied from upstream.
 	all := filepath.Join(t.TempDir(), "all.rmx")
 	expect(t, cli("index", testdata, "--out", all, "--quiet"), exitOK)
-	expect(t, cli("check", fixture("projects", "shopfront"), "--index", all), exitFail, "FAIL: 7 findings break the policy")
+	expect(t, cli("check", fixture("projects", "shopfront"), "--index", all), exitFail, "FAIL: 8 findings break the policy")
 }
 
 func TestPolicyFile(t *testing.T) {
@@ -189,7 +191,7 @@ func TestNoticeLoop(t *testing.T) {
 	notes := filepath.Join(proj, "THIRD_PARTY_NOTICES.md")
 	before, _ := os.ReadFile(notes)
 
-	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 4 findings")
+	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitFail, "FAIL: 5 findings", "internal/cache/lru.go")
 	expect(t, cli("notice", proj, "--index", ix, "--out", notes), exitOK,
 		"added 5 entries", "not written: example.org/gplsort", "finish by hand: leftpadx 1.0.4: copyright line not known")
 	after, _ := os.ReadFile(notes)
@@ -205,6 +207,8 @@ func TestNoticeLoop(t *testing.T) {
 	finished := bytes.Replace(after, []byte(todo), []byte("Copyright (c) 2016 The leftpadx authors"), 1)
 	os.WriteFile(notes, finished, 0o644)
 	expect(t, cli("check", proj, "--index", ix, "--fail-on", "attribution-missing"), exitOK, "PASS")
+	// With its notice there, the MPL-2.0 copy is left for review.
+	expect(t, cli("check", proj, "--index", ix, "--fail-on", "review"), exitFail, "FAIL: 1 finding breaks", "internal/cache/lru.go")
 	expect(t, cli("notice", proj, "--index", ix, "--out", notes), exitOK, "nothing to add")
 	again, _ := os.ReadFile(notes)
 	if !bytes.Equal(again, finished) {

@@ -41,10 +41,12 @@ type manifest struct {
 	name     string
 	version  string
 	license  string
-	licFile  string
+	licFile  string // absolute path of the licence file the manifest names
 	url      string
 	topLevel []string // Python: packages this distribution installs
 	record   []string // Python: the files this distribution installed, from its RECORD
+	dir      string   // folder of the manifest
+	inherits []string // Cargo: keys taken from the workspace (see fromWorkspace)
 }
 
 func (m *manifest) purl() string {
@@ -344,40 +346,67 @@ func readCargoToml(path string) *manifest {
 	if pkg["name"] == "" {
 		return nil
 	}
+	m := &manifest{kind: "cargo", name: pkg["name"], dir: filepath.Dir(path)}
 	// A crate in a workspace can take these from the workspace's
-	// Cargo.toml: license.workspace = true.
-	var ws map[string]string
-	inherit := func(key string) string {
-		if pkg[key+".workspace"] != "true" {
-			return pkg[key]
+	// Cargo.toml (license.workspace = true): see fromWorkspace.
+	for _, key := range []string{"version", "license", "license-file", "repository"} {
+		if pkg[key+".workspace"] == "true" {
+			m.inherits = append(m.inherits, key)
+		} else {
+			m.setCargo(key, pkg[key], m.dir)
 		}
-		if ws == nil {
-			ws = cargoWorkspace(filepath.Dir(path))
-		}
-		return ws[key]
 	}
-	return &manifest{kind: "cargo", name: pkg["name"], version: inherit("version"), license: inherit("license"),
-		licFile: inherit("license-file"), url: cleanRepoURL(inherit("repository"))}
+	return m
+}
+
+func (m *manifest) setCargo(key, val, base string) {
+	switch key {
+	case "version":
+		m.version = val
+	case "license":
+		m.license = val
+	case "license-file":
+		if val != "" {
+			m.licFile = filepath.Join(base, filepath.FromSlash(val))
+		}
+	case "repository":
+		m.url = cleanRepoURL(val)
+	}
+}
+
+// fromWorkspace fills in what a crate takes from its Cargo workspace. The
+// workspace is looked for no higher than stop, when stop is set: an index
+// reads nothing outside the folder it indexes.
+func (m *manifest) fromWorkspace(stop string) {
+	if m == nil || len(m.inherits) == 0 {
+		return
+	}
+	ws, dir := cargoWorkspace(m.dir, stop)
+	for _, key := range m.inherits {
+		m.setCargo(key, ws[key], dir)
+	}
+	m.inherits = nil
 }
 
 // cargoWorkspace returns the [workspace.package] table of the Cargo
-// workspace a crate folder belongs to: the nearest Cargo.toml at or above it
-// with a [workspace] table.
-func cargoWorkspace(dir string) map[string]string {
+// workspace a crate folder belongs to, and the workspace's folder: the
+// nearest Cargo.toml at or above the crate (and at or below stop) with a
+// [workspace] table.
+func cargoWorkspace(dir, stop string) (map[string]string, string) {
 	for i := 0; i < 8; i++ {
 		text := readSmall(filepath.Join(dir, "Cargo.toml"), 256<<10)
 		for _, line := range strings.Split(text, "\n") {
 			if strings.TrimSpace(line) == "[workspace]" {
-				return tomlSection(text, "workspace.package")
+				return tomlSection(text, "workspace.package"), dir
 			}
 		}
 		up := filepath.Dir(dir)
-		if up == dir {
+		if up == dir || dir == stop || (stop != "" && !within(up, stop)) {
 			break
 		}
 		dir = up
 	}
-	return map[string]string{}
+	return map[string]string{}, dir
 }
 
 func readPyproject(path string) *manifest {
@@ -389,7 +418,10 @@ func readPyproject(path string) *manifest {
 			return nil
 		}
 	}
-	m := &manifest{kind: "pypi", name: p["name"], version: p["version"], license: p["license"], licFile: p["license.file"]}
+	m := &manifest{kind: "pypi", name: p["name"], version: p["version"], license: p["license"], dir: filepath.Dir(path)}
+	if f := p["license.file"]; f != "" {
+		m.licFile = filepath.Join(m.dir, filepath.FromSlash(f))
+	}
 	if m.license == "" {
 		m.license = p["license.text"]
 	}

@@ -255,46 +255,90 @@ func joinPieces(in []Finding) []Finding {
 		return a.Lines.Start < b.Lines.Start
 	})
 	var out []Finding
+	group := 0 // where the pieces of this file and source file start in out
 	for _, f := range in {
-		if n := len(out); n > 0 {
-			p := &out[n-1]
-			scanGap := f.Lines.Start - p.Lines.End
-			srcGap := f.Source.Lines.Start - p.Source.Lines.End
-			forward := f.Source.Lines.Start >= p.Source.Lines.Start-3
-			// Pieces join when they touch on one side and are near on the
-			// other: code removed from the copy leaves a gap in the source,
-			// code added to it a gap in the copy. A piece that mostly
-			// covers the same lines of the copy as the one before, lined up
-			// with a different place in the source, is the same code found
-			// twice in the source, not a second part of one copy.
-			ov := min(p.Lines.End, f.Lines.End) - max(p.Lines.Start, f.Lines.Start) + 1
-			shift := (f.Source.Lines.Start - p.Source.Lines.Start) - (f.Lines.Start - p.Lines.Start)
-			sameCopy := 2*ov < f.Lines.len() || (shift >= -3 && shift <= 3)
-			near := forward && sameCopy && ((scanGap <= 3 && srcGap <= 60) || (srcGap <= 3 && scanGap <= 60))
-			if p.File == f.File && p.Source.Key == f.Source.Key && p.Source.File == f.Source.File &&
-				p.Source.Via == f.Source.Via && near {
-				total := p.Match.Tokens + f.Match.Tokens
-				if total > 0 {
-					p.Match.Coverage = round2((p.Match.Coverage*float64(p.Match.Tokens) + f.Match.Coverage*float64(f.Match.Tokens)) / float64(total))
-				}
-				p.Match.Tokens = total
-				p.Match.WholeFile = p.Match.WholeFile || f.Match.WholeFile
-				if p.Match.Kind != f.Match.Kind {
-					p.Match.Kind = joinKind(p.Match.Kind, f.Match.Kind)
-				}
-				if p.Match.Kind == "verbatim" && (scanGap > 3 || srcGap > 3) {
-					p.Match.Kind = "edited" // part of it was removed or added
-				}
-				p.Lines.End = max(p.Lines.End, f.Lines.End)
-				p.Source.Lines.Start = min(p.Source.Lines.Start, f.Source.Lines.Start)
-				p.Source.Lines.End = max(p.Source.Lines.End, f.Source.Lines.End)
-				p.score += f.score
-				continue
+		if group < len(out) {
+			if q := out[group]; q.File != f.File || q.Source.Key != f.Source.Key || q.Source.File != f.Source.File {
+				group = len(out)
 			}
 		}
-		out = append(out, f)
+		// Every earlier piece of the group is a candidate, not only the
+		// last one: pieces that line up with other places in the source,
+		// such as look-alike test cases, can sit between two pieces of one
+		// copy. The piece that lines up best with f gets it, and of those
+		// the largest.
+		best, bestShift := -1, 0
+		for k := len(out) - 1; k >= group; k-- {
+			shift, ok := joinable(out[k], f)
+			if ok && (best < 0 || shift < bestShift || shift == bestShift && out[k].Match.Tokens > out[best].Match.Tokens) {
+				best, bestShift = k, shift
+			}
+		}
+		if best >= 0 {
+			joinPiece(&out[best], f)
+		} else {
+			out = append(out, f)
+		}
 	}
 	return out
+}
+
+// joinable reports whether f is another piece of the copy p is part of,
+// and how far apart the two line up with the source, in lines. Pieces join
+// when they touch on one side and are near on the other: code removed from
+// the copy leaves a gap in the source, code added to it a gap in the copy.
+// A piece that mostly covers the same lines of the copy as p, lined up with
+// a different place in the source, is the same code found twice in the
+// source, not a second part of one copy.
+func joinable(p, f Finding) (int, bool) {
+	if p.File != f.File || p.Source.Key != f.Source.Key || p.Source.File != f.Source.File || p.Source.Via != f.Source.Via {
+		return 0, false
+	}
+	scanGap := f.Lines.Start - p.Lines.End
+	srcGap := f.Source.Lines.Start - p.Source.Lines.End
+	forward := f.Source.Lines.Start >= p.Source.Lines.Start-3
+	ov := min(p.Lines.End, f.Lines.End) - max(p.Lines.Start, f.Lines.Start) + 1
+	// f's offset into the source against p's at either end: a copy with
+	// code added or removed shifts as it goes.
+	off := f.Source.Lines.Start - f.Lines.Start
+	shift := min(absInt(off-(p.Source.Lines.Start-p.Lines.Start)), absInt(off-(p.Source.Lines.End-p.Lines.End)))
+	sameCopy := 2*ov < f.Lines.len() || shift <= 3
+	near := (scanGap <= 3 && srcGap <= 60) || (srcGap <= 3 && scanGap <= 60)
+	// Overlapping in both files, a piece of the same copy overlaps by about
+	// as much in each.
+	if scanGap < 0 && srcGap < 0 && absInt(scanGap-srcGap) > 6 {
+		return shift, false
+	}
+	return shift, forward && sameCopy && near
+}
+
+func absInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// joinPiece adds piece f to p.
+func joinPiece(p *Finding, f Finding) {
+	scanGap := f.Lines.Start - p.Lines.End
+	srcGap := f.Source.Lines.Start - p.Source.Lines.End
+	total := p.Match.Tokens + f.Match.Tokens
+	if total > 0 {
+		p.Match.Coverage = round2((p.Match.Coverage*float64(p.Match.Tokens) + f.Match.Coverage*float64(f.Match.Tokens)) / float64(total))
+	}
+	p.Match.Tokens = total
+	p.Match.WholeFile = p.Match.WholeFile || f.Match.WholeFile
+	if p.Match.Kind != f.Match.Kind {
+		p.Match.Kind = joinKind(p.Match.Kind, f.Match.Kind)
+	}
+	if p.Match.Kind == "verbatim" && (scanGap > 3 || srcGap > 3) {
+		p.Match.Kind = "edited" // part of it was removed or added
+	}
+	p.Lines.End = max(p.Lines.End, f.Lines.End)
+	p.Source.Lines.Start = min(p.Source.Lines.Start, f.Source.Lines.Start)
+	p.Source.Lines.End = max(p.Source.Lines.End, f.Source.Lines.End)
+	p.score += f.score
 }
 
 func joinKind(a, b string) string {

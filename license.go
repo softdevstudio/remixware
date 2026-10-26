@@ -174,12 +174,23 @@ type licExpr struct {
 	kids []*licExpr
 }
 
+// Expressions nest at most this deep and hold at most this many terms.
+// Real ones stay far below; deeper ones come from damaged or made-up input
+// and would otherwise cost time and stack.
+const (
+	maxExprDepth = 32
+	maxExprTerms = 512
+)
+
 func parseLicenseExpr(s string) *licExpr {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return &licExpr{id: LicenseNoAssertion}
 	}
 	toks := splitExpr(s)
+	if len(toks) > 2*maxExprTerms {
+		return &licExpr{id: s}
+	}
 	p := &exprParser{toks: toks}
 	e := p.or()
 	if e == nil || p.pos < len(p.toks) {
@@ -215,8 +226,9 @@ func splitExpr(s string) []string {
 }
 
 type exprParser struct {
-	toks []string
-	pos  int
+	toks  []string
+	pos   int
+	depth int
 }
 
 func (p *exprParser) peekOp(op string) bool {
@@ -269,12 +281,16 @@ func (p *exprParser) atom() *licExpr {
 	}
 	t := p.toks[p.pos]
 	if t == "(" {
+		if p.depth++; p.depth > maxExprDepth {
+			return nil
+		}
 		p.pos++
 		e := p.or()
 		if e == nil || p.pos >= len(p.toks) || p.toks[p.pos] != ")" {
 			return nil
 		}
 		p.pos++
+		p.depth--
 		return e
 	}
 	if t == ")" || t == "/" || strings.EqualFold(t, "AND") || strings.EqualFold(t, "OR") || strings.EqualFold(t, "WITH") {
@@ -334,32 +350,106 @@ func (e *licExpr) leaves() []*licExpr {
 // NormalizeLicense returns the canonical form of an SPDX expression.
 func NormalizeLicense(s string) string { return parseLicenseExpr(s).String() }
 
-// joinLicenses combines several licences found for one thing. All of them
-// apply, so they are joined with AND.
-func joinLicenses(ids []string) string {
+// canonical returns the expression with groups of one operator flattened,
+// repeated terms dropped, terms that add nothing absorbed and the rest
+// sorted, so that two ways of writing one licence compare equal: "MIT OR
+// Apache-2.0" and "Apache-2.0 OR MIT", or "MIT AND (MIT OR GPL-2.0-only)"
+// and "MIT".
+func (e *licExpr) canonical() *licExpr {
+	if e.op == "" {
+		return &licExpr{id: e.id, with: e.with}
+	}
+	var kids []*licExpr
 	seen := map[string]bool{}
-	var out []string
+	var add func(k *licExpr)
+	add = func(k *licExpr) {
+		if k.op == e.op {
+			for _, kk := range k.kids {
+				add(kk)
+			}
+			return
+		}
+		if s := strings.ToLower(k.String()); !seen[s] {
+			seen[s] = true
+			kids = append(kids, k)
+		}
+	}
+	for _, k := range e.kids {
+		add(k.canonical())
+	}
+	// Absorption: in "A AND (A OR B)" the choice is already made by A, and
+	// in "A OR (A AND B)" the second option only asks for more. A group is
+	// dropped when another term's parts are a smaller set of its parts.
+	parts := func(k *licExpr) map[string]bool {
+		out := map[string]bool{}
+		if k.op == "" {
+			out[strings.ToLower(k.String())] = true
+			return out
+		}
+		for _, kk := range k.kids {
+			out[strings.ToLower(kk.String())] = true
+		}
+		return out
+	}
+	var kept []*licExpr
+	for i, k := range kids {
+		absorbed := false
+		if k.op != "" {
+			pk := parts(k)
+			for j, other := range kids {
+				if j == i {
+					continue
+				}
+				po := parts(other)
+				if len(po) >= len(pk) {
+					continue
+				}
+				subset := true
+				for p := range po {
+					if !pk[p] {
+						subset = false
+						break
+					}
+				}
+				if subset {
+					absorbed = true
+					break
+				}
+			}
+		}
+		if !absorbed {
+			kept = append(kept, k)
+		}
+	}
+	sort.SliceStable(kept, func(i, j int) bool { return strings.ToLower(kept[i].String()) < strings.ToLower(kept[j].String()) })
+	if len(kept) == 1 {
+		return kept[0]
+	}
+	return &licExpr{op: e.op, kids: kept}
+}
+
+// canonicalLicense returns the canonical form of an expression (see
+// licExpr.canonical), for comparing licences rather than showing them.
+func canonicalLicense(s string) string { return parseLicenseExpr(s).canonical().String() }
+
+// sameLicense reports whether two expressions say the same thing.
+func sameLicense(a, b string) bool {
+	return strings.EqualFold(canonicalLicense(a), canonicalLicense(b))
+}
+
+// joinLicenses combines several licences found for one thing. All of them
+// apply, so they are joined with AND, each licence once.
+func joinLicenses(ids []string) string {
+	var kids []*licExpr
 	for _, id := range ids {
-		n := NormalizeLicense(id)
-		if n == "" || seen[n] {
-			continue
+		if strings.TrimSpace(id) != "" {
+			kids = append(kids, parseLicenseExpr(id))
 		}
-		seen[n] = true
-		out = append(out, n)
 	}
-	switch len(out) {
-	case 0:
+	if len(kids) == 0 {
 		return LicenseNone
-	case 1:
-		return out[0]
 	}
-	sort.Strings(out)
-	for i, s := range out {
-		if strings.Contains(s, " OR ") {
-			out[i] = "(" + s + ")"
-		}
-	}
-	return strings.Join(out, " AND ")
+	return (&licExpr{op: "AND", kids: kids}).canonical().String()
 }
 
 // ---------------------------------------------------------------------------
@@ -399,16 +489,23 @@ type licenseSignature struct {
 // first in the opening part of rest (section numbers like "1.1" further on
 // are not versions).
 func versionIn(rest string, limit int, options ...string) string {
+	v, _ := versionAt(rest, limit, options...)
+	return v
+}
+
+// versionAt is versionIn that also returns the text right after the
+// version phrase it found.
+func versionAt(rest string, limit int, options ...string) (string, string) {
 	if len(rest) > limit {
 		rest = rest[:limit]
 	}
-	best, at := "", len(rest)+1
+	best, at, end := "", len(rest)+1, len(rest)
 	for i := 0; i+1 < len(options); i += 2 {
 		if j := strings.Index(rest, options[i]); j >= 0 && j < at {
-			best, at = options[i+1], j
+			best, at, end = options[i+1], j, j+len(options[i])
 		}
 	}
-	return best
+	return best, rest[end:]
 }
 
 func orDefault(v, def string) string {
@@ -447,8 +544,12 @@ func gnuLicense(base string) func(rest, all string) string {
 			}
 			i = at + len(terms)
 		}
-		v := versionIn(rest, 400, " version 3 ", "3.0", " version 2 1 ", "2.1", " version 2 ", "2.0", " version 1 ", "1.0",
+		v, after := versionAt(rest, 400, " version 3 ", "3.0", " version 2 1 ", "2.1", " version 2 ", "2.0", " version 1 ", "1.0",
 			" v3 ", "3.0", " v2 1 ", "2.1", " v2 ", "2.0")
+		// "Version 2 or later", as the Mozilla tri-licence puts it.
+		if strings.HasPrefix(after, "or later ") || strings.HasPrefix(after, "or any later ") || strings.HasPrefix(after, "or newer ") {
+			later = true
+		}
 		switch base {
 		case "AGPL":
 			v = "3.0"
@@ -605,15 +706,36 @@ func isc(_, all string) string {
 // It returns "" when the text holds no licence it recognises. Licence texts
 // mention other licences (MPL-2.0 names the GPL, the GPL names the LGPL), so
 // the licence whose own wording comes first in the text wins.
+//
+// A condition written to sit on top of another licence, such as the Commons
+// Clause, isn't another licence's mention: it applies along with the
+// licence it comes with, wherever in the file it is.
 func DetectLicense(text string) string {
 	if id := spdxTagLicense(firstLines(text, 30)); id != "" {
 		return id
 	}
-	if ids := licensesIn(normText(text)); len(ids) > 0 {
-		return ids[0]
+	main := ""
+	var riders []string
+	for _, id := range licensesIn(normText(text)) {
+		switch {
+		case licenseRiders[id]:
+			riders = append(riders, id)
+		case main == "":
+			main = id
+		}
 	}
-	return ""
+	switch {
+	case len(riders) == 0:
+		return main
+	case main == "":
+		return joinLicenses(riders)
+	}
+	return joinLicenses(append([]string{main}, riders...))
 }
+
+// licenseRiders are conditions added to another licence rather than
+// licences of their own.
+var licenseRiders = map[string]bool{"LicenseRef-Commons-Clause": true}
 
 // licensesIn returns every licence whose wording appears in a normalised
 // text, in the order the wording first appears.
@@ -668,13 +790,29 @@ func headerLicense(head string) string {
 	return joinLicenses(ids)
 }
 
+var notAChoice = regexp.MustCompile(` either version [0-9 ]+of the licen[cs]e or (at your option )?(any )?later version | either express(ed)? or implied `)
+
 // offersChoice reports whether a normalised notice lets the reader pick
-// one of several licences. GNU notices say "at your option any later
-// version", which is about versions, not a choice of licence.
+// one of several licences: "dual licensed", "at your option", "either the
+// GPL ... or the CDDL", "Alternatively, this software may be distributed
+// under ...". GNU notices say "either version 2 of the License, or (at your
+// option) any later version", which is about versions, not a choice of
+// licence, and Apache's "either express or implied" is about warranties.
 func offersChoice(t string) bool {
+	t = notAChoice.ReplaceAllString(t, " ")
 	for _, p := range []string{" dual licensed ", " dual licenced ", " dual license ", " dual licence ", " either license ",
-		" either licence ", " at your choice ", " your choice of ", " you may choose "} {
+		" either licence ", " at your choice ", " your choice of ", " you may choose ", " alternatively ",
+		" secondary licenses ", " secondary license "} {
 		if strings.Contains(t, p) {
+			return true
+		}
+	}
+	if i := strings.Index(t, " either "); i >= 0 {
+		rest := t[i+len(" either "):]
+		if len(rest) > 300 {
+			rest = rest[:300]
+		}
+		if strings.Contains(rest, " or ") {
 			return true
 		}
 	}
@@ -696,18 +834,51 @@ func offersChoice(t string) bool {
 var originWords = []string{" based on ", " derived from ", " adapted from ", " ported from ", " taken from ", " copied from ",
 	" borrowed from ", " inspired by ", " modified from ", " originally ", " portions "}
 
+// sentenceEnd splits comment text into sentences: at . ! ? or ; before a
+// space, and at blank lines.
+var sentenceEnd = regexp.MustCompile(`[.!?;]+\s|\n\s*\n`)
+
+// originOnly reports whether every sentence of a header that names a
+// licence also says where code came from ("Portions are based on code
+// released under the MIT license"): then the licence is the origin's, not
+// necessarily the file's. A header that says "Originally written for Foo."
+// and then "Released under the MIT license." does give the file a licence.
+func originOnly(head string) bool {
+	mentions := 0
+	for _, s := range sentenceEnd.Split(head, -1) {
+		t := normText(s)
+		if len(licensesIn(t)) == 0 {
+			continue
+		}
+		mentions++
+		origin := false
+		for _, w := range originWords {
+			if strings.Contains(t, w) {
+				origin = true
+				break
+			}
+		}
+		if !origin {
+			return false
+		}
+	}
+	return mentions > 0
+}
+
 // fileLicense decides what licence one file carries, from its component's
 // licence and the licence its header names, and returns "" when that is
 // just the component's.
 //
 // A header that agrees with the component, or names one of the component's
-// options, changes nothing. A header naming the same GNU licence and
-// version with or without "or later" is the more precise statement and
-// wins. Any other header licence is added to the component's instead of
-// replacing it, so a header can't hide a stricter licence: a file headed
-// MIT inside a GPL project counts as both. Where the component has no
-// licence, the header is all there is, unless it only says where the code
-// came from.
+// options, changes nothing. A header that offers a choice with the
+// component's licence among the options ("BSD, or alternatively GPL-2.0")
+// is the file's own, wider grant and wins. A header naming the same GNU
+// licence and version with or without "or later" is the more precise
+// statement and wins too. Any other header licence is added to the
+// component's instead of replacing it, so a header can't hide a stricter
+// licence: a file headed MIT inside a GPL project counts as both. Where the
+// component has no licence, the header is all there is, unless it only says
+// where the code came from.
 func fileLicense(comp, header, head string) string {
 	if strings.TrimSpace(header) == "" {
 		return ""
@@ -717,17 +888,22 @@ func fileLicense(comp, header, head string) string {
 		comp = LicenseNone
 	}
 	comp = NormalizeLicense(comp)
-	if strings.EqualFold(comp, header) {
+	if sameLicense(comp, header) {
 		return ""
 	}
 	if comp == LicenseNone {
-		t := normText(head)
-		for _, w := range originWords {
-			if strings.Contains(t, w) {
-				return ""
-			}
+		if originOnly(head) {
+			return ""
 		}
 		return header
+	}
+	if he := parseLicenseExpr(header).canonical(); he.op == "OR" {
+		cc := strings.ToLower(canonicalLicense(comp))
+		for _, k := range he.kids {
+			if strings.ToLower(k.String()) == cc {
+				return he.String()
+			}
+		}
 	}
 	var cl, hl []string
 	for _, l := range parseLicenseExpr(comp).leaves() {
@@ -747,7 +923,10 @@ func fileLicense(comp, header, head string) string {
 	if len(cl) == 1 && len(hl) == 1 && gnuBase(cl[0]) != "" && gnuBase(cl[0]) == gnuBase(hl[0]) {
 		return header
 	}
-	return joinLicenses([]string{comp, header})
+	if j := joinLicenses([]string{comp, header}); !sameLicense(j, comp) {
+		return j
+	}
+	return ""
 }
 
 // gnuBase returns a GNU licence id without "-only" or "-or-later", as in

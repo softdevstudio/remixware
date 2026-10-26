@@ -60,34 +60,19 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 		res.Inputs = append(res.Inputs, Input{Kind: "index", Path: ix.Path, Components: len(ix.Components), Files: len(ix.Files)})
 	}
 
-	// Folders an index already covers are declared third-party code, not
-	// copies: an index of ./vendor shouldn't report ./vendor. A component
-	// at the project's own folder, or above it, is the project itself, not
-	// something it depends on: its files are scanned, and a file can't be
-	// a copy of the project's own code.
-	var declared []string
-	for _, ix := range opt.Indexes {
-		for _, c := range ix.Components {
-			if c.Root != abs && within(c.Root, abs) {
-				declared = append(declared, c.Root)
-			}
-		}
-	}
-	inDeclared := func(p string) bool {
-		for _, dr := range declared {
-			if within(p, dr) {
-				return true
-			}
-		}
-		return false
-	}
-	own := make([][]bool, len(opt.Indexes))
-	for k, ix := range opt.Indexes {
-		own[k] = make([]bool, len(ix.Files))
-		for i, f := range ix.Files {
-			own[k][i] = within(f.Abs, abs) && !inDeclared(f.Abs)
-		}
-	}
+	// What each indexed file is to this project:
+	//  - outside it: code the project may have copied from;
+	//  - inside it, in an index of a folder inside the project, such as
+	//    ./vendor or ./third_party: declared third-party code. The project
+	//    may have copied from it, and its folder isn't scanned as if it
+	//    were the project's own code;
+	//  - inside it, in an index of the project's folder or one above it:
+	//    the project's own code. It is scanned like the rest, and nothing
+	//    is reported as copied from it.
+	// An index names the folders it was made from and where its components
+	// sit, and it could be made up. A folder it declares is skipped only
+	// when a file in it still matches the index byte for byte.
+	cs := classifyIndexes(opt.Indexes, abs)
 
 	var files, unreadable []string
 	err = filepath.WalkDir(abs, func(path string, d fs.DirEntry, err error) error {
@@ -106,22 +91,25 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 			if skipIndexDirs[d.Name()] || (!opt.IncludeDeps && skipDirs[d.Name()]) || matchAny(opt.Exclude, rel) {
 				return filepath.SkipDir
 			}
-			for _, dr := range declared {
-				if path == dr {
-					res.Skipped["declared"]++
-					return filepath.SkipDir
-				}
+			return nil
+		}
+		if matchAny(opt.Exclude, rel) || skipIndexDirs[d.Name()] || (!opt.IncludeDeps && skipDirs[d.Name()]) {
+			return nil
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			// Links aren't followed, but a check says how many it passed
+			// over: a linked file or folder of code isn't checked.
+			if st, err := os.Stat(path); languageFor(d.Name()) != nil || (err == nil && st.IsDir()) {
+				res.Skipped["symlink"]++
 			}
 			return nil
 		}
-		if !d.Type().IsRegular() || languageFor(d.Name()) == nil || matchAny(opt.Exclude, rel) {
+		if !d.Type().IsRegular() || languageFor(d.Name()) == nil {
 			return nil
 		}
-		for _, dr := range declared {
-			if within(path, dr) {
-				res.Skipped["declared"]++
-				return nil
-			}
+		if cs.declaredFolder(path) {
+			res.Skipped["declared"]++
+			return nil
 		}
 		files = append(files, path)
 		return nil
@@ -161,7 +149,7 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 				rel := relSlash(abs, path)
 				var found []Finding
 				for k, ix := range opt.Indexes {
-					found = append(found, matchFile(ix, own[k], path, rel, toks, fps, opt)...)
+					found = append(found, matchFile(ix, cs.own[k], cs.homeOf(k, path), path, rel, toks, fps, opt)...)
 				}
 				outs[i] = fileOut{lines: countLines(data), findings: found}
 			}
@@ -214,6 +202,105 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 	return res, nil
 }
 
+// indexClasses says what the files and components of each index are to one
+// project (see Scan).
+type indexClasses struct {
+	project  string
+	own      [][]bool         // per index and file: the project's own code
+	homes    []map[string]int // per index: folder of a component inside the project -> component
+	declared []string         // folders skipped as declared third-party code
+}
+
+func classifyIndexes(indexes []*Index, project string) *indexClasses {
+	cs := &indexClasses{project: project, own: make([][]bool, len(indexes)), homes: make([]map[string]int, len(indexes))}
+	inside := func(p string) bool { return localPath(p) && within(p, project) }
+	for k, ix := range indexes {
+		fromInside := func(p string) bool {
+			r := ix.rootOf(p)
+			return r != "" && r != project && within(r, project)
+		}
+		cs.own[k] = make([]bool, len(ix.Files))
+		for i, f := range ix.Files {
+			cs.own[k][i] = inside(f.Abs) && !fromInside(f.Abs)
+		}
+		cs.homes[k] = map[string]int{}
+		var candidates []int
+		for ci, c := range ix.Components {
+			if c.Root != project && inside(c.Root) && fromInside(c.Root) {
+				cs.homes[k][c.Root] = ci
+				candidates = append(candidates, ci)
+			}
+		}
+		for _, ci := range ix.unchangedComponents(candidates) {
+			cs.declared = append(cs.declared, ix.Components[ci].Root)
+		}
+	}
+	return cs
+}
+
+// unchangedComponents returns the components, of those asked about, of
+// which at least one file is still on disk with the bytes the index holds.
+// A few files of each are tried.
+func (ix *Index) unchangedComponents(comps []int) []int {
+	if len(comps) == 0 {
+		return nil
+	}
+	want := map[int][]int{}
+	for _, ci := range comps {
+		want[ci] = nil
+	}
+	for i, f := range ix.Files {
+		if list, ok := want[f.Comp]; ok && len(list) < 3 {
+			want[f.Comp] = append(list, i)
+		}
+	}
+	var out []int
+	for _, ci := range comps {
+		for _, i := range want[ci] {
+			f := ix.Files[i]
+			if !ix.readable(f.Abs) || f.Sum == "" {
+				continue
+			}
+			if data, skip := readSource(f.Abs); skip == "" && fileSum(data) == f.Sum {
+				out = append(out, ci)
+				break
+			}
+		}
+	}
+	return out
+}
+
+// declaredFolder reports whether a project file sits in a folder an index
+// declares as third-party code.
+func (cs *indexClasses) declaredFolder(p string) bool {
+	for _, d := range cs.declared {
+		if within(p, d) {
+			return true
+		}
+	}
+	return false
+}
+
+// homeOf returns the components of index k whose folder, inside the
+// project, holds the project file p. A file isn't reported as copied from
+// the component it is part of, as when a vendored folder changed since it
+// was indexed.
+func (cs *indexClasses) homeOf(k int, p string) map[int]bool {
+	if len(cs.homes[k]) == 0 {
+		return nil
+	}
+	var out map[int]bool
+	for d := filepath.Dir(p); within(d, cs.project) && d != cs.project; d = filepath.Dir(d) {
+		if ci, ok := cs.homes[k][d]; ok {
+			if out == nil {
+				out = map[int]bool{}
+			}
+			out[ci] = true
+		}
+	}
+	return out
+}
+
 // pruneTexts keeps the licence texts of components that were found.
 func (r *Results) pruneTexts() {
 	used := map[string]bool{}
@@ -250,8 +337,26 @@ const (
 var maxHitsPerFile = 1 << 20
 
 // matchFile finds the stretches of one scanned file that match files in an
-// index. own marks the indexed files that are the project's own.
-func matchFile(ix *Index, own []bool, abs, rel string, toks []token, fps []fingerprint, opt ScanOptions) []Finding {
+// index. own marks the indexed files that are the project's own, and home
+// holds the components the scanned file is part of.
+func matchFile(ix *Index, own []bool, home map[int]bool, abs, rel string, toks []token, fps []fingerprint, opt ScanOptions) []Finding {
+	skip := func(file uint32) bool {
+		f := ix.Files[file]
+		if own[file] || f.Abs == abs {
+			return true
+		}
+		if home != nil {
+			if home[f.Comp] {
+				return true
+			}
+			for _, a := range f.Also {
+				if home[a] {
+					return true
+				}
+			}
+		}
+		return false
+	}
 	// The indexed places of each fingerprint, without the project's own files.
 	lists := make([][]indexFP, len(fps))
 	counts := map[uint32]int{}
@@ -263,7 +368,7 @@ func matchFile(ix *Index, own []bool, abs, rel string, toks []token, fps []finge
 		}
 		lists[i] = posts
 		for _, p := range posts {
-			if !own[p.file] && ix.Files[p.file].Abs != abs {
+			if !skip(p.file) {
 				counts[p.file]++
 				total++
 			}
@@ -301,7 +406,7 @@ func matchFile(ix *Index, own []bool, abs, rel string, toks []token, fps []finge
 	hits := make([]hit, 0, min(total, maxHitsPerFile))
 	for i, f := range fps {
 		for _, p := range lists[i] {
-			if own[p.file] || ix.Files[p.file].Abs == abs || (keep != nil && !keep[p.file]) {
+			if (keep != nil && !keep[p.file]) || skip(p.file) {
 				continue
 			}
 			hits = append(hits, hit{src: p.file, spos: int32(f.pos), tpos: int32(p.pos), sline: int32(f.line),
@@ -344,14 +449,16 @@ func matchFile(ix *Index, own []bool, abs, rel string, toks []token, fps []finge
 
 // sourceTokens tokenizes an indexed file again, when it is still on disk
 // unchanged, so a match can be followed token by token past its last
-// fingerprint. It returns nil when the file is gone, has changed, or isn't
-// one the index may point at (see Index.readable).
+// fingerprint and the report can show it. It returns nil when the file is
+// gone, has changed, or isn't one the index may point at (see
+// Index.readable): its bytes must match the checksum in the index, so a
+// made-up index can't pass off another file on this machine as its own.
 func (ix *Index) sourceTokens(sf *SourceFile) []token {
-	if !ix.readable(sf.Abs) {
+	if !ix.readable(sf.Abs) || sf.Sum == "" {
 		return nil
 	}
 	data, skip := readSource(sf.Abs)
-	if skip != "" {
+	if skip != "" || fileSum(data) != sf.Sum {
 		return nil
 	}
 	toks := tokenize(data, languageFor(sf.Abs))
@@ -413,7 +520,7 @@ func trimEdges(s, t []token, s0, t0, s1, t1 int32) (int32, int32, int32, int32) 
 	for n := 0; n < 2 && s1 > s0; n++ {
 		la, _ := lineSpan(s, s1)
 		i := max(la, s0)
-		if i == s0 || edgeLineKept(s, t, i, s1, t1-(s1-i), true) {
+		if i == s0 || t1-(s1-i+1) < t0 || edgeLineKept(s, t, i, s1, t1-(s1-i), true) {
 			break
 		}
 		t1 -= s1 - i + 1
@@ -422,7 +529,7 @@ func trimEdges(s, t []token, s0, t0, s1, t1 int32) (int32, int32, int32, int32) 
 	for n := 0; n < 2 && s0 < s1; n++ {
 		_, lb := lineSpan(s, s0)
 		j := min(lb, s1)
-		if j == s1 || edgeLineKept(s, t, s0, j, t0, false) {
+		if j == s1 || t0+(j-s0+1) > t1 || edgeLineKept(s, t, s0, j, t0, false) {
 			break
 		}
 		t0 += j - s0 + 1
@@ -516,6 +623,9 @@ func trimTail(s, t []token, keep, s1, t1 int32) (int32, int32) {
 			continue
 		}
 		d := s1 - i
+		if t1-d+1 < 0 || int(t1) >= len(t) {
+			return s1, t1
+		}
 		for k := int32(1); k <= d; k++ {
 			if s[i+k].exact != t[t1-d+k].exact {
 				return i, t1 - d
@@ -546,6 +656,9 @@ func trimHead(s, t []token, keep, s0, t0 int32) (int32, int32) {
 		return s0, t0
 	}
 	d := shut - s0 + 1
+	if t0 < 0 || int(t0+d) > len(t) {
+		return s0, t0
+	}
 	for k := int32(0); k < d; k++ {
 		if s[s0+k].exact != t[t0+k].exact {
 			return shut + 1, t0 + d
@@ -693,9 +806,17 @@ func regionFinding(ix *Index, rel string, toks, srcToks []token, ch []hit, opt S
 		float64(scov) < density*float64(slast-sfirst+1) {
 		return Finding{}, false
 	}
-	if srcToks != nil && int(last.tpos)+kgramSize <= len(srcToks) && int(last.spos)+kgramSize <= len(toks) {
-		ns0, nt0, ns1, nt1 := extendMatch(toks, srcToks, first.spos, first.tpos, last.spos, last.tpos)
+	// The match is followed token by token only when what comes out lies
+	// inside both files: positions in an index are data, and data can be
+	// wrong.
+	extend := srcToks != nil && int(last.tpos)+kgramSize <= len(srcToks) && int(last.spos)+kgramSize <= len(toks)
+	var ns0, nt0, ns1, nt1 int32
+	if extend {
+		ns0, nt0, ns1, nt1 = extendMatch(toks, srcToks, first.spos, first.tpos, last.spos, last.tpos)
 		ns0, nt0, ns1, nt1 = trimEdges(toks, srcToks, ns0, nt0, ns1, nt1)
+		extend = 0 <= ns0 && ns0 <= ns1 && int(ns1) < len(toks) && 0 <= nt0 && nt0 <= nt1 && int(nt1) < len(srcToks)
+	}
+	if extend {
 		// Coverage of the final region: the fingerprints inside it plus
 		// what the extension added.
 		scov = coveredWithin(spos, ns0, ns1) + int(max(0, sfirst-ns0)) + int(max(0, ns1-slast))

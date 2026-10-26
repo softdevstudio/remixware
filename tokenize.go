@@ -131,6 +131,13 @@ func leadingComments(src []byte, sx *syntax, limit int) string {
 		case hasPrefixAt(src, i, "<?php"):
 			i += len("<?php")
 			continue
+		case sx.regexLiterals && (c == '\'' || c == '"'):
+			// JavaScript's directives, such as 'use strict';, may come
+			// before the licence comment.
+			if end := jsDirective(src, i); end > i {
+				i = end
+				continue
+			}
 		}
 		if end, ok := blockComment(src, i, sx); ok {
 			keep(i, end)
@@ -166,6 +173,28 @@ func leadingComments(src []byte, sx *syntax, limit int) string {
 		break
 	}
 	return b.String()
+}
+
+// jsDirective returns the end of a JavaScript directive such as 'use
+// strict'; that starts at i (a short quoted string of letters and spaces,
+// then an optional semicolon), or i when there is none.
+func jsDirective(src []byte, i int) int {
+	q := src[i]
+	j := i + 1
+	for j < len(src) && j-i <= 32 && (isASCIILetter(src[j]) || src[j] == ' ' || src[j] == '-') {
+		j++
+	}
+	if j >= len(src) || src[j] != q || j == i+1 {
+		return i
+	}
+	j++
+	for j < len(src) && (src[j] == ' ' || src[j] == '\t') {
+		j++
+	}
+	if j < len(src) && src[j] == ';' {
+		j++
+	}
+	return j
 }
 
 // scanRegex returns the end of a JavaScript regular expression literal that

@@ -375,8 +375,8 @@ func writeReports(res *remixware.Results, o *compareOpts, stderr io.Writer) erro
 
 func header(w io.Writer, res *remixware.Results) {
 	if res.FilesScanned > 0 {
-		fmt.Fprintf(w, "Scanned %s %s (%s lines) in %s\n", comma(res.FilesScanned), plural(res.FilesScanned, "file", "files"),
-			comma(res.LinesScanned), shownPath(res.Project))
+		fmt.Fprintf(w, "Scanned %s %s (%s lines) in %s%s\n", comma(res.FilesScanned), plural(res.FilesScanned, "file", "files"),
+			comma(res.LinesScanned), shownPath(res.Project), skippedNote(res))
 	} else {
 		fmt.Fprintf(w, "Project %s\n", shownPath(res.Project))
 	}
@@ -589,7 +589,14 @@ func skippedNote(res *remixware.Results) string {
 	sort.Strings(keys)
 	var parts []string
 	for _, k := range keys {
-		parts = append(parts, fmt.Sprintf("%d %s", res.Skipped[k], k))
+		n := res.Skipped[k]
+		switch k {
+		case "symlink":
+			k = plural(n, "symbolic link", "symbolic links") + ", not followed"
+		case "too-large":
+			k = "over 2 MB"
+		}
+		parts = append(parts, fmt.Sprintf("%d %s", n, k))
 	}
 	return fmt.Sprintf(" (%d %s skipped: %s)", total, plural(total, "file", "files"), strings.Join(parts, ", "))
 }

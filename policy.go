@@ -93,6 +93,7 @@ func DetectProjectLicense(project string) (expr, from string) {
 		return LicenseNone, ""
 	}
 	info := readDirInfo(project, entries)
+	info.manifest.fromWorkspace("")
 	if m := info.manifest; m != nil && m.license != "" {
 		if l := NormalizeLicense(m.license); licenseCategory(l) != CatUnknown {
 			return l, manifestFile(m.kind)
@@ -294,7 +295,20 @@ func keepsNotice(path, fileText string, s Source) bool {
 	if id == "" {
 		id = headerLicense(head)
 	}
-	return id != "" && strings.EqualFold(NormalizeLicense(id), NormalizeLicense(s.License))
+	return id != "" && sameLicense(id, s.License)
+}
+
+// needsNotice reports whether code under a licence has to ship with its
+// copyright line and licence text, as every open source licence short of
+// the public domain asks. For a choice, the option that asks least counts.
+func needsNotice(expr string) bool {
+	for _, id := range noticeLicenseIDs(expr) {
+		switch l := lookupLicense(id); {
+		case l.Cat == CatPermissive, l.Cat == CatWeakCopyleft, l.Cat == CatCopyleft, l.Cat == CatNetworkCopyleft, l.ID == "JSON":
+			return true
+		}
+	}
+	return false
 }
 
 // Evaluate gives every finding a status and a reason, given the project's
@@ -334,28 +348,14 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 		f.Status, f.Reason, f.Allowed = "", "", ""
 		v := evaluate(f.Source.License, res.ProjectLicense)
 		f.Reason = v.reason
+		notice := false // the copyright line and licence text have to ship with the copy
 		switch v.status {
 		case baseOK:
 			f.Status = StatusOK
 		case baseAttribution:
-			switch {
-			case credited(notices, f.Source):
-				f.Status = StatusAttributed
-				f.Reason = "Credited in the project's notices. " + f.Reason
-			case keepsNotice(f.File, fileText(f.File), f.Source):
-				f.Status = StatusAttributed
-				f.Reason = "The file keeps the original copyright and licence notice. " + f.Reason
-			default:
-				f.Status = StatusAttributionMissing
-				switch {
-				case unfinishedEntry(notices, f.Source):
-					f.Reason += " Its entry in the notices isn't finished: fill in what it says to copy there."
-				case credited(strings.ToLower(fileText(f.File)), f.Source):
-					f.Reason += " The file names its source, but the copyright line and licence text also have to ship with the code."
-				}
-			}
+			f.Status, notice = StatusAttributed, true
 		case baseReview:
-			f.Status = StatusReview
+			f.Status, notice = StatusReview, needsNotice(f.Source.License)
 		case baseNoLicense:
 			f.Status = StatusNoLicense
 		default:
@@ -363,13 +363,36 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 		}
 		// The same code also appears elsewhere under stricter terms: it
 		// matters which one it was copied from.
-		for _, a := range f.Also {
-			av := evaluate(a.License, res.ProjectLicense)
-			if baseRank[av.status] > baseRank[v.status] && statusRank(f.Status) < statusRank(StatusReview) {
-				f.Status = StatusReview
-				f.Reason = fmt.Sprintf("The same code is also in %s under %s, whose terms are stricter: check which one it came from. %s",
-					a.label(), a.License, f.Reason)
-				break
+		if f.Status == StatusOK || f.Status == StatusAttributed {
+			for _, a := range f.Also {
+				if av := evaluate(a.License, res.ProjectLicense); baseRank[av.status] > baseRank[v.status] {
+					f.Status = StatusReview
+					f.Reason = fmt.Sprintf("The same code is also in %s under %s, whose terms are stricter: check which one it came from. %s",
+						a.label(), a.License, f.Reason)
+					break
+				}
+			}
+		}
+		// A copy that needs a review needs its notice all the same, and a
+		// review doesn't fail a check by default: until the notice is
+		// there, the copy counts as attribution missing.
+		if notice {
+			switch {
+			case credited(notices, f.Source):
+				f.Reason = "Credited in the project's notices. " + f.Reason
+			case keepsNotice(f.File, fileText(f.File), f.Source):
+				f.Reason = "The file keeps the original copyright and licence notice. " + f.Reason
+			default:
+				if f.Status == StatusReview {
+					f.Reason += " Its copyright line and licence text also have to ship with your copy: until your notices carry them, this counts as attribution missing."
+				}
+				f.Status = StatusAttributionMissing
+				switch {
+				case unfinishedEntry(notices, f.Source):
+					f.Reason += " Its entry in the notices isn't finished: fill in what it says to copy there."
+				case credited(strings.ToLower(fileText(f.File)), f.Source):
+					f.Reason += " The file names its source, but the copyright line and licence text also have to ship with the code."
+				}
 			}
 		}
 		if r, ok := allowRule(pol, f); ok {
@@ -391,7 +414,7 @@ func allowRule(pol *Policy, f Finding) (AllowRule, bool) {
 		if r.File != "" && !globMatch(r.File, f.File) {
 			continue
 		}
-		if r.License != "" && !strings.EqualFold(NormalizeLicense(r.License), NormalizeLicense(f.Source.License)) {
+		if r.License != "" && !sameLicense(r.License, f.Source.License) {
 			continue
 		}
 		return r, true

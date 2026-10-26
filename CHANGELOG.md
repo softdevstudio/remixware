@@ -11,13 +11,16 @@ First release.
   folders with a licence file. Licences come from manifests, licence
   files, REUSE `LICENSES/` folders, Cargo workspaces and the comments at
   the top of each file. A file header adds to its component's licence but
-  can't replace a stricter one, and dual licence files such as
-  `LICENSE-MIT` and `LICENSE-APACHE` read as a choice.
+  can't replace a stricter one, a header offering a choice is read as one,
+  and dual licence files such as `LICENSE-MIT` and `LICENSE-APACHE` read as
+  a choice.
 - `remixware scan` finds code a project shares with the indexes, including
   copies that were reformatted, had their comments changed, had their names
   changed or were partly edited, and reports each with its source, its
   licence and a status: conflict, no-license, review, attribution-missing,
-  attributed, allowed or ok.
+  attributed, allowed or ok. A copy that needs a review and its notice
+  counts as attribution-missing until the notice is there. Symbolic links
+  in the project aren't followed, and the scan says how many it passed.
 - `remixware check` is the same as a pass or fail gate for CI, with exit
   code 1 when findings break the policy. A check that couldn't read a file,
   or found nothing to scan, exits with 2 instead of passing.
@@ -32,9 +35,11 @@ First release.
   rules that need a reason.
 - Reports: a self-contained HTML page with both sides of every match, a
   JSON findings file and an SPDX 2.3 document that passes SPDX validation.
-- Indexes are data: a damaged or made-up index is refused, and one from
-  elsewhere can't make a scan read files outside the folders it was made
-  from. Symbolic links aren't followed when indexing.
+- Indexes are data: a damaged or made-up index is refused, including one
+  that unpacks to far more than its size, and an indexed file is read back
+  only when its bytes match the checksum the index holds. Symbolic links
+  aren't followed when indexing, and nothing outside the indexed folders is
+  read.
 - Reads Go, C and C++, Java, C#, Kotlin, Swift, Scala, JavaScript and
   TypeScript, Rust, Python, Ruby, PHP, shell, Perl, SQL, Lua, CSS and a few
   more. Windows line endings give the same results as Unix ones.
