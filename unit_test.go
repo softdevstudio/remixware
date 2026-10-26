@@ -71,6 +71,7 @@ func TestTokenizeLanguages(t *testing.T) {
 	}{
 		{"python comments and docstrings", synPython, "def f(x):\n    \"\"\"Doc\n    more\"\"\"\n    return x # c\n", "def f(x):\n    'other'\n    return x\n"},
 		{"python string prefixes", synPython, "x = rb'abc'\n", "x = 'zzzzz'\n"},
+		{"python prefixed docstring", synPython, "def f():\n    r\"\"\"Doc \"quoted\" text.\"\"\"\n    return 1\n", "def f():\n    'x'\n    return 1\n"},
 		{"js template literal", synJS, "const s = `a ${b} c`;\n", "const s = 'q';\n"},
 		{"shell hash in variables", synShell, "n=${#arr}\necho $# # count\n", "n=${#arr}\necho $#\n"},
 		{"sql case and comments", synSQL, "SELECT id FROM t -- all\n", "select id from t\n"},

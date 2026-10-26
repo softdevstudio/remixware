@@ -54,6 +54,39 @@ var ops2 = map[string]bool{"==": true, "!=": true, "<=": true, ">=": true, "&&":
 // It is deliberately forgiving: it never fails, and code it can't make
 // sense of still turns into a stable stream of tokens, so two copies of the
 // same text always tokenize the same way.
+// isTriple reports whether a triple quote starts at i.
+func isTriple(src []byte, i int) bool {
+	c := byte(0)
+	if i < len(src) {
+		c = src[i]
+	}
+	return i+2 < len(src) && (c == '"' || c == '\'') && src[i+1] == c && src[i+2] == c
+}
+
+// scanTriple returns the end of a triple-quoted string that starts at i,
+// counting the lines it spans.
+func scanTriple(src []byte, i int, line *int32) int {
+	c, n := src[i], len(src)
+	i += 3
+	for i < n {
+		if src[i] == '\\' && i+1 < n {
+			if src[i+1] == '\n' {
+				*line++
+			}
+			i += 2
+			continue
+		}
+		if src[i] == '\n' {
+			*line++
+		}
+		if src[i] == c && i+2 < n && src[i+1] == c && src[i+2] == c {
+			return i + 3
+		}
+		i++
+	}
+	return n
+}
+
 func tokenize(src []byte, sx *syntax) []token {
 	// Windows line endings must not change what a string literal hashes to.
 	if bytes.Contains(src, []byte("\r\n")) {
@@ -104,34 +137,21 @@ func tokenize(src []byte, sx *syntax) []token {
 		}
 
 		// Strings.
-		if sx.tripleQuotes && i+2 < n && (c == '"' || c == '\'') && src[i+1] == c && src[i+2] == c {
+		if sx.tripleQuotes && isTriple(src, i) {
 			start, startLine := i, line
-			i += 3
-			for i < n {
-				if src[i] == '\\' && i+1 < n {
-					if src[i+1] == '\n' {
-						line++
-					}
-					i += 2
-					continue
-				}
-				if src[i] == '\n' {
-					line++
-				}
-				if src[i] == c && i+2 < n && src[i+1] == c && src[i+2] == c {
-					i += 3
-					break
-				}
-				i++
-			}
-			toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:min(i, n)]), line: startLine})
+			i = scanTriple(src, i, &line)
+			toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
 			continue
 		}
 		if sx.stringPrefix && isASCIILetter(c) {
 			if j := pyStringStart(src, i); j > i {
-				start := i
-				i = scanQuoted(src, j, src[j], true, &line)
-				emit(hashString, fnvHash('s', src[start:i]))
+				start, startLine := i, line
+				if sx.tripleQuotes && isTriple(src, j) {
+					i = scanTriple(src, j, &line) // r"""...""", f'''...'''
+				} else {
+					i = scanQuoted(src, j, src[j], true, &line)
+				}
+				toks = append(toks, token{norm: hashString, exact: fnvHash('s', src[start:i]), line: startLine})
 				continue
 			}
 		}

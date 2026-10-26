@@ -10,7 +10,7 @@ const (
 	kgramSize   = 17
 	windowSize  = 12
 	minDistinct = 6 // k-grams with fewer distinct tokens (lists, tables) are ignored
-	maxRepeats  = 3 // k-grams found this often in one file are ignored as the file's own boilerplate
+	maxRepeats  = 4 // k-grams found this often in one file are ignored as the file's own boilerplate
 	normVersion = 1 // bump when tokenizing or hashing changes: old indexes stop matching
 )
 
@@ -92,7 +92,7 @@ func rawKgramHashes(toks []token) (norm []uint64, exact []uint32) {
 func kgramHashes(toks []token, sx *syntax) (norm []uint64, exact []uint32) {
 	norm, exact = rawKgramHashes(toks)
 	n := len(norm)
-	// K-grams that recur three or more times in one file are its own
+	// K-grams that recur four or more times in one file are its own
 	// boilerplate: runs of similar declarations, table rows, repeated case
 	// arms. They say nothing about where the file came from.
 	counts := make(map[uint64]int32, n)

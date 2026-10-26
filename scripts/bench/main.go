@@ -693,7 +693,26 @@ func indentOf(s string) int { return len(s) - len(strings.TrimLeft(s, " \t")) }
 
 func findTextFuncs(lang string, lines []string) []textFunc {
 	var out []textFunc
+	inComment := false
 	for i := 0; i < len(lines); i++ {
+		// Skip examples in comments, such as a function shown in a doc
+		// comment: they aren't code in the source.
+		t := strings.TrimSpace(lines[i])
+		if lang != "python" {
+			if inComment {
+				if strings.Contains(t, "*/") {
+					inComment = false
+				}
+				continue
+			}
+			if strings.HasPrefix(t, "/*") && !strings.Contains(t, "*/") {
+				inComment = true
+				continue
+			}
+			if strings.HasPrefix(t, "*") || strings.HasPrefix(t, "//") {
+				continue
+			}
+		}
 		end := -1
 		switch lang {
 		case "python":
@@ -702,8 +721,21 @@ func findTextFuncs(lang string, lines []string) []textFunc {
 				continue
 			}
 			ind := len(m[1])
-			end = i
-			for j := i + 1; j < len(lines); j++ {
+			// The body starts after the line that closes the signature,
+			// which may run over several lines.
+			sig, depth := i, 0
+			for ; sig < len(lines) && sig < i+40; sig++ {
+				depth += strings.Count(lines[sig], "(") + strings.Count(lines[sig], "[") -
+					strings.Count(lines[sig], ")") - strings.Count(lines[sig], "]")
+				if depth <= 0 && strings.HasSuffix(strings.TrimSpace(strings.SplitN(lines[sig], "#", 2)[0]), ":") {
+					break
+				}
+			}
+			if sig >= len(lines) || sig >= i+40 {
+				continue
+			}
+			end = sig
+			for j := sig + 1; j < len(lines); j++ {
 				t := strings.TrimSpace(lines[j])
 				if t == "" {
 					continue
