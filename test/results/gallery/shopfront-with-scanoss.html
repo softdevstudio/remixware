@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remixware report: shopfront</title>
+<style>
+:root{--bg:#f7f7f4;--card:#fff;--ink:#1d2228;--soft:#5b6470;--line:#e2e2dc;--code:#f2f2ee;
+--conflict:#b42318;--no-license:#b42318;--review:#b25e09;--attribution-missing:#9a5b00;--attributed:#2e7d4f;--ok:#2e7d4f;--allowed:#55606e;--accent:#3b4cca}
+@media (prefers-color-scheme:dark){:root{--bg:#14171b;--card:#1c2026;--ink:#e8eaed;--soft:#9aa3ad;--line:#2c323a;--code:#11141a;
+--conflict:#f97066;--no-license:#f97066;--review:#fdb022;--attribution-missing:#f5c451;--attributed:#47cd89;--ok:#47cd89;--allowed:#a0a8b3;--accent:#8b98ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 12px}
+.sub{color:var(--soft);margin:0 0 18px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.facts dt{color:var(--soft)}.facts dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.chip{border-radius:999px;padding:4px 12px;font-weight:600;font-size:13px;border:1px solid currentColor}
+.s-conflict{color:var(--conflict)}.s-no-license{color:var(--no-license)}.s-review{color:var(--review)}
+.s-attribution-missing{color:var(--attribution-missing)}.s-attributed{color:var(--attributed)}.s-ok{color:var(--ok)}.s-allowed{color:var(--allowed)}
+.f{background:var(--card);border:1px solid var(--line);border-left:5px solid currentColor;border-radius:10px;padding:14px 18px;margin:0 0 14px}
+.f .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.f .label{font-weight:700;font-size:13px;letter-spacing:.02em}
+.f .where{color:var(--ink);font-weight:600;word-break:break-all}
+.f .id{color:var(--soft);font-size:12px;margin-left:auto}
+.f p{margin:8px 0;color:var(--ink)}
+.meta{color:var(--soft);font-size:14px}
+.meta b{color:var(--ink);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}.facts{grid-template-columns:1fr}.facts dt{margin-top:6px}}
+.code{background:var(--code);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:420px}
+.code h4{margin:0;padding:6px 10px;font-size:12px;color:var(--soft);border-bottom:1px solid var(--line);font-weight:600}
+pre{margin:0;padding:8px 0;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+.ln{display:inline-block;width:48px;padding-right:10px;text-align:right;color:var(--soft);user-select:none}
+.gap{color:var(--soft);font-style:italic;padding-left:58px}
+.also{font-size:14px;color:var(--soft);margin-top:8px}
+.empty{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+footer{color:var(--soft);font-size:13px;margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Remixware report: shopfront</h1>
+<p class="sub">Code in this project that matches third-party code, the licence that code came with, and what that licence asks.</p>
+<dl class="facts">
+<dt>Project</dt><dd>testdata/projects/shopfront</dd>
+<dt>Project licence</dt><dd>MIT <span class="meta">(from LICENSE)</span></dd>
+<dt>Compared with</dt><dd>gallery-upstream.rmx (index: 10 components, 10 files); shopfront.json (SCANOSS results: 4 matches)</dd>
+<dt>Scanned</dt><dd>11 source files, 474 lines</dd>
+<dt>Notice files</dt><dd>THIRD_PARTY_NOTICES.md</dd>
+<dt>Made</dt><dd>2026-10-26T06:39:45Z by remixware 0.1.0</dd>
+</dl>
+
+
+<div class="chips"><span class="chip s-conflict">2 CONFLICT</span><span class="chip s-no-license">1 NO LICENSE</span><span class="chip s-review">2 REVIEW</span><span class="chip s-attribution-missing">4 ATTRIBUTION MISSING</span><span class="chip s-attributed">1 ATTRIBUTED</span></div>
+<h2>Findings</h2>
+
+<section class="f s-conflict">
+<div class="head"><span class="label">CONFLICT</span><span class="where">internal/files/order.go lines 7-46</span><span class="id">RW-5441d221</span></div>
+<div class="meta">Matches <b>example.org/gplsort</b>, natural.go lines 14-53. Licence <b>GPL-3.0-or-later</b> (from COPYING). Copied with names changed (98% match).</div>
+<p>GPL-3.0-or-later code can&#39;t go into an MIT project unless the whole program is released under GPL-3.0-or-later. Remove it, rewrite it, or relicense.</p>
+<div class="meta">Source: <a href="https://example.org/gplsort">https://example.org/gplsort</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">7</span>func lessNatural(left, right string) bool {
+<span class="ln">8</span>    p, q := 0, 0
+<span class="ln">9</span>    for p &lt; len(left) &amp;&amp; q &lt; len(right) {
+<span class="ln">10</span>        x, y := left[p], right[q]
+<span class="ln">11</span>        if digit(x) &amp;&amp; digit(y) {
+<span class="ln">12</span>            startP := p
+<span class="ln">13</span>            for p &lt; len(left) &amp;&amp; digit(left[p]) {
+<span class="ln">14</span>                p&#43;&#43;
+<span class="ln">15</span>            }
+<span class="ln">16</span>            startQ := q
+<span class="ln">17</span>            for q &lt; len(right) &amp;&amp; digit(right[q]) {
+<span class="ln">18</span>                q&#43;&#43;
+<span class="ln">19</span>            }
+<span class="ln">20</span>            numL := dropZeros(left[startP:p])
+<span class="ln">21</span>            numR := dropZeros(right[startQ:q])
+<span class="ln">22</span>            if len(numL) != len(numR) {
+<span class="ln">23</span>                return len(numL) &lt; len(numR)
+<span class="ln">24</span>            }
+<span class="ln">25</span>            if numL != numR {
+<span class="ln">26</span>                return numL &lt; numR
+<span class="ln">27</span>            }
+<span class="ln">28</span>            continue
+<span class="ln">29</span>        }
+<span class="ln">30</span>        if x != y {
+<span class="ln">31</span>            return x &lt; y
+<span class="ln">32</span>        }
+<span class="ln">33</span>        p&#43;&#43;
+<span class="ln">34</span>        q&#43;&#43;
+<span class="ln">35</span>    }
+<span class="ln">36</span>    return len(left)-p &lt; len(right)-q
+<span class="ln">37</span>}
+<span class="ln">38</span>
+<span class="ln">39</span>func digit(c byte) bool { return c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; }
+<span class="ln">40</span>
+<span class="ln">41</span>func dropZeros(s string) string {
+<span class="ln">42</span>    for len(s) &gt; 1 &amp;&amp; s[0] == &#39;0&#39; {
+<span class="ln">43</span>        s = s[1:]
+<span class="ln">44</span>    }
+<span class="ln">45</span>    return s
+<span class="ln">46</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">14</span>func NaturalLess(a, b string) bool {
+<span class="ln">15</span>    i, j := 0, 0
+<span class="ln">16</span>    for i &lt; len(a) &amp;&amp; j &lt; len(b) {
+<span class="ln">17</span>        ca, cb := a[i], b[j]
+<span class="ln">18</span>        if isDigit(ca) &amp;&amp; isDigit(cb) {
+<span class="ln">19</span>            si := i
+<span class="ln">20</span>            for i &lt; len(a) &amp;&amp; isDigit(a[i]) {
+<span class="ln">21</span>                i&#43;&#43;
+<span class="ln">22</span>            }
+<span class="ln">23</span>            sj := j
+<span class="ln">24</span>            for j &lt; len(b) &amp;&amp; isDigit(b[j]) {
+<span class="ln">25</span>                j&#43;&#43;
+<span class="ln">26</span>            }
+<span class="ln">27</span>            na := trimZeros(a[si:i])
+<span class="ln">28</span>            nb := trimZeros(b[sj:j])
+<span class="ln">29</span>            if len(na) != len(nb) {
+<span class="ln">30</span>                return len(na) &lt; len(nb)
+<span class="ln">31</span>            }
+<span class="ln">32</span>            if na != nb {
+<span class="ln">33</span>                return na &lt; nb
+<span class="ln">34</span>            }
+<span class="ln">35</span>            continue
+<span class="ln">36</span>        }
+<span class="ln">37</span>        if ca != cb {
+<span class="ln">38</span>            return ca &lt; cb
+<span class="ln">39</span>        }
+<span class="ln">40</span>        i&#43;&#43;
+<span class="ln">41</span>        j&#43;&#43;
+<span class="ln">42</span>    }
+<span class="ln">43</span>    return len(a)-i &lt; len(b)-j
+<span class="ln">44</span>}
+<span class="ln">45</span>
+<span class="ln">46</span>func isDigit(c byte) bool { return c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; }
+<span class="ln">47</span>
+<span class="ln">48</span>func trimZeros(s string) string {
+<span class="ln">49</span>    for len(s) &gt; 1 &amp;&amp; s[0] == &#39;0&#39; {
+<span class="ln">50</span>        s = s[1:]
+<span class="ln">51</span>    }
+<span class="ln">52</span>    return s
+<span class="ln">53</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-conflict">
+<div class="head"><span class="label">CONFLICT</span><span class="where">scripts/slug.py lines 1-36</span><span class="id">RW-3968665c</span></div>
+<div class="meta">Matches <b>agplwiki 0.4.0</b>, agplwiki/text.py lines 1-36. Licence <b>AGPL-3.0-or-later</b> (from LICENSE). Copied with some edits (100% match).</div>
+<p>AGPL-3.0-or-later code can&#39;t go into an MIT project unless the whole program is released under AGPL-3.0-or-later, which also means offering the source to everyone who uses it over a network.</p>
+
+<div class="also">The same code is also in: nhaddad/agplwiki 0.4.0 (AGPL-3.0-or-later)</div>
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">1</span>&#34;&#34;&#34;Build URL slugs for product pages.&#34;&#34;&#34;
+<span class="ln">2</span>
+<span class="ln">3</span>import re
+<span class="ln">4</span>import unicodedata
+<span class="ln">5</span>
+<span class="ln">6</span>_STRIP = re.compile(r&#34;[^\w\s-]&#34;)
+<span class="ln">7</span>_DASHES = re.compile(r&#34;[-\s]&#43;&#34;)
+<span class="ln">8</span>
+<span class="ln">9</span>
+<span class="ln">10</span>def slugify(title, max_length=60):
+<span class="ln">11</span>    &#34;&#34;&#34;Turn a page title into a URL path segment.&#34;&#34;&#34;
+<span class="ln">12</span>    value = unicodedata.normalize(&#34;NFKD&#34;, title)
+<span class="ln">13</span>    value = value.encode(&#34;ascii&#34;, &#34;ignore&#34;).decode(&#34;ascii&#34;)
+<span class="ln">14</span>    value = _STRIP.sub(&#34;&#34;, value).strip().lower()
+<span class="ln">15</span>    value = _DASHES.sub(&#34;-&#34;, value)
+<span class="ln">16</span>    if len(value) &gt; max_length:
+<span class="ln">17</span>        cut = value.rfind(&#34;-&#34;, 0, max_length)
+<span class="ln">18</span>        value = value[: cut if cut &gt; 0 else max_length]
+<span class="ln">19</span>    return value or &#34;page&#34;
+<span class="ln">20</span>
+<span class="ln">21</span>
+<span class="ln">22</span>def escape_html(text, quote=True):
+<span class="ln">23</span>    &#34;&#34;&#34;Escape the characters that matter in HTML.&#34;&#34;&#34;
+<span class="ln">24</span>    out = []
+<span class="ln">25</span>    for ch in text:
+<span class="ln">26</span>        if ch == &#34;&amp;&#34;:
+<span class="ln">27</span>            out.append(&#34;&amp;amp;&#34;)
+<span class="ln">28</span>        elif ch == &#34;&lt;&#34;:
+<span class="ln">29</span>            out.append(&#34;&amp;lt;&#34;)
+<span class="ln">30</span>        elif ch == &#34;&gt;&#34;:
+<span class="ln">31</span>            out.append(&#34;&amp;gt;&#34;)
+<span class="ln">32</span>        elif quote and ch == &#39;&#34;&#39;:
+<span class="ln">33</span>            out.append(&#34;&amp;quot;&#34;)
+<span class="ln">34</span>        else:
+<span class="ln">35</span>            out.append(ch)
+<span class="ln">36</span>    return &#34;&#34;.join(out)
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">1</span>&#34;&#34;&#34;Text helpers for page titles and markup.&#34;&#34;&#34;
+<span class="ln">2</span>
+<span class="ln">3</span>import re
+<span class="ln">4</span>import unicodedata
+<span class="ln">5</span>
+<span class="ln">6</span>_STRIP = re.compile(r&#34;[^\w\s-]&#34;)
+<span class="ln">7</span>_DASHES = re.compile(r&#34;[-\s]&#43;&#34;)
+<span class="ln">8</span>
+<span class="ln">9</span>
+<span class="ln">10</span>def slugify(title, max_length=60):
+<span class="ln">11</span>    &#34;&#34;&#34;Turn a page title into a URL path segment.&#34;&#34;&#34;
+<span class="ln">12</span>    value = unicodedata.normalize(&#34;NFKD&#34;, title)
+<span class="ln">13</span>    value = value.encode(&#34;ascii&#34;, &#34;ignore&#34;).decode(&#34;ascii&#34;)
+<span class="ln">14</span>    value = _STRIP.sub(&#34;&#34;, value).strip().lower()
+<span class="ln">15</span>    value = _DASHES.sub(&#34;-&#34;, value)
+<span class="ln">16</span>    if len(value) &gt; max_length:
+<span class="ln">17</span>        cut = value.rfind(&#34;-&#34;, 0, max_length)
+<span class="ln">18</span>        value = value[: cut if cut &gt; 0 else max_length]
+<span class="ln">19</span>    return value or &#34;page&#34;
+<span class="ln">20</span>
+<span class="ln">21</span>
+<span class="ln">22</span>def escape_html(text, quote=True):
+<span class="ln">23</span>    &#34;&#34;&#34;Escape the characters that matter in HTML.&#34;&#34;&#34;
+<span class="ln">24</span>    out = []
+<span class="ln">25</span>    for ch in text:
+<span class="ln">26</span>        if ch == &#34;&amp;&#34;:
+<span class="ln">27</span>            out.append(&#34;&amp;amp;&#34;)
+<span class="ln">28</span>        elif ch == &#34;&lt;&#34;:
+<span class="ln">29</span>            out.append(&#34;&amp;lt;&#34;)
+<span class="ln">30</span>        elif ch == &#34;&gt;&#34;:
+<span class="ln">31</span>            out.append(&#34;&amp;gt;&#34;)
+<span class="ln">32</span>        elif quote and ch == &#39;&#34;&#39;:
+<span class="ln">33</span>            out.append(&#34;&amp;quot;&#34;)
+<span class="ln">34</span>        else:
+<span class="ln">35</span>            out.append(ch)
+<span class="ln">36</span>    return &#34;&#34;.join(out)
+</pre></div>
+</div>
+</section>
+
+<section class="f s-no-license">
+<div class="head"><span class="label">NO LICENSE</span><span class="where">internal/format/bytes.go lines 2-24</span><span class="id">RW-1ccb75ff</span></div>
+<div class="meta">Matches <b>upstream</b>, snippets/human.go lines 1-23. Licence <b>NONE</b>. Copied with some edits (100% match).</div>
+<p>No licence was found, so nobody has given permission to copy this code. Remove it or ask the author.</p>
+
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">2</span>package format
+<span class="ln">3</span>
+<span class="ln">4</span>import (
+<span class="ln">5</span>    &#34;fmt&#34;
+<span class="ln">6</span>    &#34;strings&#34;
+<span class="ln">7</span>)
+<span class="ln">8</span>
+<span class="ln">9</span>// Size formats a file size with binary units.
+<span class="ln">10</span>func Size(n int64) string {
+<span class="ln">11</span>    const unit = 1024
+<span class="ln">12</span>    if n &lt; unit {
+<span class="ln">13</span>        return fmt.Sprintf(&#34;%d B&#34;, n)
+<span class="ln">14</span>    }
+<span class="ln">15</span>    div, exp := int64(unit), 0
+<span class="ln">16</span>    for m := n / unit; m &gt;= unit; m /= unit {
+<span class="ln">17</span>        div *= unit
+<span class="ln">18</span>        exp&#43;&#43;
+<span class="ln">19</span>    }
+<span class="ln">20</span>    value := float64(n) / float64(div)
+<span class="ln">21</span>    text := fmt.Sprintf(&#34;%.1f&#34;, value)
+<span class="ln">22</span>    text = strings.TrimSuffix(text, &#34;.0&#34;)
+<span class="ln">23</span>    return text &#43; &#34; &#34; &#43; string(&#34;KMGTPE&#34;[exp]) &#43; &#34;iB&#34;
+<span class="ln">24</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">1</span>package snippets
+<span class="ln">2</span>
+<span class="ln">3</span>import (
+<span class="ln">4</span>    &#34;fmt&#34;
+<span class="ln">5</span>    &#34;strings&#34;
+<span class="ln">6</span>)
+<span class="ln">7</span>
+<span class="ln">8</span>// HumanBytes formats a byte count with binary units: 1536 -&gt; &#34;1.5 KiB&#34;.
+<span class="ln">9</span>func HumanBytes(n int64) string {
+<span class="ln">10</span>    const unit = 1024
+<span class="ln">11</span>    if n &lt; unit {
+<span class="ln">12</span>        return fmt.Sprintf(&#34;%d B&#34;, n)
+<span class="ln">13</span>    }
+<span class="ln">14</span>    div, exp := int64(unit), 0
+<span class="ln">15</span>    for m := n / unit; m &gt;= unit; m /= unit {
+<span class="ln">16</span>        div *= unit
+<span class="ln">17</span>        exp&#43;&#43;
+<span class="ln">18</span>    }
+<span class="ln">19</span>    value := float64(n) / float64(div)
+<span class="ln">20</span>    text := fmt.Sprintf(&#34;%.1f&#34;, value)
+<span class="ln">21</span>    text = strings.TrimSuffix(text, &#34;.0&#34;)
+<span class="ln">22</span>    return text &#43; &#34; &#34; &#43; string(&#34;KMGTPE&#34;[exp]) &#43; &#34;iB&#34;
+<span class="ln">23</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-review">
+<div class="head"><span class="label">REVIEW</span><span class="where">internal/cache/lru.go lines 2-52</span><span class="id">RW-672399ad</span></div>
+<div class="meta">Matches <b>example.net/mplcache</b>, lru.go lines 6-57. Licence <b>MPL-2.0</b> (from LICENSE). Copied with some edits (100% match).</div>
+<p>MPL-2.0 applies file by file: keep the copied code in its own file under MPL-2.0, keep its notice, and publish your changes to that file.</p>
+<div class="meta">Source: <a href="https://example.net/mplcache">https://example.net/mplcache</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">2</span>package cache
+<span class="ln">3</span>
+<span class="ln">4</span>import &#34;container/list&#34;
+<span class="ln">5</span>
+<span class="ln">6</span>type item struct {
+<span class="ln">7</span>    key   string
+<span class="ln">8</span>    value any
+<span class="ln">9</span>}
+<span class="ln">10</span>
+<span class="ln">11</span>// Products keeps at most size products and drops the least recently used.
+<span class="ln">12</span>type Products struct {
+<span class="ln">13</span>    size  int
+<span class="ln">14</span>    order *list.List
+<span class="ln">15</span>    items map[string]*list.Element
+<span class="ln">16</span>    evict func(key string, value any)
+<span class="ln">17</span>}
+<span class="ln">18</span>
+<span class="ln">19</span>// NewProducts returns an empty cache.
+<span class="ln">20</span>func NewProducts(size int, evict func(key string, value any)) *Products {
+<span class="ln">21</span>    return &amp;Products{size: size, order: list.New(), items: make(map[string]*list.Element), evict: evict}
+<span class="ln">22</span>}
+<span class="ln">23</span>
+<span class="ln">24</span>// Get returns the value for key and marks it as recently used.
+<span class="ln">25</span>func (c *Products) Get(key string) (any, bool) {
+<span class="ln">26</span>    el, ok := c.items[key]
+<span class="ln">27</span>    if !ok {
+<span class="ln">28</span>        return nil, false
+<span class="ln">29</span>    }
+<span class="ln">30</span>    c.order.MoveToFront(el)
+<span class="ln">31</span>    return el.Value.(*item).value, true
+<span class="ln">32</span>}
+<span class="ln">33</span>
+<span class="ln">34</span>// Put stores value under key, dropping the oldest entry when full.
+<span class="ln">35</span>func (c *Products) Put(key string, value any) {
+<span class="ln">36</span>    if el, ok := c.items[key]; ok {
+<span class="ln">37</span>        el.Value.(*item).value = value
+<span class="ln">38</span>        c.order.MoveToFront(el)
+<span class="ln">39</span>        return
+<span class="ln">40</span>    }
+<span class="ln">41</span>    el := c.order.PushFront(&amp;item{key: key, value: value})
+<span class="ln">42</span>    c.items[key] = el
+<span class="ln">43</span>    if c.order.Len() &gt; c.size {
+<span class="ln">44</span>        last := c.order.Back()
+<span class="ln">45</span>        c.order.Remove(last)
+<span class="ln">46</span>        e := last.Value.(*item)
+<span class="ln">47</span>        delete(c.items, e.key)
+<span class="ln">48</span>        if c.evict != nil {
+<span class="ln">49</span>            c.evict(e.key, e.value)
+<span class="ln">50</span>        }
+<span class="ln">51</span>    }
+<span class="ln">52</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">6</span>package mplcache
+<span class="ln">7</span>
+<span class="ln">8</span>import &#34;container/list&#34;
+<span class="ln">9</span>
+<span class="ln">10</span>type entry struct {
+<span class="ln">11</span>    key   string
+<span class="ln">12</span>    value any
+<span class="ln">13</span>}
+<span class="ln">14</span>
+<span class="ln">15</span>// LRU keeps at most Size entries and drops the least recently used one.
+<span class="ln">16</span>type LRU struct {
+<span class="ln">17</span>    size  int
+<span class="ln">18</span>    order *list.List
+<span class="ln">19</span>    items map[string]*list.Element
+<span class="ln">20</span>    evict func(key string, value any)
+<span class="ln">21</span>}
+<span class="ln">22</span>
+<span class="ln">23</span>// New returns an empty cache for size entries. evict, if set, is called
+<span class="ln">24</span>// for every entry the cache drops.
+<span class="ln">25</span>func New(size int, evict func(key string, value any)) *LRU {
+<span class="ln">26</span>    return &amp;LRU{size: size, order: list.New(), items: make(map[string]*list.Element), evict: evict}
+<span class="ln">27</span>}
+<span class="ln">28</span>
+<span class="ln">29</span>// Get returns the value for key and marks it as recently used.
+<span class="ln">30</span>func (c *LRU) Get(key string) (any, bool) {
+<span class="ln">31</span>    el, ok := c.items[key]
+<span class="ln">32</span>    if !ok {
+<span class="ln">33</span>        return nil, false
+<span class="ln">34</span>    }
+<span class="ln">35</span>    c.order.MoveToFront(el)
+<span class="ln">36</span>    return el.Value.(*entry).value, true
+<span class="ln">37</span>}
+<span class="ln">38</span>
+<span class="ln">39</span>// Put stores value under key, dropping the oldest entry when the cache is full.
+<span class="ln">40</span>func (c *LRU) Put(key string, value any) {
+<span class="ln">41</span>    if el, ok := c.items[key]; ok {
+<span class="ln">42</span>        el.Value.(*entry).value = value
+<span class="ln">43</span>        c.order.MoveToFront(el)
+<span class="ln">44</span>        return
+<span class="ln">45</span>    }
+<span class="ln">46</span>    el := c.order.PushFront(&amp;entry{key: key, value: value})
+<span class="ln">47</span>    c.items[key] = el
+<span class="ln">48</span>    if c.order.Len() &gt; c.size {
+<span class="ln">49</span>        last := c.order.Back()
+<span class="ln">50</span>        c.order.Remove(last)
+<span class="ln">51</span>        e := last.Value.(*entry)
+<span class="ln">52</span>        delete(c.items, e.key)
+<span class="ln">53</span>        if c.evict != nil {
+<span class="ln">54</span>            c.evict(e.key, e.value)
+<span class="ln">55</span>        }
+<span class="ln">56</span>    }
+<span class="ln">57</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-review">
+<div class="head"><span class="label">REVIEW</span><span class="where">web/vendor.min.js lines 1</span><span class="id">RW-243a8ffc</span></div>
+<div class="meta">Matches <b>tinychart 2.0.1</b>, dist/tinychart.min.js. Licence <b>NOASSERTION</b> (from SCANOSS (no licence reported)). Whole file (SCANOSS) (100% match).</div>
+<p>No licence information was found for this source. Check its repository before keeping the copy.</p>
+<div class="meta">Source: <a href="https://www.npmjs.com/package/tinychart">https://www.npmjs.com/package/tinychart</a></div>
+
+
+</section>
+
+<section class="f s-attribution-missing">
+<div class="head"><span class="label">ATTRIBUTION MISSING</span><span class="where">internal/csvio/split.go lines 2-45</span><span class="id">RW-e5b97165</span></div>
+<div class="meta">Matches <b>example.com/fastcsv</b>, fastcsv.go lines 2-45. Licence <b>MIT</b> (from LICENSE). Copied as is (100% match).</div>
+<p>Keep its copyright line and the MIT licence text with your copy, for example in a third-party notices file.</p>
+<div class="meta">Source: <a href="https://example.com/fastcsv">https://example.com/fastcsv</a></div>
+<div class="also">The same code is also in: mokafor/fastcsv 1.4.0 (MIT)</div>
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">2</span>package csvio
+<span class="ln">3</span>
+<span class="ln">4</span>import (
+<span class="ln">5</span>    &#34;errors&#34;
+<span class="ln">6</span>    &#34;strings&#34;
+<span class="ln">7</span>)
+<span class="ln">8</span>
+<span class="ln">9</span>// ErrQuote is returned for a field with an unterminated quote.
+<span class="ln">10</span>var ErrQuote = errors.New(&#34;fastcsv: unterminated quote&#34;)
+<span class="ln">11</span>
+<span class="ln">12</span>// SplitRecord splits one line into fields. Fields may be quoted with double
+<span class="ln">13</span>// quotes; a doubled quote inside a quoted field stands for one quote.
+<span class="ln">14</span>func SplitRecord(line string, sep rune) ([]string, error) {
+<span class="ln">15</span>    var fields []string
+<span class="ln">16</span>    var field strings.Builder
+<span class="ln">17</span>    inQuotes := false
+<span class="ln">18</span>    runes := []rune(line)
+<span class="ln">19</span>    for i := 0; i &lt; len(runes); i&#43;&#43; {
+<span class="ln">20</span>        r := runes[i]
+<span class="ln">21</span>        switch {
+<span class="ln">22</span>        case inQuotes &amp;&amp; r == &#39;&#34;&#39;:
+<span class="ln">23</span>            if i&#43;1 &lt; len(runes) &amp;&amp; runes[i&#43;1] == &#39;&#34;&#39; {
+<span class="ln">24</span>                field.WriteRune(&#39;&#34;&#39;)
+<span class="ln">25</span>                i&#43;&#43;
+<span class="ln">26</span>            } else {
+<span class="ln">27</span>                inQuotes = false
+<span class="ln">28</span>            }
+<span class="ln">29</span>        case inQuotes:
+<span class="ln">30</span>            field.WriteRune(r)
+<span class="ln">31</span>        case r == &#39;&#34;&#39; &amp;&amp; field.Len() == 0:
+<span class="ln">32</span>            inQuotes = true
+<span class="ln">33</span>        case r == sep:
+<span class="ln">34</span>            fields = append(fields, field.String())
+<span class="ln">35</span>            field.Reset()
+<span class="ln">36</span>        default:
+<span class="ln">37</span>            field.WriteRune(r)
+<span class="ln">38</span>        }
+<span class="ln">39</span>    }
+<span class="ln">40</span>    if inQuotes {
+<span class="ln">41</span>        return nil, ErrQuote
+<span class="ln">42</span>    }
+<span class="ln">43</span>    fields = append(fields, field.String())
+<span class="ln">44</span>    return fields, nil
+<span class="ln">45</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">2</span>package fastcsv
+<span class="ln">3</span>
+<span class="ln">4</span>import (
+<span class="ln">5</span>    &#34;errors&#34;
+<span class="ln">6</span>    &#34;strings&#34;
+<span class="ln">7</span>)
+<span class="ln">8</span>
+<span class="ln">9</span>// ErrQuote is returned for a field with an unterminated quote.
+<span class="ln">10</span>var ErrQuote = errors.New(&#34;fastcsv: unterminated quote&#34;)
+<span class="ln">11</span>
+<span class="ln">12</span>// SplitRecord splits one line into fields. Fields may be quoted with double
+<span class="ln">13</span>// quotes; a doubled quote inside a quoted field stands for one quote.
+<span class="ln">14</span>func SplitRecord(line string, sep rune) ([]string, error) {
+<span class="ln">15</span>    var fields []string
+<span class="ln">16</span>    var field strings.Builder
+<span class="ln">17</span>    inQuotes := false
+<span class="ln">18</span>    runes := []rune(line)
+<span class="ln">19</span>    for i := 0; i &lt; len(runes); i&#43;&#43; {
+<span class="ln">20</span>        r := runes[i]
+<span class="ln">21</span>        switch {
+<span class="ln">22</span>        case inQuotes &amp;&amp; r == &#39;&#34;&#39;:
+<span class="ln">23</span>            if i&#43;1 &lt; len(runes) &amp;&amp; runes[i&#43;1] == &#39;&#34;&#39; {
+<span class="ln">24</span>                field.WriteRune(&#39;&#34;&#39;)
+<span class="ln">25</span>                i&#43;&#43;
+<span class="ln">26</span>            } else {
+<span class="ln">27</span>                inQuotes = false
+<span class="ln">28</span>            }
+<span class="ln">29</span>        case inQuotes:
+<span class="ln">30</span>            field.WriteRune(r)
+<span class="ln">31</span>        case r == &#39;&#34;&#39; &amp;&amp; field.Len() == 0:
+<span class="ln">32</span>            inQuotes = true
+<span class="ln">33</span>        case r == sep:
+<span class="ln">34</span>            fields = append(fields, field.String())
+<span class="ln">35</span>            field.Reset()
+<span class="ln">36</span>        default:
+<span class="ln">37</span>            field.WriteRune(r)
+<span class="ln">38</span>        }
+<span class="ln">39</span>    }
+<span class="ln">40</span>    if inQuotes {
+<span class="ln">41</span>        return nil, ErrQuote
+<span class="ln">42</span>    }
+<span class="ln">43</span>    fields = append(fields, field.String())
+<span class="ln">44</span>    return fields, nil
+<span class="ln">45</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-attribution-missing">
+<div class="head"><span class="label">ATTRIBUTION MISSING</span><span class="where">tools/prettyjson.py lines 1-32</span><span class="id">RW-0c504dfd</span></div>
+<div class="meta">Matches <b>tinyjson 1.2.0</b>, __init__.py lines 1-32. Licence <b>MIT</b> (from tinyjson-1.2.0.dist-info/METADATA). Copied with names changed (100% match).</div>
+<p>Keep its copyright line and the MIT licence text with your copy, for example in a third-party notices file.</p>
+<div class="meta">Source: <a href="https://github.com/example/tinyjson">https://github.com/example/tinyjson</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">1</span>&#34;&#34;&#34;Print the catalog as readable JSON.&#34;&#34;&#34;
+<span class="ln">2</span>
+<span class="ln">3</span>
+<span class="ln">4</span>def to_text(obj, width=2, depth=0):
+<span class="ln">5</span>    &#34;&#34;&#34;Format obj as indented JSON text.&#34;&#34;&#34;
+<span class="ln">6</span>    pad = &#34; &#34; * (width * depth)
+<span class="ln">7</span>    inner = &#34; &#34; * (width * (depth &#43; 1))
+<span class="ln">8</span>    if isinstance(obj, dict):
+<span class="ln">9</span>        if not obj:
+<span class="ln">10</span>            return &#34;{}&#34;
+<span class="ln">11</span>        parts = []
+<span class="ln">12</span>        for name in sorted(obj):
+<span class="ln">13</span>            text = to_text(obj[name], width, depth &#43; 1)
+<span class="ln">14</span>            parts.append(&#39;%s&#34;%s&#34;: %s&#39; % (inner, quote(str(name)), text))
+<span class="ln">15</span>        return &#34;{\n&#34; &#43; &#34;,\n&#34;.join(parts) &#43; &#34;\n&#34; &#43; pad &#43; &#34;}&#34;
+<span class="ln">16</span>    if isinstance(obj, (list, tuple)):
+<span class="ln">17</span>        if not obj:
+<span class="ln">18</span>            return &#34;[]&#34;
+<span class="ln">19</span>        parts = [inner &#43; to_text(v, width, depth &#43; 1) for v in obj]
+<span class="ln">20</span>        return &#34;[\n&#34; &#43; &#34;,\n&#34;.join(parts) &#43; &#34;\n&#34; &#43; pad &#43; &#34;]&#34;
+<span class="ln">21</span>    if obj is None:
+<span class="ln">22</span>        return &#34;null&#34;
+<span class="ln">23</span>    if obj is True or obj is False:
+<span class="ln">24</span>        return &#34;true&#34; if obj else &#34;false&#34;
+<span class="ln">25</span>    if isinstance(obj, (int, float)):
+<span class="ln">26</span>        return repr(obj)
+<span class="ln">27</span>    return &#39;&#34;%s&#34;&#39; % quote(str(obj))
+<span class="ln">28</span>
+<span class="ln">29</span>
+<span class="ln">30</span>def quote(text):
+<span class="ln">31</span>    &#34;&#34;&#34;Escape a string for JSON.&#34;&#34;&#34;
+<span class="ln">32</span>    return text.replace(&#34;\\&#34;, &#34;\\\\&#34;).replace(&#39;&#34;&#39;, &#39;\\&#34;&#39;).replace(&#34;\n&#34;, &#34;\\n&#34;)
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">1</span>&#34;&#34;&#34;A very small JSON pretty printer.&#34;&#34;&#34;
+<span class="ln">2</span>
+<span class="ln">3</span>
+<span class="ln">4</span>def pretty(value, indent=2, level=0):
+<span class="ln">5</span>    &#34;&#34;&#34;Format value as indented JSON text.&#34;&#34;&#34;
+<span class="ln">6</span>    pad = &#34; &#34; * (indent * level)
+<span class="ln">7</span>    inner = &#34; &#34; * (indent * (level &#43; 1))
+<span class="ln">8</span>    if isinstance(value, dict):
+<span class="ln">9</span>        if not value:
+<span class="ln">10</span>            return &#34;{}&#34;
+<span class="ln">11</span>        parts = []
+<span class="ln">12</span>        for key in sorted(value):
+<span class="ln">13</span>            text = pretty(value[key], indent, level &#43; 1)
+<span class="ln">14</span>            parts.append(&#39;%s&#34;%s&#34;: %s&#39; % (inner, escape(str(key)), text))
+<span class="ln">15</span>        return &#34;{\n&#34; &#43; &#34;,\n&#34;.join(parts) &#43; &#34;\n&#34; &#43; pad &#43; &#34;}&#34;
+<span class="ln">16</span>    if isinstance(value, (list, tuple)):
+<span class="ln">17</span>        if not value:
+<span class="ln">18</span>            return &#34;[]&#34;
+<span class="ln">19</span>        parts = [inner &#43; pretty(v, indent, level &#43; 1) for v in value]
+<span class="ln">20</span>        return &#34;[\n&#34; &#43; &#34;,\n&#34;.join(parts) &#43; &#34;\n&#34; &#43; pad &#43; &#34;]&#34;
+<span class="ln">21</span>    if value is None:
+<span class="ln">22</span>        return &#34;null&#34;
+<span class="ln">23</span>    if value is True or value is False:
+<span class="ln">24</span>        return &#34;true&#34; if value else &#34;false&#34;
+<span class="ln">25</span>    if isinstance(value, (int, float)):
+<span class="ln">26</span>        return repr(value)
+<span class="ln">27</span>    return &#39;&#34;%s&#34;&#39; % escape(str(value))
+<span class="ln">28</span>
+<span class="ln">29</span>
+<span class="ln">30</span>def escape(text):
+<span class="ln">31</span>    &#34;&#34;&#34;Escape a string for JSON.&#34;&#34;&#34;
+<span class="ln">32</span>    return text.replace(&#34;\\&#34;, &#34;\\\\&#34;).replace(&#39;&#34;&#39;, &#39;\\&#34;&#39;).replace(&#34;\n&#34;, &#34;\\n&#34;)
+</pre></div>
+</div>
+</section>
+
+<section class="f s-attribution-missing">
+<div class="head"><span class="label">ATTRIBUTION MISSING</span><span class="where">web/pad.js lines 1-28</span><span class="id">RW-87358939</span></div>
+<div class="meta">Matches <b>leftpadx 1.0.4</b>, index.js lines 1-28. Licence <b>ISC</b> (from package.json). Whole file, copied as is (100% match).</div>
+<p>Keep its copyright line and the ISC licence text with your copy, for example in a third-party notices file.</p>
+<div class="meta">Source: <a href="https://github.com/example/leftpadx">https://github.com/example/leftpadx</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">1</span>&#39;use strict&#39;;
+<span class="ln">2</span>
+<span class="ln">3</span>// Pads str on the left with ch until it is len characters long.
+<span class="ln">4</span>function leftPad(str, len, ch) {
+<span class="ln">5</span>  str = String(str);
+<span class="ln">6</span>  if (ch === undefined || ch === null || ch === &#39;&#39;) {
+<span class="ln">7</span>    ch = &#39; &#39;;
+<span class="ln">8</span>  } else {
+<span class="ln">9</span>    ch = String(ch);
+<span class="ln">10</span>  }
+<span class="ln">11</span>  let pad = len - str.length;
+<span class="ln">12</span>  if (pad &lt;= 0) {
+<span class="ln">13</span>    return str;
+<span class="ln">14</span>  }
+<span class="ln">15</span>  let out = &#39;&#39;;
+<span class="ln">16</span>  while (pad &gt; 0) {
+<span class="ln">17</span>    if (pad &amp; 1) {
+<span class="ln">18</span>      out &#43;= ch;
+<span class="ln">19</span>    }
+<span class="ln">20</span>    pad &gt;&gt;= 1;
+<span class="ln">21</span>    if (pad) {
+<span class="ln">22</span>      ch &#43;= ch;
+<span class="ln">23</span>    }
+<span class="ln">24</span>  }
+<span class="ln">25</span>  return out &#43; str;
+<span class="ln">26</span>}
+<span class="ln">27</span>
+<span class="ln">28</span>module.exports = leftPad;
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">1</span>&#39;use strict&#39;;
+<span class="ln">2</span>
+<span class="ln">3</span>// Pads str on the left with ch until it is len characters long.
+<span class="ln">4</span>function leftPad(str, len, ch) {
+<span class="ln">5</span>  str = String(str);
+<span class="ln">6</span>  if (ch === undefined || ch === null || ch === &#39;&#39;) {
+<span class="ln">7</span>    ch = &#39; &#39;;
+<span class="ln">8</span>  } else {
+<span class="ln">9</span>    ch = String(ch);
+<span class="ln">10</span>  }
+<span class="ln">11</span>  let pad = len - str.length;
+<span class="ln">12</span>  if (pad &lt;= 0) {
+<span class="ln">13</span>    return str;
+<span class="ln">14</span>  }
+<span class="ln">15</span>  let out = &#39;&#39;;
+<span class="ln">16</span>  while (pad &gt; 0) {
+<span class="ln">17</span>    if (pad &amp; 1) {
+<span class="ln">18</span>      out &#43;= ch;
+<span class="ln">19</span>    }
+<span class="ln">20</span>    pad &gt;&gt;= 1;
+<span class="ln">21</span>    if (pad) {
+<span class="ln">22</span>      ch &#43;= ch;
+<span class="ln">23</span>    }
+<span class="ln">24</span>  }
+<span class="ln">25</span>  return out &#43; str;
+<span class="ln">26</span>}
+<span class="ln">27</span>
+<span class="ln">28</span>module.exports = leftPad;
+</pre></div>
+</div>
+</section>
+
+<section class="f s-attribution-missing">
+<div class="head"><span class="label">ATTRIBUTION MISSING</span><span class="where">web/util.js lines 3-25</span><span class="id">RW-9c26de1f</span></div>
+<div class="meta">Matches <b>jsutil 3.1.0</b>, index.js lines 6-28. Licence <b>BSD-3-Clause</b> (from package.json). Copied with names changed (100% match).</div>
+<p>Keep its copyright line and the BSD-3-Clause licence text with your copy, for example in a third-party notices file.</p>
+<div class="meta">Source: <a href="https://github.com/imoreau/jsutil">https://github.com/imoreau/jsutil</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">3</span>function debounce(callback, delay, leading) {
+<span class="ln">4</span>  let handle = null;
+<span class="ln">5</span>  let pending = null;
+<span class="ln">6</span>  function fire() {
+<span class="ln">7</span>    handle = null;
+<span class="ln">8</span>    if (!leading &amp;&amp; pending) {
+<span class="ln">9</span>      callback.apply(null, pending);
+<span class="ln">10</span>      pending = null;
+<span class="ln">11</span>    }
+<span class="ln">12</span>  }
+<span class="ln">13</span>  return function wrapped(...params) {
+<span class="ln">14</span>    const runNow = leading &amp;&amp; handle === null;
+<span class="ln">15</span>    pending = params;
+<span class="ln">16</span>    if (handle !== null) {
+<span class="ln">17</span>      clearTimeout(handle);
+<span class="ln">18</span>    }
+<span class="ln">19</span>    handle = setTimeout(fire, delay);
+<span class="ln">20</span>    if (runNow) {
+<span class="ln">21</span>      callback.apply(null, params);
+<span class="ln">22</span>      pending = null;
+<span class="ln">23</span>    }
+<span class="ln">24</span>  };
+<span class="ln">25</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">6</span>function debounce(fn, wait, immediate) {
+<span class="ln">7</span>  let timer = null;
+<span class="ln">8</span>  let lastArgs = null;
+<span class="ln">9</span>  function later() {
+<span class="ln">10</span>    timer = null;
+<span class="ln">11</span>    if (!immediate &amp;&amp; lastArgs) {
+<span class="ln">12</span>      fn.apply(null, lastArgs);
+<span class="ln">13</span>      lastArgs = null;
+<span class="ln">14</span>    }
+<span class="ln">15</span>  }
+<span class="ln">16</span>  return function debounced(...args) {
+<span class="ln">17</span>    const callNow = immediate &amp;&amp; timer === null;
+<span class="ln">18</span>    lastArgs = args;
+<span class="ln">19</span>    if (timer !== null) {
+<span class="ln">20</span>      clearTimeout(timer);
+<span class="ln">21</span>    }
+<span class="ln">22</span>    timer = setTimeout(later, wait);
+<span class="ln">23</span>    if (callNow) {
+<span class="ln">24</span>      fn.apply(null, args);
+<span class="ln">25</span>      lastArgs = null;
+<span class="ln">26</span>    }
+<span class="ln">27</span>  };
+<span class="ln">28</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-attributed">
+<div class="head"><span class="label">ATTRIBUTED</span><span class="where">internal/net/retry.go lines 13-46</span><span class="id">RW-a2561ec0</span></div>
+<div class="meta">Matches <b>example.com/retrykit</b>, retry.go lines 22-70. Licence <b>Apache-2.0</b> (from LICENSE). Copied with some edits (93% match).</div>
+<p>Credited in the project&#39;s notices. Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the project ships, and mark files you changed.</p>
+<div class="meta">Source: <a href="https://example.com/retrykit">https://example.com/retrykit</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">13</span>func backoff(n int, base, max time.Duration, jitter float64, rnd func() float64) time.Duration {
+<span class="ln">14</span>    d := base
+<span class="ln">15</span>    for i := 0; i &lt; n &amp;&amp; d &lt; max; i&#43;&#43; {
+<span class="ln">16</span>        d *= 2
+<span class="ln">17</span>    }
+<span class="ln">18</span>    if d &gt; max {
+<span class="ln">19</span>        d = max
+<span class="ln">20</span>    }
+<span class="ln">21</span>    if jitter &gt; 0 {
+<span class="ln">22</span>        spread := float64(d) * jitter
+<span class="ln">23</span>        d = time.Duration(float64(d) - spread &#43; 2*spread*rnd())
+<span class="ln">24</span>    }
+<span class="ln">25</span>    return d
+<span class="ln">26</span>}
+<span class="ln">27</span>
+<span class="ln">28</span>// retry calls fn until it succeeds, the context ends, or attempts run out.
+<span class="ln">29</span>func retry(ctx context.Context, attempts int, base, max time.Duration, fn func() error) error {
+<span class="ln">30</span>    var err error
+<span class="ln">31</span>    for n := 0; n &lt; attempts; n&#43;&#43; {
+<span class="ln">32</span>        if err = fn(); err == nil {
+<span class="ln">33</span>            return nil
+<span class="ln">34</span>        }
+<span class="ln">35</span>        if errors.Is(err, context.Canceled) {
+<span class="ln">36</span>            return err
+<span class="ln">37</span>        }
+<span class="ln">38</span>        wait := backoff(n, base, max, 0.2, rand.Float64)
+<span class="ln">39</span>        select {
+<span class="ln">40</span>        case &lt;-ctx.Done():
+<span class="ln">41</span>            return ctx.Err()
+<span class="ln">42</span>        case &lt;-time.After(wait):
+<span class="ln">43</span>        }
+<span class="ln">44</span>    }
+<span class="ln">45</span>    return fmt.Errorf(&#34;shopfront: service unavailable after %d attempts: %w&#34;, attempts, err)
+<span class="ln">46</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">22</span>func Backoff(n int, base, max time.Duration, jitter float64, rnd func() float64) time.Duration {
+<span class="ln">23</span>    d := base
+<span class="ln">24</span>    for i := 0; i &lt; n &amp;&amp; d &lt; max; i&#43;&#43; {
+<span class="ln">25</span>        d *= 2
+<span class="ln">26</span>    }
+<span class="ln">27</span>    if d &gt; max {
+<span class="ln">28</span>        d = max
+<span class="ln">29</span>    }
+<span class="ln">30</span>    if jitter &gt; 0 {
+<span class="ln">31</span>        spread := float64(d) * jitter
+<span class="ln">32</span>        d = time.Duration(float64(d) - spread &#43; 2*spread*rnd())
+<span class="ln">33</span>    }
+<span class="ln">34</span>    return d
+<span class="ln">35</span>}
+<span class="ln">36</span>
+<span class="ln">37</span>// Retryable reports whether an error is worth another attempt.
+<span class="ln">38</span>func Retryable(err error) bool {
+<span class="ln">39</span>    if err == nil {
+<span class="ln">40</span>        return false
+<span class="ln">41</span>    }
+<span class="ln">42</span>    if errors.Is(err, ErrPermanent) || errors.Is(err, context.Canceled) {
+<span class="ln">43</span>        return false
+<span class="ln">44</span>    }
+<span class="ln">45</span>    var t interface{ Temporary() bool }
+<span class="ln">46</span>    if errors.As(err, &amp;t) {
+<span class="ln">47</span>        return t.Temporary()
+<span class="ln">48</span>    }
+<span class="ln">49</span>    return true
+<span class="ln">50</span>}
+<span class="ln">51</span>
+<span class="ln">52</span>// Do calls fn until it succeeds, the context ends, or attempts run out.
+<span class="ln">53</span>func Do(ctx context.Context, attempts int, base, max time.Duration, fn func() error) error {
+<span class="ln">54</span>    var err error
+<span class="ln">55</span>    for n := 0; n &lt; attempts; n&#43;&#43; {
+<span class="ln">56</span>        if err = fn(); err == nil {
+<span class="ln">57</span>            return nil
+<span class="ln">58</span>        }
+<span class="ln">59</span>        if !Retryable(err) {
+<span class="ln">60</span>            return err
+<span class="ln">61</span>        }
+<span class="ln">62</span>        wait := Backoff(n, base, max, 0.2, rand.Float64)
+<span class="ln">63</span>        select {
+<span class="ln">64</span>        case &lt;-ctx.Done():
+<span class="ln">65</span>            return ctx.Err()
+<span class="ln">66</span>        case &lt;-time.After(wait):
+<span class="ln">67</span>        }
+<span class="ln">68</span>    }
+<span class="ln">69</span>    return fmt.Errorf(&#34;retrykit: gave up after %d attempts: %w&#34;, attempts, err)
+<span class="ln">70</span>}
+</pre></div>
+</div>
+</section>
+
+
+
+<footer>Remixware flags licensing questions about copied code. It is not legal advice. Made by <a href="https://remixware.com/">Remixware</a>, free and open source under the Apache License 2.0.</footer>
+</main>
+</body>
+</html>

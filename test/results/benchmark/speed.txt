@@ -1,0 +1,4 @@
+Index: 2784 files, 514366 lines in 948ms (542409 lines/s)
+Scan of the copies: 2880 files, 75246 lines in 875ms (86015 lines/s)
+Scan of the unrelated projects: 924 files, 99198 lines in 351ms (282611 lines/s)
+Index file: 6198214 bytes for 514366 lines

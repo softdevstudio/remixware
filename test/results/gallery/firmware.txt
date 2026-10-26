@@ -1,0 +1,16 @@
+
+CONFLICT             tools/retry/retry.go:5-39
+                     example.com/retrykit, retry.go:12-50 (Apache-2.0), copied with edits, 100% match
+                     Apache-2.0 code can't go into a GPL-2.0-only project: the two licences
+                     conflict over patents.
+
+CONFLICT             tools/sortnames/main.go:10-37
+                     example.org/gplsort, natural.go:56-84 (GPL-3.0-or-later), copied with edits, 89% match
+                     GPL-3.0-or-later code and GPL-2.0-only code can't be combined in one program.
+
+ATTRIBUTION MISSING  src/strbuf.c:2-30
+                     upstream/cstr, strbuf.c:2-30 (Zlib), copied with names changed, 100% match
+                     Don't claim you wrote it, mark it as changed if you changed it, and keep the
+                     zlib notice in the source.
+
+3 findings: 2 conflict, 1 attribution missing.

@@ -1,0 +1,49 @@
+Scanned 11 files (474 lines) in testdata/projects/shopfront
+Project licence: MIT (from LICENSE)
+Compared with: gallery-upstream.rmx (10 components, 10 files)
+Notice files: THIRD_PARTY_NOTICES.md
+
+CONFLICT             internal/files/order.go:7-46
+                     example.org/gplsort, natural.go:14-53 (GPL-3.0-or-later), copied with names changed, 98% match
+                     GPL-3.0-or-later code can't go into an MIT project unless the whole program is
+                     released under GPL-3.0-or-later. Remove it, rewrite it, or relicense.
+
+CONFLICT             scripts/slug.py:1-36
+                     agplwiki 0.4.0, agplwiki/text.py:1-36 (AGPL-3.0-or-later), copied with edits, 100% match
+                     AGPL-3.0-or-later code can't go into an MIT project unless the whole program
+                     is released under AGPL-3.0-or-later, which also means offering the source to
+                     everyone who uses it over a network.
+
+NO LICENSE           internal/format/bytes.go:2-24
+                     upstream, snippets/human.go:1-23 (NONE), copied with edits, 100% match
+                     No licence was found, so nobody has given permission to copy this code. Remove
+                     it or ask the author.
+
+ATTRIBUTION MISSING  internal/csvio/split.go:2-45
+                     example.com/fastcsv, fastcsv.go:2-45 (MIT), copied as is, 100% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  tools/prettyjson.py:1-32
+                     tinyjson 1.2.0, __init__.py:1-32 (MIT), copied with names changed, 100% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  web/pad.js:1-28
+                     leftpadx 1.0.4, index.js:1-28 (ISC), copied as is, 100% match
+                     Keep its copyright line and the ISC licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  web/util.js:3-25
+                     jsutil 3.1.0, index.js:6-28 (BSD-3-Clause), copied with names changed, 100% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+REVIEW               internal/cache/lru.go:2-52
+                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
+                     MPL-2.0 applies file by file: keep the copied code in its own file under
+                     MPL-2.0, keep its notice, and publish your changes to that file.
+
+9 findings: 2 conflict, 1 no license, 1 review, 4 attribution missing, 1 attributed.
+FAIL: 7 findings break the policy (fail on: conflict, no-license, attribution-missing).
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)

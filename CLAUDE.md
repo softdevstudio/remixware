@@ -1,0 +1,97 @@
+# Remixware: where the next session starts
+
+Remixware finds code a project copied from open source, names the licence
+it came with, and says what that licence asks (conflict, no licence,
+review, attribution missing, attributed). Go, standard library only, one
+binary, no network code.
+
+- `tokenize.go` + `lang.go` read source as tokens (comments and layout
+  dropped, names kept with a hash). `fingerprint.go` numbers names inside
+  each 17-token k-gram and winnows (window 12); it drops low-variety
+  k-grams, k-grams repeated in a file, and the generated Go idioms in
+  `idioms.go` (sort.Interface).
+- `component.go` reads manifests and licence files; `license.go` holds the
+  licence list, SPDX expressions, licence detection and the compatibility
+  table (`evaluate`). `index.go` builds, saves and loads `.rmx` indexes
+  (gzip, versioned header, refuses damaged files).
+- `scan.go` chains shared fingerprints into regions, decides on evidence
+  (fingerprints plus identical continuation), extends by shape and trims
+  the edges back to whole copied lines (`trimEdges`). `findings.go` merges
+  and joins findings. `scanoss.go` imports SCANOSS and Remixware JSON.
+- `policy.go` evaluates statuses, notice files and allow rules;
+  `notice.go` writes notices with the texts in `licensetexts/` (from the
+  SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write
+  the reports. `cmd/remixware` is the CLI.
+- Tests: `unit_test.go`, `fixtures_test.go` (testdata/upstream is small
+  open source written for the tests; testdata/projects copy from it),
+  `cmd/remixware/main_test.go` (exit codes, the notice loop).
+- `scripts/bench` clones real projects (scripts/bench/corpus.json) into a
+  cache outside the repo and measures recall, wrong sources, false alarms
+  and speed.
+
+Site repo: github.com/photozeitgeist/remixware.com (Hugo, Launch template,
+content and config values only; never touch the theme).
+
+## Workflow (low maintenance)
+
+- Pull before working: ChatGPT/Codex also works on this repo (see AGENTS.md).
+- The owner does not publish releases. Raise the version in `VERSION` and
+  `version.go`, add a `CHANGELOG.md` section, push to main. When CI is
+  green, `release.yml` builds Linux/macOS/Windows archives, smoke-tests
+  them (index, check and scan of the fixtures), tags `vX.Y.Z` and
+  publishes "Remixware vX.Y.Z" with SHA256SUMS. Then watch the run, check
+  the release files and links, and run a downloaded binary.
+- Every number on the site comes from `test/results/`, written by
+  `scripts/record-results.sh` (needs git and network the first time, for
+  the benchmark corpus; set REMIXWARE_BENCH_CACHE to reuse a cache).
+  Re-record after any change that could move a number, and update the site
+  from the new files. The gallery reports on remixware.com are copied from
+  `test/results/gallery`.
+- An independent review agent looks at code and site before a release is
+  called done.
+- main is the default branch. No side branches.
+- GitHub job logs can't be downloaded from these sessions, but annotations
+  can. Workflows print `::error::` lines for that reason. Read the real
+  error before any rerun; at most two fix-and-retry rounds on one failure,
+  then stop and report what's known and the options. Time-box a stuck
+  problem to 15 minutes and report early.
+- Don't push to main while a release run is going (the release must tag
+  main's head).
+- The release runs after *any* CI run on main completes, and builds the
+  commit that CI run tested. Raise VERSION only in a commit you want
+  released.
+- Statuses, JSON field names and the `.remixware.json` keys are a public
+  interface: never rename one. Add new ones instead, and document them in
+  README.md.
+- In the sandbox, don't `rm -rf` with globs or variables (the safety check
+  blocks it); delete named paths.
+
+## State
+
+0.1.0 (2026-10-26): index, scan, check, notice, licenses; SCANOSS and
+Remixware JSON import with `--from`; policy file with allow rules; HTML,
+JSON and SPDX 2.3 reports; 15 syntax families; CRLF-safe. Benchmark on 14
+real projects plus 9 unrelated ones recorded in test/results (licences of
+all 14 detected as expected; 0 wrong sources; the only matches in the
+unrelated projects are typer's real copies of click). Not yet released.
+
+## Gaps and to-do
+
+Known gaps, not planned yet:
+
+- Copies under 50 tokens or 5 lines aren't reported, by design. Renamed
+  copies of 50 to 99 tokens are found about half the time (see
+  test/results/benchmark/recall.txt).
+- Python functions are often short, so Python recall is the lowest.
+- No built-in network lookup: wide coverage needs a SCANOSS results file.
+- Licence texts outside the eight built in are taken from the component's
+  own licence file; when the index doesn't have it, `notice` asks the user
+  to finish the entry by hand.
+- The Flask docs theme in requests (a BSD text with an extra request) is
+  reported as LicenseRef-Unrecognised, which is honest but means review.
+
+## Next
+
+Approved by the owner on 2026-10-26: 0.2 adds a built-in `--scanoss`
+backend, so `remixware scan --scanoss` asks the SCANOSS service directly
+instead of reading a results file. Ask the owner before starting it.

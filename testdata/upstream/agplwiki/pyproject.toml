@@ -1,0 +1,4 @@
+[project]
+name = "agplwiki"
+version = "0.4.0"
+description = "A tiny wiki engine"

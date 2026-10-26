@@ -1,0 +1,21 @@
+{
+  "tool": "remixware 0.1.0",
+  "created": "2026-10-26T06:39:45Z",
+  "project": "testdata/projects/clean",
+  "project_license": "Apache-2.0",
+  "project_license_from": "LICENSE",
+  "inputs": [
+    {
+      "kind": "index",
+      "path": "gallery-upstream.rmx",
+      "components": 10,
+      "files": 10
+    }
+  ],
+  "files_scanned": 5,
+  "lines_scanned": 173,
+  "min_tokens": 50,
+  "min_lines": 5,
+  "findings": [],
+  "counts": {}
+}

@@ -1,0 +1,74 @@
+Indexed projects, cloned at these versions. Licence: expected / found by remixware index.
+
+logrus       v1.9.3   https://github.com/sirupsen/logrus        go     MIT            / MIT            ok  48 files, 5939 lines
+cobra        v1.8.1   https://github.com/spf13/cobra            go     Apache-2.0     / Apache-2.0     ok  36 files, 15714 lines
+mux          v1.8.1   https://github.com/gorilla/mux            go     BSD-3-Clause   / BSD-3-Clause   ok  16 files, 6881 lines
+uuid         v1.6.0   https://github.com/google/uuid            go     BSD-3-Clause   / BSD-3-Clause   ok  21 files, 2759 lines
+errors       v0.9.1   https://github.com/pkg/errors             go     BSD-2-Clause   / BSD-2-Clause   ok  10 files, 2108 lines
+hcl          v1.0.0   https://github.com/hashicorp/hcl          go     MPL-2.0        / MPL-2.0        ok  34 files, 9072 lines
+juju-errors  v1.0.0   https://github.com/juju/errors            go     LGPL-3.0-only  / LGPL-3.0-only  ok  10 files, 2328 lines
+coyim        v0.4.1   https://github.com/coyim/coyim            go     BSD-3-Clause AND GPL-3.0-only / BSD-3-Clause AND GPL-3.0-only ok  2035 files, 320872 lines
+             (two licence files: LICENSE is the GPL-3.0, LICENSE.xmpp-client is the BSD-3-Clause licence of code taken from xmpp-client)
+writefreely  v0.15.0  https://github.com/writefreely/writefreely go     AGPL-3.0-only  / AGPL-3.0-only  ok  139 files, 27784 lines
+requests     v2.32.3  https://github.com/psf/requests           python Apache-2.0     / Apache-2.0     ok  36 files, 11000 lines
+click        8.1.7    https://github.com/pallets/click          python BSD-3-Clause   / BSD-3-Clause   ok  71 files, 17551 lines
+express      4.21.1   https://github.com/expressjs/express      js     MIT            / MIT            ok  156 files, 23519 lines
+zlib         v1.3.1   https://github.com/madler/zlib            c      Zlib           / Zlib           ok  84 files, 44176 lines
+cjson        v1.7.18  https://github.com/DaveGamble/cJSON       c      MIT            / MIT            ok  88 files, 24663 lines
+
+Licences found as expected: 14 of 14
+Index: 52 components, 2784 files, 514366 lines, 306480 fingerprints, 6198214 bytes
+
+Components found inside the projects:
+  github.com/sirupsen/logrus (logrus)           MIT                    46 files  (logrus)
+  github.com/sirupsen/logrus/ci                 MIT                     2 files  (logrus/ci)
+  github.com/spf13/cobra                        Apache-2.0             36 files  (cobra)
+  github.com/gorilla/mux                        BSD-3-Clause           16 files  (mux)
+  github.com/google/uuid                        BSD-3-Clause           21 files  (uuid)
+  errors                                        BSD-2-Clause           10 files  (errors)
+  github.com/hashicorp/hcl                      MPL-2.0                34 files  (hcl)
+  github.com/juju/errors                        LGPL-3.0-only          10 files  (juju-errors)
+  coyim                                         BSD-3-Clause AND GPL-3.0-only  668 files  (coyim)
+  ci-conclusion-message@1.0.0                   ISC                     1 files  (coyim/.github/actions/ci-conclusion-message)
+  @actions/core@1.2.6                           MIT                     8 files  (coyim/.github/actions/ci-conclusion-message/node_modules/@actions/core)
+  github.com/TheCreeper/go-notify               BSD-2-Clause            1 files  (coyim/vendor/github.com/TheCreeper/go-notify)
+  github.com/awnumar/memcall                    Apache-2.0              6 files  (coyim/vendor/github.com/awnumar/memcall)
+  github.com/coyim/constbn                      GPL-3.0-only           17 files  (coyim/vendor/github.com/coyim/constbn)
+  github.com/coyim/gosx-notifier                MIT                     2 files  (coyim/vendor/github.com/coyim/gosx-notifier)
+  github.com/coyim/gotk3adapter                 GPL-3.0-only          357 files  (coyim/vendor/github.com/coyim/gotk3adapter)
+  github.com/coyim/gotk3extra                   GPL-3.0-only           23 files  (coyim/vendor/github.com/coyim/gotk3extra)
+  github.com/coyim/otr3                         GPL-3.0-only           59 files  (coyim/vendor/github.com/coyim/otr3)
+  github.com/davecgh/go-spew                    ISC                     8 files  (coyim/vendor/github.com/davecgh/go-spew)
+  github.com/godbus/dbus                        BSD-2-Clause           31 files  (coyim/vendor/github.com/godbus/dbus)
+  github.com/golang-collections/collections     MIT                     1 files  (coyim/vendor/github.com/golang-collections/collections)
+  github.com/gotk3/gotk3                        ISC                   237 files  (coyim/vendor/github.com/gotk3/gotk3)
+  github.com/hydrogen18/stalecucumber           BSD-2-Clause           16 files  (coyim/vendor/github.com/hydrogen18/stalecucumber)
+  github.com/kardianos/osext                    BSD-3-Clause            6 files  (coyim/vendor/github.com/kardianos/osext)
+  github.com/konsorten/go-windows-terminal-sequences MIT                     2 files  (coyim/vendor/github.com/konsorten/go-windows-terminal-sequences)
+  github.com/kr/text                            MIT                     3 files  (coyim/vendor/github.com/kr/text)
+  github.com/miekg/dns                          BSD-3-Clause           41 files  (coyim/vendor/github.com/miekg/dns)
+  github.com/niemeyer/pretty                    MIT                     4 files  (coyim/vendor/github.com/niemeyer/pretty)
+  github.com/pmezard/go-difflib                 BSD-2-Clause            1 files  (coyim/vendor/github.com/pmezard/go-difflib)
+  github.com/prashantv/gostub                   MIT                     4 files  (coyim/vendor/github.com/prashantv/gostub)
+  github.com/sirupsen/logrus (coyim/vendor/github.com/sirupsen/logrus) MIT                     8 files  (coyim/vendor/github.com/sirupsen/logrus)
+  github.com/stretchr/objx                      MIT                    10 files  (coyim/vendor/github.com/stretchr/objx)
+  github.com/stretchr/testify                   MIT                    11 files  (coyim/vendor/github.com/stretchr/testify)
+  github.com/xdg/stringprep                     Apache-2.0              8 files  (coyim/vendor/github.com/xdg/stringprep)
+  golang.org/x/crypto                           BSD-3-Clause           19 files  (coyim/vendor/golang.org/x/crypto)
+  golang.org/x/net                              BSD-3-Clause          168 files  (coyim/vendor/golang.org/x/net)
+  golang.org/x/sys                              BSD-3-Clause          153 files  (coyim/vendor/golang.org/x/sys)
+  golang.org/x/text                             BSD-3-Clause           77 files  (coyim/vendor/golang.org/x/text)
+  golang.org/x/tools                            BSD-3-Clause           36 files  (coyim/vendor/golang.org/x/tools)
+  golang.org/x/xerrors                          BSD-3-Clause            8 files  (coyim/vendor/golang.org/x/xerrors)
+  gopkg.in/check.v1                             BSD-2-Clause            7 files  (coyim/vendor/gopkg.in/check.v1)
+  gopkg.in/yaml.v3                              MIT                    13 files  (coyim/vendor/gopkg.in/yaml.v3)
+  howett.net/plist                              BSD-3-Clause           21 files  (coyim/vendor/howett.net/plist)
+  github.com/writefreely/writefreely            AGPL-3.0-only         132 files  (writefreely)
+  prose@1.0.0                                   ISC                     7 files  (writefreely/prose)
+  requests                                      Apache-2.0             35 files  (requests)
+  requests/docs/_themes                         LicenseRef-Unrecognised    1 files  (requests/docs/_themes)
+  click                                         BSD-3-Clause           71 files  (click)
+  express@4.21.1                                MIT                   156 files  (express)
+  zlib                                          Zlib                   75 files  (zlib)
+  zlib/contrib/dotzlib                          BSL-1.0                 9 files  (zlib/contrib/dotzlib)
+  cjson                                         MIT                    88 files  (cjson)

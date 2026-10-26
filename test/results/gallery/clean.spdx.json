@@ -1,0 +1,16 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "clean copied code",
+  "documentNamespace": "https://remixware.com/spdx/clean-2ca9183f7a53e9fc",
+  "creationInfo": {
+    "created": "2026-10-26T06:39:45Z",
+    "creators": [
+      "Tool: remixware-0.1.0"
+    ]
+  },
+  "files": [],
+  "snippets": [],
+  "relationships": []
+}

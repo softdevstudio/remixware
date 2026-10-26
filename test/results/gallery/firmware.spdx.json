@@ -1,0 +1,154 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "firmware copied code",
+  "documentNamespace": "https://remixware.com/spdx/firmware-b257275e89c4a044",
+  "creationInfo": {
+    "created": "2026-10-26T06:39:45Z",
+    "creators": [
+      "Tool: remixware-0.1.0"
+    ]
+  },
+  "files": [
+    {
+      "SPDXID": "SPDXRef-File-1",
+      "fileName": "./src/strbuf.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "95729115db5a43779d3d67ec2e3e69e2f55556fd"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-2",
+      "fileName": "./tools/retry/retry.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7d66233281aca90eeab25f594dfffd3b689fa75e"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-3",
+      "fileName": "./tools/sortnames/main.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5cd44ae64c6e4e07bc1b132ae0f58d371a954dc4"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    }
+  ],
+  "snippets": [
+    {
+      "SPDXID": "SPDXRef-Snippet-1",
+      "name": "from upstream/cstr",
+      "snippetFromFile": "SPDXRef-File-1",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-1",
+            "lineNumber": 2
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-1",
+            "lineNumber": 30
+          }
+        }
+      ],
+      "licenseConcluded": "Zlib",
+      "licenseInfoInSnippets": [
+        "Zlib"
+      ],
+      "copyrightText": "Copyright (C) 2017 Pavel Novak",
+      "comment": "Matches upstream/cstr, strbuf.c lines 2-30 (copied with names changed). Remixware status: attribution-missing."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-2",
+      "name": "from example.com/retrykit",
+      "snippetFromFile": "SPDXRef-File-2",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-2",
+            "lineNumber": 5
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-2",
+            "lineNumber": 39
+          }
+        }
+      ],
+      "licenseConcluded": "Apache-2.0",
+      "licenseInfoInSnippets": [
+        "Apache-2.0"
+      ],
+      "copyrightText": "Copyright 2020 Harbor Lane Software",
+      "comment": "Matches example.com/retrykit, retry.go lines 12-50 (copied with some edits). Remixware status: conflict."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-3",
+      "name": "from example.org/gplsort",
+      "snippetFromFile": "SPDXRef-File-3",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-3",
+            "lineNumber": 10
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-3",
+            "lineNumber": 37
+          }
+        }
+      ],
+      "licenseConcluded": "GPL-3.0-or-later",
+      "licenseInfoInSnippets": [
+        "GPL-3.0-or-later"
+      ],
+      "copyrightText": "Copyright (C) 2019 Tomas Lindqvist",
+      "comment": "Matches example.org/gplsort, natural.go lines 56-84 (copied with some edits). Remixware status: conflict."
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-2",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-3",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-3"
+    }
+  ]
+}

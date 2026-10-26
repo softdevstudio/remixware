@@ -1,0 +1,424 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "shopfront copied code",
+  "documentNamespace": "https://remixware.com/spdx/shopfront-492981283a7c517f",
+  "creationInfo": {
+    "created": "2026-10-26T06:39:45Z",
+    "creators": [
+      "Tool: remixware-0.1.0"
+    ]
+  },
+  "files": [
+    {
+      "SPDXID": "SPDXRef-File-1",
+      "fileName": "./internal/cache/lru.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6f5adc4a1a96f79375bdae211b50cd39c61a9ecd"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-2",
+      "fileName": "./internal/csvio/split.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "bbd2da90bc58cb578513094724040e0b2cd1c08b"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-3",
+      "fileName": "./internal/files/order.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0efe1e0f3184aa65055358ebf86e65ea18351dc5"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-4",
+      "fileName": "./internal/format/bytes.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "33d7dbaedd9677ea61c5e5049e24526412870313"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-5",
+      "fileName": "./internal/net/retry.go",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c69881b60101cb642f70fa9fd7b6565627cdf3d4"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-6",
+      "fileName": "./scripts/slug.py",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c180cf5647e33d002ebe5a307a471846b90e4fe1"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-7",
+      "fileName": "./tools/prettyjson.py",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "31451c21c8364ab8956c0f0357f7ac9839acdec2"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-8",
+      "fileName": "./web/pad.js",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "88865f0c222bc1149ebeaab129f9f0272aef71c0"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-File-9",
+      "fileName": "./web/util.js",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3008a6d27e99ed8fb3ab7454c87b8a2cff5a8f4f"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    }
+  ],
+  "snippets": [
+    {
+      "SPDXID": "SPDXRef-Snippet-1",
+      "name": "from example.net/mplcache",
+      "snippetFromFile": "SPDXRef-File-1",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-1",
+            "lineNumber": 2
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-1",
+            "lineNumber": 52
+          }
+        }
+      ],
+      "licenseConcluded": "MPL-2.0",
+      "licenseInfoInSnippets": [
+        "MPL-2.0"
+      ],
+      "copyrightText": "(c) under Patent Claims infringed by Covered Software in the absence of",
+      "comment": "Matches example.net/mplcache, lru.go lines 6-57 (copied with some edits). Remixware status: review."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-2",
+      "name": "from example.com/fastcsv",
+      "snippetFromFile": "SPDXRef-File-2",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-2",
+            "lineNumber": 2
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-2",
+            "lineNumber": 45
+          }
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInSnippets": [
+        "MIT"
+      ],
+      "copyrightText": "Copyright (c) 2021 Mira Okafor",
+      "comment": "Matches example.com/fastcsv, fastcsv.go lines 2-45 (copied as is). Remixware status: attribution-missing."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-3",
+      "name": "from example.org/gplsort",
+      "snippetFromFile": "SPDXRef-File-3",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-3",
+            "lineNumber": 7
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-3",
+            "lineNumber": 46
+          }
+        }
+      ],
+      "licenseConcluded": "GPL-3.0-or-later",
+      "licenseInfoInSnippets": [
+        "GPL-3.0-or-later"
+      ],
+      "copyrightText": "Copyright (C) 2019 Tomas Lindqvist",
+      "comment": "Matches example.org/gplsort, natural.go lines 14-53 (copied with names changed). Remixware status: conflict."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-4",
+      "name": "from upstream",
+      "snippetFromFile": "SPDXRef-File-4",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-4",
+            "lineNumber": 2
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-4",
+            "lineNumber": 24
+          }
+        }
+      ],
+      "licenseConcluded": "NONE",
+      "licenseInfoInSnippets": [
+        "NONE"
+      ],
+      "copyrightText": "NOASSERTION",
+      "comment": "Matches upstream, snippets/human.go lines 1-23 (copied with some edits). Remixware status: no-license."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-5",
+      "name": "from example.com/retrykit",
+      "snippetFromFile": "SPDXRef-File-5",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-5",
+            "lineNumber": 13
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-5",
+            "lineNumber": 46
+          }
+        }
+      ],
+      "licenseConcluded": "Apache-2.0",
+      "licenseInfoInSnippets": [
+        "Apache-2.0"
+      ],
+      "copyrightText": "Copyright 2020 Harbor Lane Software",
+      "comment": "Matches example.com/retrykit, retry.go lines 22-70 (copied with some edits). Remixware status: attributed."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-6",
+      "name": "from agplwiki@0.4.0",
+      "snippetFromFile": "SPDXRef-File-6",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-6",
+            "lineNumber": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-6",
+            "lineNumber": 36
+          }
+        }
+      ],
+      "licenseConcluded": "AGPL-3.0-or-later",
+      "licenseInfoInSnippets": [
+        "AGPL-3.0-or-later"
+      ],
+      "copyrightText": "Copyright (C) 2022 Noor Haddad",
+      "comment": "Matches agplwiki 0.4.0, agplwiki/text.py lines 1-36 (copied with some edits). Remixware status: conflict."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-7",
+      "name": "from tinyjson@1.2.0",
+      "snippetFromFile": "SPDXRef-File-7",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-7",
+            "lineNumber": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-7",
+            "lineNumber": 32
+          }
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInSnippets": [
+        "MIT"
+      ],
+      "copyrightText": "Copyright (c) 2023 Lena Fischer",
+      "comment": "Matches tinyjson 1.2.0, __init__.py lines 1-32 (copied with names changed). Remixware status: attribution-missing."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-8",
+      "name": "from leftpadx@1.0.4",
+      "snippetFromFile": "SPDXRef-File-8",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-8",
+            "lineNumber": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-8",
+            "lineNumber": 28
+          }
+        }
+      ],
+      "licenseConcluded": "ISC",
+      "licenseInfoInSnippets": [
+        "ISC"
+      ],
+      "copyrightText": "NOASSERTION",
+      "comment": "Matches leftpadx 1.0.4, index.js lines 1-28 (whole file, copied as is). Remixware status: attribution-missing."
+    },
+    {
+      "SPDXID": "SPDXRef-Snippet-9",
+      "name": "from jsutil@3.1.0",
+      "snippetFromFile": "SPDXRef-File-9",
+      "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-9",
+            "lineNumber": 3
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-9",
+            "lineNumber": 25
+          }
+        }
+      ],
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseInfoInSnippets": [
+        "BSD-3-Clause"
+      ],
+      "copyrightText": "Copyright (c) 2018, Ines Moreau",
+      "comment": "Matches jsutil 3.1.0, index.js lines 6-28 (copied with names changed). Remixware status: attribution-missing."
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-2",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-3",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-4"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-4",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-4"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-5"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-5",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-5"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-6"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-6",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-6"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-7"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-7",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-7"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-8"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-8",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-8"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-9"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-9",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Snippet-9"
+    }
+  ]
+}

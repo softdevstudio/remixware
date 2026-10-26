@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remixware report: firmware</title>
+<style>
+:root{--bg:#f7f7f4;--card:#fff;--ink:#1d2228;--soft:#5b6470;--line:#e2e2dc;--code:#f2f2ee;
+--conflict:#b42318;--no-license:#b42318;--review:#b25e09;--attribution-missing:#9a5b00;--attributed:#2e7d4f;--ok:#2e7d4f;--allowed:#55606e;--accent:#3b4cca}
+@media (prefers-color-scheme:dark){:root{--bg:#14171b;--card:#1c2026;--ink:#e8eaed;--soft:#9aa3ad;--line:#2c323a;--code:#11141a;
+--conflict:#f97066;--no-license:#f97066;--review:#fdb022;--attribution-missing:#f5c451;--attributed:#47cd89;--ok:#47cd89;--allowed:#a0a8b3;--accent:#8b98ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 12px}
+.sub{color:var(--soft);margin:0 0 18px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.facts dt{color:var(--soft)}.facts dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.chip{border-radius:999px;padding:4px 12px;font-weight:600;font-size:13px;border:1px solid currentColor}
+.s-conflict{color:var(--conflict)}.s-no-license{color:var(--no-license)}.s-review{color:var(--review)}
+.s-attribution-missing{color:var(--attribution-missing)}.s-attributed{color:var(--attributed)}.s-ok{color:var(--ok)}.s-allowed{color:var(--allowed)}
+.f{background:var(--card);border:1px solid var(--line);border-left:5px solid currentColor;border-radius:10px;padding:14px 18px;margin:0 0 14px}
+.f .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.f .label{font-weight:700;font-size:13px;letter-spacing:.02em}
+.f .where{color:var(--ink);font-weight:600;word-break:break-all}
+.f .id{color:var(--soft);font-size:12px;margin-left:auto}
+.f p{margin:8px 0;color:var(--ink)}
+.meta{color:var(--soft);font-size:14px}
+.meta b{color:var(--ink);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}.facts{grid-template-columns:1fr}.facts dt{margin-top:6px}}
+.code{background:var(--code);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:420px}
+.code h4{margin:0;padding:6px 10px;font-size:12px;color:var(--soft);border-bottom:1px solid var(--line);font-weight:600}
+pre{margin:0;padding:8px 0;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+.ln{display:inline-block;width:48px;padding-right:10px;text-align:right;color:var(--soft);user-select:none}
+.gap{color:var(--soft);font-style:italic;padding-left:58px}
+.also{font-size:14px;color:var(--soft);margin-top:8px}
+.empty{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+footer{color:var(--soft);font-size:13px;margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Remixware report: firmware</h1>
+<p class="sub">Code in this project that matches third-party code, the licence that code came with, and what that licence asks.</p>
+<dl class="facts">
+<dt>Project</dt><dd>testdata/projects/firmware</dd>
+<dt>Project licence</dt><dd>GPL-2.0-only <span class="meta">(from COPYING)</span></dd>
+<dt>Compared with</dt><dd>gallery-upstream.rmx (index: 10 components, 10 files)</dd>
+<dt>Scanned</dt><dd>4 source files, 151 lines</dd>
+<dt>Notice files</dt><dd>none found</dd>
+<dt>Made</dt><dd>2026-10-26T06:39:45Z by remixware 0.1.0</dd>
+</dl>
+
+
+<div class="chips"><span class="chip s-conflict">2 CONFLICT</span><span class="chip s-attribution-missing">1 ATTRIBUTION MISSING</span></div>
+<h2>Findings</h2>
+
+<section class="f s-conflict">
+<div class="head"><span class="label">CONFLICT</span><span class="where">tools/retry/retry.go lines 5-39</span><span class="id">RW-0d8850a6</span></div>
+<div class="meta">Matches <b>example.com/retrykit</b>, retry.go lines 12-50. Licence <b>Apache-2.0</b> (from LICENSE). Copied with some edits (100% match).</div>
+<p>Apache-2.0 code can&#39;t go into a GPL-2.0-only project: the two licences conflict over patents.</p>
+<div class="meta">Source: <a href="https://example.com/retrykit">https://example.com/retrykit</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">5</span>    &#34;context&#34;
+<span class="ln">6</span>    &#34;errors&#34;
+<span class="ln">7</span>    &#34;time&#34;
+<span class="ln">8</span>)
+<span class="ln">9</span>
+<span class="ln">10</span>var errBricked = errors.New(&#34;board does not answer&#34;)
+<span class="ln">11</span>
+<span class="ln">12</span>func wait(n int, base, max time.Duration, jitter float64, rnd func() float64) time.Duration {
+<span class="ln">13</span>    d := base
+<span class="ln">14</span>    for i := 0; i &lt; n &amp;&amp; d &lt; max; i&#43;&#43; {
+<span class="ln">15</span>        d *= 2
+<span class="ln">16</span>    }
+<span class="ln">17</span>    if d &gt; max {
+<span class="ln">18</span>        d = max
+<span class="ln">19</span>    }
+<span class="ln">20</span>    if jitter &gt; 0 {
+<span class="ln">21</span>        spread := float64(d) * jitter
+<span class="ln">22</span>        d = time.Duration(float64(d) - spread &#43; 2*spread*rnd())
+<span class="ln">23</span>    }
+<span class="ln">24</span>    return d
+<span class="ln">25</span>}
+<span class="ln">26</span>
+<span class="ln">27</span>func retryable(err error) bool {
+<span class="ln">28</span>    if err == nil {
+<span class="ln">29</span>        return false
+<span class="ln">30</span>    }
+<span class="ln">31</span>    if errors.Is(err, errBricked) || errors.Is(err, context.Canceled) {
+<span class="ln">32</span>        return false
+<span class="ln">33</span>    }
+<span class="ln">34</span>    var t interface{ Temporary() bool }
+<span class="ln">35</span>    if errors.As(err, &amp;t) {
+<span class="ln">36</span>        return t.Temporary()
+<span class="ln">37</span>    }
+<span class="ln">38</span>    return true
+<span class="ln">39</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">12</span>    &#34;fmt&#34;
+<span class="ln">13</span>    &#34;math/rand&#34;
+<span class="ln">14</span>    &#34;time&#34;
+<span class="ln">15</span>)
+<span class="ln">16</span>
+<span class="ln">17</span>// ErrPermanent marks an error that retrying won&#39;t fix.
+<span class="ln">18</span>var ErrPermanent = errors.New(&#34;retrykit: permanent error&#34;)
+<span class="ln">19</span>
+<span class="ln">20</span>// Backoff returns the wait before attempt n, counting from 0: base doubled
+<span class="ln">21</span>// each time, capped at max, spread by up to jitter either way.
+<span class="ln">22</span>func Backoff(n int, base, max time.Duration, jitter float64, rnd func() float64) time.Duration {
+<span class="ln">23</span>    d := base
+<span class="ln">24</span>    for i := 0; i &lt; n &amp;&amp; d &lt; max; i&#43;&#43; {
+<span class="ln">25</span>        d *= 2
+<span class="ln">26</span>    }
+<span class="ln">27</span>    if d &gt; max {
+<span class="ln">28</span>        d = max
+<span class="ln">29</span>    }
+<span class="ln">30</span>    if jitter &gt; 0 {
+<span class="ln">31</span>        spread := float64(d) * jitter
+<span class="ln">32</span>        d = time.Duration(float64(d) - spread &#43; 2*spread*rnd())
+<span class="ln">33</span>    }
+<span class="ln">34</span>    return d
+<span class="ln">35</span>}
+<span class="ln">36</span>
+<span class="ln">37</span>// Retryable reports whether an error is worth another attempt.
+<span class="ln">38</span>func Retryable(err error) bool {
+<span class="ln">39</span>    if err == nil {
+<span class="ln">40</span>        return false
+<span class="ln">41</span>    }
+<span class="ln">42</span>    if errors.Is(err, ErrPermanent) || errors.Is(err, context.Canceled) {
+<span class="ln">43</span>        return false
+<span class="ln">44</span>    }
+<span class="ln">45</span>    var t interface{ Temporary() bool }
+<span class="ln">46</span>    if errors.As(err, &amp;t) {
+<span class="ln">47</span>        return t.Temporary()
+<span class="ln">48</span>    }
+<span class="ln">49</span>    return true
+<span class="ln">50</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-conflict">
+<div class="head"><span class="label">CONFLICT</span><span class="where">tools/sortnames/main.go lines 10-37</span><span class="id">RW-c5c0a6ee</span></div>
+<div class="meta">Matches <b>example.org/gplsort</b>, natural.go lines 56-84. Licence <b>GPL-3.0-or-later</b> (from COPYING). Copied with some edits (89% match).</div>
+<p>GPL-3.0-or-later code and GPL-2.0-only code can&#39;t be combined in one program.</p>
+<div class="meta">Source: <a href="https://example.org/gplsort">https://example.org/gplsort</a></div>
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">10</span>func mergeRuns(dst, left, right []string, less func(a, b string) bool) []string {
+<span class="ln">11</span>    dst = dst[:0]
+<span class="ln">12</span>    i, j := 0, 0
+<span class="ln">13</span>    for i &lt; len(left) &amp;&amp; j &lt; len(right) {
+<span class="ln">14</span>        if less(right[j], left[i]) {
+<span class="ln">15</span>            dst = append(dst, right[j])
+<span class="ln">16</span>            j&#43;&#43;
+<span class="ln">17</span>        } else {
+<span class="ln">18</span>            dst = append(dst, left[i])
+<span class="ln">19</span>            i&#43;&#43;
+<span class="ln">20</span>        }
+<span class="ln">21</span>    }
+<span class="ln">22</span>    dst = append(dst, left[i:]...)
+<span class="ln">23</span>    dst = append(dst, right[j:]...)
+<span class="ln">24</span>    return dst
+<span class="ln">25</span>}
+<span class="ln">26</span>
+<span class="ln">27</span>func sortNames(names []string, less func(a, b string) bool) {
+<span class="ln">28</span>    buf := make([]string, len(names))
+<span class="ln">29</span>    for width := 1; width &lt; len(names); width *= 2 {
+<span class="ln">30</span>        for lo := 0; lo &lt; len(names); lo &#43;= 2 * width {
+<span class="ln">31</span>            mid := min(lo&#43;width, len(names))
+<span class="ln">32</span>            hi := min(lo&#43;2*width, len(names))
+<span class="ln">33</span>            merged := mergeRuns(buf[lo:lo], names[lo:mid], names[mid:hi], less)
+<span class="ln">34</span>            copy(names[lo:hi], merged)
+<span class="ln">35</span>        }
+<span class="ln">36</span>    }
+<span class="ln">37</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">56</span>func MergeRuns(dst, left, right []string, less func(a, b string) bool) []string {
+<span class="ln">57</span>    dst = dst[:0]
+<span class="ln">58</span>    i, j := 0, 0
+<span class="ln">59</span>    for i &lt; len(left) &amp;&amp; j &lt; len(right) {
+<span class="ln">60</span>        if less(right[j], left[i]) {
+<span class="ln">61</span>            dst = append(dst, right[j])
+<span class="ln">62</span>            j&#43;&#43;
+<span class="ln">63</span>        } else {
+<span class="ln">64</span>            dst = append(dst, left[i])
+<span class="ln">65</span>            i&#43;&#43;
+<span class="ln">66</span>        }
+<span class="ln">67</span>    }
+<span class="ln">68</span>    dst = append(dst, left[i:]...)
+<span class="ln">69</span>    dst = append(dst, right[j:]...)
+<span class="ln">70</span>    return dst
+<span class="ln">71</span>}
+<span class="ln">72</span>
+<span class="ln">73</span>// SortNatural sorts names in natural order with a bottom-up merge sort.
+<span class="ln">74</span>func SortNatural(names []string) {
+<span class="ln">75</span>    buf := make([]string, len(names))
+<span class="ln">76</span>    for width := 1; width &lt; len(names); width *= 2 {
+<span class="ln">77</span>        for lo := 0; lo &lt; len(names); lo &#43;= 2 * width {
+<span class="ln">78</span>            mid := min(lo&#43;width, len(names))
+<span class="ln">79</span>            hi := min(lo&#43;2*width, len(names))
+<span class="ln">80</span>            merged := MergeRuns(buf[lo:lo], names[lo:mid], names[mid:hi], NaturalLess)
+<span class="ln">81</span>            copy(names[lo:hi], merged)
+<span class="ln">82</span>        }
+<span class="ln">83</span>    }
+<span class="ln">84</span>}
+</pre></div>
+</div>
+</section>
+
+<section class="f s-attribution-missing">
+<div class="head"><span class="label">ATTRIBUTION MISSING</span><span class="where">src/strbuf.c lines 2-30</span><span class="id">RW-5aab5ec7</span></div>
+<div class="meta">Matches <b>upstream/cstr</b>, strbuf.c lines 2-30. Licence <b>Zlib</b> (from LICENSE). Copied with names changed (100% match).</div>
+<p>Don&#39;t claim you wrote it, mark it as changed if you changed it, and keep the zlib notice in the source.</p>
+
+
+<div class="cols">
+<div class="code"><h4>Your code</h4><pre><span class="ln">2</span>#include &lt;stdlib.h&gt;
+<span class="ln">3</span>#include &lt;string.h&gt;
+<span class="ln">4</span>#include &#34;log.h&#34;
+<span class="ln">5</span>
+<span class="ln">6</span>int logbuf_grow(struct logbuf *lb, size_t extra)
+<span class="ln">7</span>{
+<span class="ln">8</span>    size_t need = lb-&gt;len &#43; extra &#43; 1;
+<span class="ln">9</span>    if (need &lt;= lb-&gt;cap)
+<span class="ln">10</span>        return 0;
+<span class="ln">11</span>    size_t cap = lb-&gt;cap ? lb-&gt;cap : 16;
+<span class="ln">12</span>    while (cap &lt; need)
+<span class="ln">13</span>        cap *= 2;
+<span class="ln">14</span>    char *p = realloc(lb-&gt;buf, cap);
+<span class="ln">15</span>    if (p == NULL)
+<span class="ln">16</span>        return -1;
+<span class="ln">17</span>    lb-&gt;buf = p;
+<span class="ln">18</span>    lb-&gt;cap = cap;
+<span class="ln">19</span>    return 0;
+<span class="ln">20</span>}
+<span class="ln">21</span>
+<span class="ln">22</span>int logbuf_append(struct logbuf *lb, const char *s, size_t n)
+<span class="ln">23</span>{
+<span class="ln">24</span>    if (logbuf_grow(lb, n) != 0)
+<span class="ln">25</span>        return -1;
+<span class="ln">26</span>    memcpy(lb-&gt;buf &#43; lb-&gt;len, s, n);
+<span class="ln">27</span>    lb-&gt;len &#43;= n;
+<span class="ln">28</span>    lb-&gt;buf[lb-&gt;len] = &#39;\0&#39;;
+<span class="ln">29</span>    return 0;
+<span class="ln">30</span>}
+</pre></div>
+<div class="code"><h4>Their code</h4><pre><span class="ln">2</span>#include &lt;stdlib.h&gt;
+<span class="ln">3</span>#include &lt;string.h&gt;
+<span class="ln">4</span>#include &#34;strbuf.h&#34;
+<span class="ln">5</span>
+<span class="ln">6</span>int strbuf_grow(struct strbuf *sb, size_t extra)
+<span class="ln">7</span>{
+<span class="ln">8</span>    size_t need = sb-&gt;len &#43; extra &#43; 1;
+<span class="ln">9</span>    if (need &lt;= sb-&gt;cap)
+<span class="ln">10</span>        return 0;
+<span class="ln">11</span>    size_t cap = sb-&gt;cap ? sb-&gt;cap : 16;
+<span class="ln">12</span>    while (cap &lt; need)
+<span class="ln">13</span>        cap *= 2;
+<span class="ln">14</span>    char *p = realloc(sb-&gt;buf, cap);
+<span class="ln">15</span>    if (p == NULL)
+<span class="ln">16</span>        return -1;
+<span class="ln">17</span>    sb-&gt;buf = p;
+<span class="ln">18</span>    sb-&gt;cap = cap;
+<span class="ln">19</span>    return 0;
+<span class="ln">20</span>}
+<span class="ln">21</span>
+<span class="ln">22</span>int strbuf_append(struct strbuf *sb, const char *s, size_t n)
+<span class="ln">23</span>{
+<span class="ln">24</span>    if (strbuf_grow(sb, n) != 0)
+<span class="ln">25</span>        return -1;
+<span class="ln">26</span>    memcpy(sb-&gt;buf &#43; sb-&gt;len, s, n);
+<span class="ln">27</span>    sb-&gt;len &#43;= n;
+<span class="ln">28</span>    sb-&gt;buf[sb-&gt;len] = &#39;\0&#39;;
+<span class="ln">29</span>    return 0;
+<span class="ln">30</span>}
+</pre></div>
+</div>
+</section>
+
+
+
+<footer>Remixware flags licensing questions about copied code. It is not legal advice. Made by <a href="https://remixware.com/">Remixware</a>, free and open source under the Apache License 2.0.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-version.sh
+
+  # Unit, fixture and command tests. They need no network: the benchmark on
+  # real projects runs from scripts/record-results.sh instead.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: gofmt
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then echo "::error::not gofmt-formatted: $out"; exit 1; fi
+      - run: go vet ./...
+      - name: Tests
+        run: |
+          set -o pipefail
+          go test -count=1 -race -timeout 20m ./... 2>&1 | tee test.log || {
+            echo "::error::$(grep -E -- "--- FAIL|panic:|_test.go:[0-9]+:" test.log | head -120 | awk '{gsub(/%/,"%25"); printf "%s%%0A", $0}')"
+            exit 1
+          }
+      - name: Keep the test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log-${{ matrix.os }}
+          path: test.log
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Tests
+        shell: bash
+        run: |
+          set -o pipefail
+          go test -count=1 -timeout 20m ./... 2>&1 | tee test.log || {
+            echo "::error::$(grep -E -- "--- FAIL|panic:|_test.go:[0-9]+:" test.log | head -120 | awk '{gsub(/%/,"%25"); printf "%s%%0A", $0}')"
+            exit 1
+          }

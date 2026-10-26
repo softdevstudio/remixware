@@ -1,0 +1,6 @@
+dist/
+/*.test
+/remixware
+/remixware.exe
+*.rmx
+remixware-report*.html

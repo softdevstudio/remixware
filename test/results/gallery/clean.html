@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remixware report: clean</title>
+<style>
+:root{--bg:#f7f7f4;--card:#fff;--ink:#1d2228;--soft:#5b6470;--line:#e2e2dc;--code:#f2f2ee;
+--conflict:#b42318;--no-license:#b42318;--review:#b25e09;--attribution-missing:#9a5b00;--attributed:#2e7d4f;--ok:#2e7d4f;--allowed:#55606e;--accent:#3b4cca}
+@media (prefers-color-scheme:dark){:root{--bg:#14171b;--card:#1c2026;--ink:#e8eaed;--soft:#9aa3ad;--line:#2c323a;--code:#11141a;
+--conflict:#f97066;--no-license:#f97066;--review:#fdb022;--attribution-missing:#f5c451;--attributed:#47cd89;--ok:#47cd89;--allowed:#a0a8b3;--accent:#8b98ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 12px}
+.sub{color:var(--soft);margin:0 0 18px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.facts dt{color:var(--soft)}.facts dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.chip{border-radius:999px;padding:4px 12px;font-weight:600;font-size:13px;border:1px solid currentColor}
+.s-conflict{color:var(--conflict)}.s-no-license{color:var(--no-license)}.s-review{color:var(--review)}
+.s-attribution-missing{color:var(--attribution-missing)}.s-attributed{color:var(--attributed)}.s-ok{color:var(--ok)}.s-allowed{color:var(--allowed)}
+.f{background:var(--card);border:1px solid var(--line);border-left:5px solid currentColor;border-radius:10px;padding:14px 18px;margin:0 0 14px}
+.f .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.f .label{font-weight:700;font-size:13px;letter-spacing:.02em}
+.f .where{color:var(--ink);font-weight:600;word-break:break-all}
+.f .id{color:var(--soft);font-size:12px;margin-left:auto}
+.f p{margin:8px 0;color:var(--ink)}
+.meta{color:var(--soft);font-size:14px}
+.meta b{color:var(--ink);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}.facts{grid-template-columns:1fr}.facts dt{margin-top:6px}}
+.code{background:var(--code);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:420px}
+.code h4{margin:0;padding:6px 10px;font-size:12px;color:var(--soft);border-bottom:1px solid var(--line);font-weight:600}
+pre{margin:0;padding:8px 0;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+.ln{display:inline-block;width:48px;padding-right:10px;text-align:right;color:var(--soft);user-select:none}
+.gap{color:var(--soft);font-style:italic;padding-left:58px}
+.also{font-size:14px;color:var(--soft);margin-top:8px}
+.empty{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+footer{color:var(--soft);font-size:13px;margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Remixware report: clean</h1>
+<p class="sub">Code in this project that matches third-party code, the licence that code came with, and what that licence asks.</p>
+<dl class="facts">
+<dt>Project</dt><dd>testdata/projects/clean</dd>
+<dt>Project licence</dt><dd>Apache-2.0 <span class="meta">(from LICENSE)</span></dd>
+<dt>Compared with</dt><dd>gallery-upstream.rmx (index: 10 components, 10 files)</dd>
+<dt>Scanned</dt><dd>5 source files, 173 lines</dd>
+<dt>Notice files</dt><dd>none found</dd>
+<dt>Made</dt><dd>2026-10-26T06:39:45Z by remixware 0.1.0</dd>
+</dl>
+
+
+<div class="empty">No code in this project matched the code it was compared with.</div>
+
+
+<footer>Remixware flags licensing questions about copied code. It is not legal advice. Made by <a href="https://remixware.com/">Remixware</a>, free and open source under the Apache License 2.0.</footer>
+</main>
+</body>
+</html>

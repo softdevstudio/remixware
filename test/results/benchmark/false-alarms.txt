@@ -1,0 +1,62 @@
+Projects that are not in the index, scanned against it. Every match is listed for review.
+
+urfave-cli  v2.27.5     70 files   24855 lines  0 matches
+gin         v1.10.0     92 files   18863 lines  0 matches
+toml        v1.4.0      29 files    9925 lines  0 matches
+chi         v5.1.0      73 files    9730 lines  0 matches
+color       v1.18.0      4 files    1393 lines  0 matches
+koa         2.15.3      74 files    6857 lines  0 matches
+typer       0.12.5     575 files   22161 lines  3 matches
+    typer/_completion_classes.py:36-47 matches click src/click/shell_completion.py:335-368 (edited, 100%, 108 tokens)
+      |   36         cwords = click.parser.split_arg_string(os.environ["COMP_WORDS"])
+      |   37         cword = int(os.environ["COMP_CWORD"])
+      |   38         args = cwords[1:cword]
+      |   39 
+      |   40         try:
+      |   41             incomplete = cwords[cword]
+      |   42         except IndexError:
+      |   43             incomplete = ""
+      >  335         cwords = split_arg_string(os.environ["COMP_WORDS"])
+      >  336         cword = int(os.environ["COMP_CWORD"])
+      >  337         args = cwords[1:cword]
+      >  338 
+      >  339         try:
+      >  340             incomplete = cwords[cword]
+      >  341         except IndexError:
+      >  342             incomplete = ""
+    typer/core.py:49-55 matches click src/click/parser.py:109-115 (verbatim, 100%, 55 tokens)
+      |   49 def _split_opt(opt: str) -> Tuple[str, str]:
+      |   50     first = opt[:1]
+      |   51     if first.isalnum():
+      |   52         return "", opt
+      |   53     if opt[1:2] == first:
+      |   54         return opt[:2], opt[2:]
+      |   55     return first, opt[1:]
+      >  109 def split_opt(opt: str) -> t.Tuple[str, str]:
+      >  110     first = opt[:1]
+      >  111     if first.isalnum():
+      >  112         return "", opt
+      >  113     if opt[1:2] == first:
+      >  114         return opt[:2], opt[2:]
+      >  115     return first, opt[1:]
+    typer/core.py:566-580 matches click src/click/core.py:1380-1388 (edited, 70%, 66 tokens)
+      |  566     opts = []
+      |  567     for param in self.get_params(ctx):
+      |  568         rv = param.get_help_record(ctx)
+      |  569         if rv is not None:
+      |  570             if param.param_type_name == "argument":
+      |  571                 args.append(rv)
+      |  572             elif param.param_type_name == "option":
+      |  573                 opts.append(rv)
+      > 1380         opts = []
+      > 1381         for param in self.get_params(ctx):
+      > 1382             rv = param.get_help_record(ctx)
+      > 1383             if rv is not None:
+      > 1384                 opts.append(rv)
+      > 1385 
+      > 1386         if opts:
+      > 1387             with formatter.section(_("Options")):
+sds         5347739      4 files    1701 lines  0 matches
+parson      ec53fb6      3 files    3713 lines  0 matches
+
+Total: 924 files, 99198 lines scanned, 3 matches.

@@ -1,0 +1,31 @@
+{
+  "note": "Real open source projects used by the benchmark. They are cloned at these exact versions when the benchmark runs and are never stored in this repository.",
+  "indexed": [
+    {"name": "logrus", "url": "https://github.com/sirupsen/logrus", "ref": "v1.9.3", "license": "MIT", "lang": "go"},
+    {"name": "cobra", "url": "https://github.com/spf13/cobra", "ref": "v1.8.1", "license": "Apache-2.0", "lang": "go"},
+    {"name": "mux", "url": "https://github.com/gorilla/mux", "ref": "v1.8.1", "license": "BSD-3-Clause", "lang": "go"},
+    {"name": "uuid", "url": "https://github.com/google/uuid", "ref": "v1.6.0", "license": "BSD-3-Clause", "lang": "go"},
+    {"name": "errors", "url": "https://github.com/pkg/errors", "ref": "v0.9.1", "license": "BSD-2-Clause", "lang": "go"},
+    {"name": "hcl", "url": "https://github.com/hashicorp/hcl", "ref": "v1.0.0", "license": "MPL-2.0", "lang": "go"},
+    {"name": "juju-errors", "url": "https://github.com/juju/errors", "ref": "v1.0.0", "license": "LGPL-3.0-only", "lang": "go"},
+    {"name": "coyim", "url": "https://github.com/coyim/coyim", "ref": "v0.4.1", "license": "BSD-3-Clause AND GPL-3.0-only", "lang": "go",
+     "why": "two licence files: LICENSE is the GPL-3.0, LICENSE.xmpp-client is the BSD-3-Clause licence of code taken from xmpp-client"},
+    {"name": "writefreely", "url": "https://github.com/writefreely/writefreely", "ref": "v0.15.0", "license": "AGPL-3.0-only", "lang": "go"},
+    {"name": "requests", "url": "https://github.com/psf/requests", "ref": "v2.32.3", "license": "Apache-2.0", "lang": "python"},
+    {"name": "click", "url": "https://github.com/pallets/click", "ref": "8.1.7", "license": "BSD-3-Clause", "lang": "python"},
+    {"name": "express", "url": "https://github.com/expressjs/express", "ref": "4.21.1", "license": "MIT", "lang": "js"},
+    {"name": "zlib", "url": "https://github.com/madler/zlib", "ref": "v1.3.1", "license": "Zlib", "lang": "c"},
+    {"name": "cjson", "url": "https://github.com/DaveGamble/cJSON", "ref": "v1.7.18", "license": "MIT", "lang": "c"}
+  ],
+  "unrelated": [
+    {"name": "urfave-cli", "url": "https://github.com/urfave/cli", "ref": "v2.27.5", "license": "MIT", "lang": "go"},
+    {"name": "gin", "url": "https://github.com/gin-gonic/gin", "ref": "v1.10.0", "license": "MIT", "lang": "go"},
+    {"name": "toml", "url": "https://github.com/BurntSushi/toml", "ref": "v1.4.0", "license": "MIT", "lang": "go"},
+    {"name": "chi", "url": "https://github.com/go-chi/chi", "ref": "v5.1.0", "license": "MIT", "lang": "go"},
+    {"name": "color", "url": "https://github.com/fatih/color", "ref": "v1.18.0", "license": "MIT", "lang": "go"},
+    {"name": "koa", "url": "https://github.com/koajs/koa", "ref": "2.15.3", "license": "MIT", "lang": "js"},
+    {"name": "typer", "url": "https://github.com/fastapi/typer", "ref": "0.12.5", "license": "MIT", "lang": "python"},
+    {"name": "sds", "url": "https://github.com/antirez/sds", "ref": "5347739b1581fcba74fd5cab1fc21d2aef317d71", "license": "BSD-2-Clause", "lang": "c"},
+    {"name": "parson", "url": "https://github.com/kgabis/parson", "ref": "ec53fb6528b45811df9db0db22cab96a94a96a11", "license": "MIT", "lang": "c"}
+  ]
+}
