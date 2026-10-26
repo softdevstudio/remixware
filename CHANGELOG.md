@@ -41,8 +41,9 @@
   `dropped` in the JSON report's `inputs`, and makes `check` exit with 2.
 - A results file may give one file at most 100 SCANOSS matches, each with
   at most 100 licences, copyright lines or package URLs, and a findings
-  file at most 1,000 findings per file; more ends the command with exit
-  code 2, since a broken or made-up file could otherwise cost hours.
+  file at most 20,000 findings per file, each with at most 100 copyright
+  lines; more ends the command with exit code 2, since a broken or made-up
+  file could otherwise cost hours.
 - SCANOSS answers write a missing vendor as "None". Remixware no longer
   puts "None/" in front of such a component's name, in results files read
   with `--from` too.

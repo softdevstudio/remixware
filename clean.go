@@ -51,21 +51,20 @@ func oneLine(s string) string {
 	}, s)
 }
 
-// textBlock is oneLine for a text of several lines, such as a licence text:
-// line breaks and tabs stay, other characters a terminal acts on go.
+// textBlock is oneLine for a text of several lines, such as a licence text
+// or a file a copyright line is looked for in: line breaks and tabs stay,
+// and other characters a terminal acts on become spaces, as in oneLine, so
+// a line cleaned by oneLine is still found in a text cleaned by textBlock.
 func textBlock(s string) string {
 	if !unsafeText(s) {
 		return s
 	}
 	s = strings.ReplaceAll(s, "\r\n", "\n")
 	return strings.Map(func(r rune) rune {
-		if r == '\n' {
+		if r == '\n' || !terminalRune(r) {
 			return r
 		}
-		if terminalRune(r) {
-			return -1
-		}
-		return r
+		return ' '
 	}, s)
 }
 
@@ -85,7 +84,7 @@ func printable(s string, max int) string {
 // start like one of those is left alone.
 func mdLine(s string) string {
 	s = oneLine(s)
-	t := strings.TrimLeft(s, " ")
+	t := strings.TrimLeft(s, " \t")
 	if t == "" {
 		return s
 	}

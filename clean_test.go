@@ -26,24 +26,24 @@ func TestOneLine(t *testing.T) {
 		}
 	}
 	change := map[string]string{
-		"a\x1b[2Jb":   "a [2Jb",
-		"x\ny\r\nz":   "x y  z",
-		"\u009b31m":   " 31m",
-		"\x9b31m":     "\ufffd31m",
-		"r‮o⁦k":       "r o k",
-		"l m n":       "l m n",
-		"bad\xffbyte": "bad�byte",
-		"del\x7f":     "del ",
+		"a\x1b[2Jb":       "a [2Jb",
+		"x\ny\r\nz":       "x y  z",
+		"\u009b31m":       " 31m",
+		"\x9b31m":         "\ufffd31m",
+		"r\u202eo\u2066k": "r o k",
+		"l\u2028m\u2029n": "l m n",
+		"bad\xffbyte":     "bad�byte",
+		"del\x7f":         "del ",
 	}
 	for in, want := range change {
 		if got := oneLine(in); got != want {
 			t.Errorf("oneLine(%q) = %q, want %q", in, got, want)
 		}
 	}
-	if got := textBlock("Line one\r\nLine\x1b[8m two\n\ttab‮"); got != "Line one\nLine[8m two\n\ttab" {
+	if got := textBlock("Line one\r\nLine\x1b[8m two\n\ttab\u202e"); got != "Line one\nLine [8m two\n\ttab " {
 		t.Errorf("textBlock = %q", got)
 	}
-	if got := TerminalText("ok\n\tline\x1b]0;x\x07 ‮"); got != "ok\n\tline�]0;x� �" {
+	if got := TerminalText("ok\n\tline\x1b]0;x\x07 \u202e"); got != "ok\n\tline�]0;x� �" {
 		t.Errorf("TerminalText = %q", got)
 	}
 }
@@ -54,7 +54,7 @@ func TestImportPath(t *testing.T) {
 			t.Errorf("importPath(%q) = %q, %v; want it kept", p, got, ok)
 		}
 	}
-	for _, p := range []string{"a\x1bb.go", "a\nb.go", "a‮b.go", "a\u0085b.go", "a b.go", "a\xffb.go", "../a.go", "/etc/passwd", "c:x.go"} {
+	for _, p := range []string{"a\x1bb.go", "a\nb.go", "a\u202eb.go", "a\u0085b.go", "a\u2028b.go", "a\xffb.go", "../a.go", "/etc/passwd", "c:x.go"} {
 		if _, ok := importPath(p); ok {
 			t.Errorf("importPath(%q) kept it", p)
 		}
@@ -75,6 +75,8 @@ func TestMarkdownLine(t *testing.T) {
 		"| a | b |":                                      `\| a | b |`,
 		"(c) 2020 Acme":                                  "(c) 2020 Acme",
 		"[link](javascript:x)":                           `\[link](javascript:x)`,
+		"\t<!--":                                         `\<!--`,
+		" \t```":                                         "\\```",
 	}
 	for in, want := range cases {
 		if got := mdLine(in); got != want {
@@ -172,9 +174,10 @@ func TestImportPathAliases(t *testing.T) {
 		t.Errorf("101 copyright lines: %v", err)
 	}
 
-	// A findings file may give one file at most 1,000 findings.
+	// A findings file may give one file 20,000 findings, far more than a
+	// scan of an amalgamation gives, but not more.
 	f := map[string]any{"tool": "remixware 0.2.0", "findings": []map[string]any{}}
-	for i := 0; i < 1001; i++ {
+	for i := 0; i < 20001; i++ {
 		f["findings"] = append(f["findings"].([]map[string]any), map[string]any{"file": "a.go", "lines": []int{1, 1},
 			"source": map[string]any{"component": fmt.Sprint("c", i), "license": "MIT"}})
 	}
@@ -183,8 +186,28 @@ func TestImportPathAliases(t *testing.T) {
 	if err := os.WriteFile(path, data, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, _, err := ImportResults(path, dir); err == nil || !strings.Contains(err.Error(), "more than 1000 findings") {
-		t.Errorf("1,001 findings for one file: %v", err)
+	if _, _, _, err := ImportResults(path, dir); err == nil || !strings.Contains(err.Error(), "more than 20000 findings") {
+		t.Errorf("20,001 findings for one file: %v", err)
+	}
+	f["findings"] = f["findings"].([]map[string]any)[:1100]
+	data, _ = json.Marshal(f)
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if found, _, _, err := ImportResults(path, dir); err != nil || len(found) != 1100 {
+		t.Errorf("1,100 findings for one file, as an amalgamation gives: %v, %d kept", err, len(found))
+	}
+	cr := make([]string, 101)
+	for i := range cr {
+		cr[i] = fmt.Sprint("Copyright ", i, " X")
+	}
+	data, _ = json.Marshal(map[string]any{"tool": "remixware 0.2.0", "findings": []map[string]any{{"file": "a.go", "lines": []int{1, 1},
+		"source": map[string]any{"component": "c", "license": "MIT", "copyrights": cr}}}})
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, _, err := ImportResults(path, dir); err == nil || !strings.Contains(err.Error(), "more than 100 copyright lines") {
+		t.Errorf("101 copyright lines in one finding: %v", err)
 	}
 }
 
@@ -196,7 +219,7 @@ func TestIndexTextCleaned(t *testing.T) {
 	if err := os.MkdirAll(pkg, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	manifest := `{"name": "evil\u001b[2J\nPASS: all clear", "version": "1.0‮", "license": "MIT"}`
+	manifest := `{"name": "evil\u001b[2J\nPASS: all clear", "version": "1.0\u202e", "license": "MIT"}`
 	if err := os.WriteFile(filepath.Join(pkg, "package.json"), []byte(manifest), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -243,5 +266,21 @@ func TestNoticeMarkdown(t *testing.T) {
 	}
 	if strings.Contains(out.Text, "\n## Everything") || strings.Contains(out.Text, "\n<!--") {
 		t.Errorf("a copyright line starts a Markdown block:\n%s", out.Text)
+	}
+}
+
+// A copyright line from an index made elsewhere is cleaned when the index
+// is loaded; the file and the notices it's looked for in are cleaned the
+// same way, so a header with direction marks still credits the copy.
+func TestCleanedCopyrightStillMatches(t *testing.T) {
+	raw := "Copyright (c) 2020 \u200fYossi Cohen\u200f, 2003\u00962008 Acme"
+	src := Source{Key: "x@1", Component: "x", License: "MIT", Copyrights: []string{oneLine(raw)}}
+	file := "// " + raw + "\n// SPDX-License-Identifier: MIT\n\npackage x\n\nfunc X() int { return 1 }\n"
+	if !keepsNotice("x.go", file, src) {
+		t.Errorf("the copied file's own header doesn't credit it")
+	}
+	notices := strings.ToLower("# Notices\n\n" + raw + "\n\nMIT License ...\n")
+	if !credited(notices, src) {
+		t.Errorf("a notices file with the original line doesn't credit it")
 	}
 }

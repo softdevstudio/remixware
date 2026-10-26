@@ -354,6 +354,11 @@ func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpt
 			return nil, nil, nil, err
 		}
 		if in.Dropped > 0 {
+			// A results file read only in part can't vouch for the project,
+			// so a check stops here, before asking SCANOSS anything.
+			if cmd == "check" {
+				return nil, nil, nil, fmt.Errorf("%s holds entries for paths outside the project or with characters a terminal acts on; a check can't pass on a results file it couldn't read whole", p)
+			}
 			fmt.Fprintf(stderr, "remixware: %s: %s left out: their paths point outside the project or hold characters a terminal acts on\n",
 				p, plural(in.Dropped, "1 entry with matches", comma(in.Dropped)+" entries with matches"))
 		}
@@ -620,11 +625,6 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 			shownPath(res.Project), skippedNote(res))
 	}
 	for _, in := range res.Inputs {
-		// A results file read only in part can't vouch for the project.
-		if in.Dropped > 0 {
-			return exitUsage, fmt.Errorf("%s holds entries for paths outside the project or with characters a terminal acts on; a check can't pass on a results file it couldn't read whole",
-				in.Path)
-		}
 		if in.Kind == "scanoss-api" && in.Files == 0 && len(o.indexes) == 0 {
 			return exitUsage, fmt.Errorf("no source files to send to SCANOSS in %s; check the folder, --exclude and the policy's ignore list",
 				shownPath(res.Project))

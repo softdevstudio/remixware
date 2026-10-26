@@ -135,7 +135,11 @@ func WriteHTML(w io.Writer, res *Results) error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		skipped = append(skipped, fmt.Sprintf("%s %s", comma(res.Skipped[k]), skippedText(k)))
+		text := skippedText(k)
+		if k == "symlink" && res.Skipped[k] == 1 {
+			text = "symbolic link, not followed"
+		}
+		skipped = append(skipped, fmt.Sprintf("%s %s", comma(res.Skipped[k]), text))
 	}
 	d.SkippedText = strings.Join(skipped, ", ")
 	return t.Execute(w, d)

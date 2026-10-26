@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -77,8 +78,11 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 					dropped++
 					continue
 				}
-				if perFile[rel]++; perFile[rel] > importMaxFindings {
+				if perFile[foldCase(rel)]++; perFile[foldCase(rel)] > importMaxFindings {
 					return nil, Input{}, nil, fmt.Errorf("%s: more than %d findings for %q, more than a scan gives one file", path, importMaxFindings, rel)
+				}
+				if len(f.Source.Copyrights) > scanossMaxListed {
+					return nil, Input{}, nil, fmt.Errorf("%s: a finding for %q lists more than %d copyright lines", path, rel, scanossMaxListed)
 				}
 				f.File = rel
 				f.Source.Abs = ""
@@ -115,8 +119,9 @@ const (
 	// URLs one match may list.
 	scanossMaxListed = 100
 	// importMaxFindings is the most findings a findings file may give one
-	// file.
-	importMaxFindings = 1000
+	// file: far more than a scan gives even an amalgamation of a thousand
+	// indexed files.
+	importMaxFindings = 20000
 )
 
 // countFileLines counts a project file's lines, for a match of the whole
@@ -168,14 +173,14 @@ func scanossFindings(results map[string]json.RawMessage, what, project string, t
 			if m.ID != "file" && m.ID != "snippet" {
 				continue
 			}
-			if perFile[rel]++; perFile[rel] > scanossMaxMatches {
+			if perFile[foldCase(rel)]++; perFile[foldCase(rel)] > scanossMaxMatches {
 				return nil, 0, fmt.Errorf("%s: %q gets more than %d matches, more than SCANOSS gives for one file", what, file, scanossMaxMatches)
 			}
-			n, counted := fileLines[rel]
+			n, counted := fileLines[foldCase(rel)]
 			if !counted && len(parseRanges(m.Lines)) == 0 {
 				// "all": the whole file, whose lines are counted once.
 				n = max(countFileLines(filepath.Join(project, filepath.FromSlash(rel))), 1)
-				fileLines[rel] = n
+				fileLines[foldCase(rel)] = n
 			}
 			f, err := scanossFinding(rel, m, n)
 			if err != nil {
@@ -348,4 +353,13 @@ func cleanSource(s *Source) {
 	for i := range s.Copyrights {
 		s.Copyrights[i] = oneLine(s.Copyrights[i])
 	}
+}
+
+// foldCase is a path as a file system that ignores case sees it (macOS and
+// Windows by default), so "A.go" and "a.go" count as one file there.
+func foldCase(p string) string {
+	if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
+		return strings.ToLower(p)
+	}
+	return p
 }

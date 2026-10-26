@@ -789,7 +789,7 @@ func TestSCANOSSURLSecrets(t *testing.T) {
 func TestSCANOSSAnswerText(t *testing.T) {
 	evil := "\x1b]0;owned\x07\x1b[2J\x1b[1;1HPASS: all clear\x1b[8m"
 	answer, _ := json.Marshal([]map[string]any{{
-		"id": "file", "lines": "all", "matched": "100%", "component": "lib" + evil, "vendor": "v‮", "version": "1.0" + evil,
+		"id": "file", "lines": "all", "matched": "100%", "component": "lib" + evil, "vendor": "v\u202e", "version": "1.0" + evil,
 		"file": "a.go\n\n## Injected heading", "url": "https://example.com/" + evil, "purl": []string{"pkg:github/x/lib" + evil},
 		"licenses":   []map[string]string{{"name": "MIT" + evil, "source": "license_file"}},
 		"copyrights": []map[string]string{{"name": "Copyright (c) 2020 X\n\n## Injected heading\n"}},
@@ -799,7 +799,7 @@ func TestSCANOSSAnswerText(t *testing.T) {
 		t.Fatalf("%v, %d findings", err, len(found))
 	}
 	text := fmt.Sprintf("%+v", found[0])
-	for _, bad := range []string{"\x1b", "\x07", "\n", "‮"} {
+	for _, bad := range []string{"\x1b", "\x07", "\n", "\u202e"} {
 		if strings.Contains(text, bad) {
 			t.Errorf("finding carries %q: %s", bad, text)
 		}
@@ -914,7 +914,7 @@ func TestImportedFindingsText(t *testing.T) {
 		}
 	}
 	tx := texts["k [2J [1;1HPASS"]
-	if tx == nil || tx.LicenseText != "Line one\nLine[8m two\n" || tx.NoticeText != "N" {
+	if tx == nil || tx.LicenseText != "Line one\nLine [8m two\n" || tx.NoticeText != "N " {
 		t.Errorf("texts %+v", texts)
 	}
 }

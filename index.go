@@ -967,8 +967,6 @@ func decodeList[T any](dec *json.Decoder, out *[]T, max int) error {
 	return err
 }
 
-// validate checks that the index header holds together: every component
-// and file is there, and every number that points at one points inside.
 // cleanText takes the characters a terminal acts on out of the text an
 // index carries, which may come from another machine and ends up in
 // terminals, reports and notices (see oneLine). Paths stay as they are:
@@ -991,6 +989,8 @@ func (ix *Index) cleanText() {
 	}
 }
 
+// validate checks that the index header holds together: every component
+// and file is there, and every number that points at one points inside.
 func (ix *Index) validate() error {
 	for i, c := range ix.Components {
 		if c == nil {

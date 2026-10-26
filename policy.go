@@ -213,7 +213,8 @@ func credited(text string, s Source) bool {
 		return false
 	}
 	text = finishedNotices(text)
-	text = strings.Join(strings.Fields(text), " ")
+	// Cleaned as the source's names and copyright lines may have been.
+	text = strings.Join(strings.Fields(oneLine(text)), " ")
 	for _, n := range creditNeedles(s) {
 		if containsWord(text, n) {
 			return true
@@ -281,7 +282,9 @@ func keepsNotice(path, fileText string, s Source) bool {
 	if len(s.Copyrights) == 0 {
 		return false
 	}
-	low := strings.ToLower(fileText)
+	// The source's copyright lines may have been cleaned (see oneLine), so
+	// the file is cleaned the same way before they're looked for in it.
+	low := strings.ToLower(textBlock(fileText))
 	found := false
 	for _, c := range s.Copyrights {
 		if len(c) >= 15 && strings.Contains(low, strings.ToLower(c)) {

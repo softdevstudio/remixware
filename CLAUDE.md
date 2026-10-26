@@ -39,17 +39,20 @@ binary. It connects to the network only when asked to, with `--scanoss`.
   `oneLine` replaces only what a terminal acts on (C0 controls but tab,
   DEL, C1, U+2028/2029, bidi marks, invalid UTF-8) and keeps everything
   else, spacing and joiners included, because copyright lines are matched
-  exactly (keepsNotice, credit). Don't widen it: the first version also
-  collapsed spaces and dropped format characters, which made checks fail
-  on credited code and dropped files with everyday Unicode names.
+  exactly (keepsNotice, credit), and those compare cleaned text with
+  cleaned text (`textBlock` on the file, `oneLine` on notices), since an
+  index's lines are cleaned on load. Don't widen it: the first version
+  also collapsed spaces and dropped format characters, which made checks
+  fail on credited code and dropped files with everyday Unicode names.
   `TerminalText` filters everything the CLI prints, `mdLine` escapes a
   copyright line that would start a Markdown block in notices, `importPath`
   drops untrusted paths a terminal could act on (counted as `dropped`,
   and `check` exits 2), while `projectPath` stays a shape check for the
   reports, which read Remixware's own paths. Limits: 100 matches per
-  project file in SCANOSS results (counted per cleaned path), 100
-  licences/copyrights/purls per match, 1,000 findings per file in a
-  findings file.
+  project file in SCANOSS results (counted per cleaned path, case-folded
+  on macOS and Windows), 100 licences/copyrights/purls per match, 20,000
+  findings per file in a findings file (an amalgamation of 1,100 indexed
+  files gives 1,100), 100 copyright lines per imported finding.
 - `policy.go` evaluates statuses, notice files and allow rules;
   `notice.go` writes notices with the texts in `licensetexts/` (from the
   SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write

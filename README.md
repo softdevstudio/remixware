@@ -217,10 +217,12 @@ path points outside the project, or holds such characters, is left out
 with a warning, and `check` then exits with 2. A results file may give one
 file at most 100 SCANOSS matches, each listing at most 100 licences,
 copyright lines or package URLs, and a findings file may give one file at
-most 1,000 findings; more ends the command with exit code 2. Because of
-this, a file whose name holds a backslash or starts like a drive (`c:x.go`,
-possible on Linux and macOS) is found by `--scanoss`, but a check that
-reads the saved answers back with `--from` exits with 2.
+most 20,000 findings, each with at most 100 copyright lines; more ends the
+command with exit code 2. A file whose name holds a backslash or starts
+like a drive letter (possible on Linux and macOS) is found by `--scanoss`,
+but answers saved with `--scanoss-out` and read back with `--from` take
+the backslash for a folder separator, and leave out a name like `c:x.go`
+(a check then exits with 2).
 
 ## Findings
 
