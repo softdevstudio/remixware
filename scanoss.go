@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 // scanossMatch is one match in the results file written by the SCANOSS
@@ -42,7 +41,9 @@ var scanossSourceRank = map[string]int{"file_spdx_tag": 0, "file_header": 1, "li
 
 // ImportResults reads a results file: either one written by the SCANOSS
 // scanner, or a findings file written by remixware scan --json. project is
-// the folder the scanned paths are relative to.
+// the folder the scanned paths are relative to. Entries for paths outside
+// the project, or with characters a terminal acts on, are left out and
+// counted in the Input's Dropped.
 func ImportResults(path, project string) ([]Finding, Input, map[string]*ComponentTexts, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -65,14 +66,19 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			}
 			// A findings file may come from another machine or another
 			// person: its paths are never read, and its files must be
-			// inside the project.
-			// Its text goes to terminals and notice files: only printable
-			// characters on one line, and line breaks in licence texts.
+			// inside the project. Its text goes to terminals and notice
+			// files, so it can't hold characters a terminal acts on.
 			var kept []Finding
+			dropped := 0
+			perFile := map[string]int{}
 			for _, f := range r.Findings {
-				rel, ok := projectPath(f.File)
+				rel, ok := importPath(f.File)
 				if !ok {
+					dropped++
 					continue
+				}
+				if perFile[rel]++; perFile[rel] > importMaxFindings {
+					return nil, Input{}, nil, fmt.Errorf("%s: more than %d findings for %q, more than a scan gives one file", path, importMaxFindings, rel)
 				}
 				f.File = rel
 				f.Source.Abs = ""
@@ -81,82 +87,111 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 					f.Also[i].Abs = ""
 					cleanSource(&f.Also[i])
 				}
-				f.Match.Kind = printable(f.Match.Kind, 20)
+				f.Match.Kind = oneLine(f.Match.Kind)
 				kept = append(kept, f)
 			}
 			texts := map[string]*ComponentTexts{}
 			for k, t := range r.Texts {
 				if t != nil {
-					texts[printable(k, 300)] = &ComponentTexts{LicenseText: printableText(t.LicenseText), NoticeText: printableText(t.NoticeText)}
+					texts[oneLine(k)] = &ComponentTexts{LicenseText: textBlock(t.LicenseText), NoticeText: textBlock(t.NoticeText)}
 				}
 			}
-			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept)}, texts, nil
+			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept), Dropped: dropped}, texts, nil
 		}
 	}
-	findings, err := scanossFindings(probe, path+" is not a SCANOSS results file", project, false)
+	findings, dropped, err := scanossFindings(probe, path, project, false)
 	if err != nil {
 		return nil, Input{}, nil, err
 	}
-	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings)}, nil, nil
+	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings), Dropped: dropped}, nil, nil
 }
 
-// scanossMaxMatches is the most matches one file's entry may hold. The
-// engine gives a file one match, or a few; more is a broken or made-up
-// answer, and merging them costs time that grows with their square.
-const scanossMaxMatches = 100
+const (
+	// scanossMaxMatches is the most matches one file may get. The engine
+	// gives a file one match, or a few; more is a broken or made-up answer,
+	// and merging them costs time that grows with their square.
+	scanossMaxMatches = 100
+	// scanossMaxListed is the most licences, copyright lines or package
+	// URLs one match may list.
+	scanossMaxListed = 100
+	// importMaxFindings is the most findings a findings file may give one
+	// file.
+	importMaxFindings = 1000
+)
+
+// countFileLines counts a project file's lines, for a match of the whole
+// file (a variable for the tests).
+var countFileLines = func(path string) int {
+	return countLines([]byte(readSmall(path, 16<<20)))
+}
 
 // scanossFindings reads SCANOSS results, an object that maps each scanned
 // file to its list of matches, into findings. what names the results in an
-// error. Paths from a results file are untrusted: those that would point
-// outside the project are left out. trusted says the paths are the
-// project's own, as when they come back from ScanSCANOSS.
-func scanossFindings(results map[string]json.RawMessage, what, project string, trusted bool) ([]Finding, error) {
+// error. Paths from a results file are untrusted: entries for paths that
+// would point outside the project, or that hold characters a terminal acts
+// on, are left out, and those with matches are counted as dropped. trusted
+// says the paths are the project's own, as when they come back from
+// ScanSCANOSS.
+func scanossFindings(results map[string]json.RawMessage, what, project string, trusted bool) ([]Finding, int, error) {
 	var findings []Finding
+	dropped := 0
 	files := make([]string, 0, len(results))
 	for f := range results {
 		files = append(files, f)
 	}
 	sort.Strings(files)
+	// Counted by project file, so that other spellings of a path ("./a.go",
+	// "x/../a.go") can't get around the limit or the single read.
+	perFile := map[string]int{}
+	fileLines := map[string]int{}
 	for _, file := range files {
 		var matches []scanossMatch
 		if err := json.Unmarshal(results[file], &matches); err != nil {
-			return nil, fmt.Errorf("%s: the entry for %q isn't a list of matches", what, file)
+			return nil, 0, fmt.Errorf("%s: the entry for %q isn't a list of matches", what, file)
+		}
+		has := false
+		for _, m := range matches {
+			has = has || m.ID == "file" || m.ID == "snippet"
+		}
+		if !has {
+			continue
 		}
 		rel, ok := file, true
 		if !trusted {
-			rel, ok = projectPath(file)
+			rel, ok = importPath(file)
 		}
 		if !ok {
+			dropped++
 			continue
 		}
-		n, lines := 0, -1
 		for _, m := range matches {
 			if m.ID != "file" && m.ID != "snippet" {
 				continue
 			}
-			if n++; n > scanossMaxMatches {
-				return nil, fmt.Errorf("%s: the entry for %q holds more than %d matches, more than SCANOSS gives for one file", what, file, scanossMaxMatches)
+			if perFile[rel]++; perFile[rel] > scanossMaxMatches {
+				return nil, 0, fmt.Errorf("%s: %q gets more than %d matches, more than SCANOSS gives for one file", what, file, scanossMaxMatches)
 			}
-			if lines < 0 && len(parseRanges(m.Lines)) == 0 {
+			n, counted := fileLines[rel]
+			if !counted && len(parseRanges(m.Lines)) == 0 {
 				// "all": the whole file, whose lines are counted once.
-				lines = max(countLines([]byte(readSmall(filepath.Join(project, filepath.FromSlash(rel)), 16<<20))), 1)
+				n = max(countFileLines(filepath.Join(project, filepath.FromSlash(rel))), 1)
+				fileLines[rel] = n
 			}
-			findings = append(findings, scanossFinding(rel, m, lines))
+			f, err := scanossFinding(rel, m, n)
+			if err != nil {
+				return nil, 0, fmt.Errorf("%s: a match for %q %v", what, file, err)
+			}
+			findings = append(findings, f)
 		}
 	}
-	return findings, nil
+	return findings, dropped, nil
 }
 
 // projectPath cleans a path from a results file. It reports false for
-// paths that would point outside the project, and for paths with
-// characters that aren't printable, which a terminal could take for
-// commands.
+// paths that would point outside the project.
 func projectPath(p string) (string, bool) {
 	p = strings.ReplaceAll(p, "\\", "/")
 	if p == "" || strings.HasPrefix(p, "/") || filepath.VolumeName(p) != "" || (len(p) > 1 && p[1] == ':') {
-		return "", false
-	}
-	if strings.IndexFunc(p, func(r rune) bool { return !unicode.IsPrint(r) }) >= 0 {
 		return "", false
 	}
 	c := path.Clean(p)
@@ -166,26 +201,35 @@ func projectPath(p string) (string, bool) {
 	return c, true
 }
 
+// importPath is projectPath for a path that will be shown: it also reports
+// false for paths with characters a terminal acts on.
+func importPath(p string) (string, bool) {
+	if unsafeText(p) {
+		return "", false
+	}
+	return projectPath(p)
+}
+
 // scanossFinding turns one match into a finding. fileLines is the length
-// of the project file, for a match of the whole file. Every text the match
+// of the project file, for a match of the whole file. The text a match
 // carries came from elsewhere and goes to terminals, reports and notices,
-// so it's kept to printable characters on one line.
-func scanossFinding(rel string, m scanossMatch, fileLines int) Finding {
+// so characters a terminal acts on are taken out of it (see oneLine).
+func scanossFinding(rel string, m scanossMatch, fileLines int) (Finding, error) {
+	if len(m.Licenses) > scanossMaxListed || len(m.Copyrights) > scanossMaxListed || len(m.PURL) > scanossMaxListed {
+		return Finding{}, fmt.Errorf("lists more than %d licences, copyright lines or package URLs", scanossMaxListed)
+	}
 	lines := parseRanges(m.Lines)
 	if len(lines) == 0 {
 		lines = []Range{{1, max(fileLines, 1)}}
 	}
 	oss := parseRanges(m.OSSLines)
-	m.Component, m.Vendor, m.Version = printable(m.Component, 200), printable(m.Vendor, 200), printable(m.Version, 100)
-	m.File, m.URL = printable(m.File, 300), printable(m.URL, 300)
+	m.Component, m.Vendor, m.Version = oneLine(m.Component), oneLine(m.Vendor), oneLine(m.Version)
+	m.File, m.URL = oneLine(m.File), oneLine(m.URL)
 	for i := range m.PURL {
-		m.PURL[i] = printable(m.PURL[i], 300)
+		m.PURL[i] = oneLine(m.PURL[i])
 	}
 	for i := range m.Licenses {
-		m.Licenses[i].Name, m.Licenses[i].Source = printable(m.Licenses[i].Name, 100), printable(m.Licenses[i].Source, 100)
-	}
-	for i := range m.Copyrights {
-		m.Copyrights[i].Name = printable(m.Copyrights[i].Name, 300)
+		m.Licenses[i].Name, m.Licenses[i].Source = oneLine(m.Licenses[i].Name), oneLine(m.Licenses[i].Source)
 	}
 	name := m.Component
 	vendor := m.Vendor
@@ -212,8 +256,10 @@ func scanossFinding(rel string, m scanossMatch, fileLines int) Finding {
 	if len(oss) > 0 {
 		src.Lines = span(oss)
 	}
+	seen := map[string]bool{}
 	for _, c := range m.Copyrights {
-		if c.Name != "" && !containsString(src.Copyrights, c.Name) {
+		if c.Name = oneLine(c.Name); c.Name != "" && !seen[c.Name] {
+			seen[c.Name] = true
 			src.Copyrights = append(src.Copyrights, c.Name)
 		}
 	}
@@ -224,7 +270,7 @@ func scanossFinding(rel string, m scanossMatch, fileLines int) Finding {
 	f := Finding{File: rel, Lines: span(lines), Source: src,
 		Match: Match{Kind: m.ID, Coverage: round2(cov), WholeFile: m.ID == "file"}}
 	f.score = cov * float64(f.Lines.len())
-	return f
+	return f, nil
 }
 
 // scanossLicense picks the licence that governs a match: the licences
@@ -290,28 +336,16 @@ func span(rs []Range) Range {
 	return r
 }
 
-// cleanSource keeps a source's text from elsewhere to printable characters
-// on one line (see printable).
+// cleanSource takes the characters a terminal acts on out of a source's
+// text from elsewhere (see oneLine).
 func cleanSource(s *Source) {
-	s.Key, s.Component, s.Version = printable(s.Key, 300), printable(s.Component, 200), printable(s.Version, 100)
+	s.Key, s.Component, s.Version = oneLine(s.Key), oneLine(s.Component), oneLine(s.Version)
 	for i := range s.OtherVersions {
-		s.OtherVersions[i] = printable(s.OtherVersions[i], 100)
+		s.OtherVersions[i] = oneLine(s.OtherVersions[i])
 	}
-	s.File, s.URL, s.PURL = printable(s.File, 300), printable(s.URL, 300), printable(s.PURL, 300)
-	s.License, s.LicenseFrom, s.Via = printable(s.License, 200), printable(s.LicenseFrom, 100), printable(s.Via, 20)
+	s.File, s.URL, s.PURL = oneLine(s.File), oneLine(s.URL), oneLine(s.PURL)
+	s.License, s.LicenseFrom, s.Via = oneLine(s.License), oneLine(s.LicenseFrom), oneLine(s.Via)
 	for i := range s.Copyrights {
-		s.Copyrights[i] = printable(s.Copyrights[i], 300)
+		s.Copyrights[i] = oneLine(s.Copyrights[i])
 	}
-}
-
-// printableText keeps the line breaks and tabs of a text from elsewhere,
-// such as a licence text, and drops every other character that isn't
-// printable.
-func printableText(s string) string {
-	return strings.Map(func(r rune) rune {
-		if r == '\n' || r == '\t' || unicode.IsPrint(r) {
-			return r
-		}
-		return -1
-	}, s)
 }

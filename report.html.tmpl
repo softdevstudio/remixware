@@ -49,7 +49,7 @@ a{color:var(--accent)}
 <dt>Project</dt><dd>{{.ProjectShown}}</dd>
 <dt>Project licence</dt><dd>{{.ProjectLicense}}{{if .ProjectLicenseFrom}} <span class="meta">(from {{.ProjectLicenseFrom}})</span>{{end}}{{if .ProjectNote}} <span class="meta">: {{.ProjectNote}}</span>{{end}}</dd>
 <dt>Compared with</dt><dd>{{if .InputsText}}{{.InputsText}}{{else}}nothing{{end}}</dd>
-{{if .FilesScanned}}<dt>Scanned</dt><dd>{{comma .FilesScanned}} source files, {{comma .LinesScanned}} lines{{if .SkippedText}} <span class="meta">(skipped: {{.SkippedText}})</span>{{end}}</dd>{{end}}
+{{if .FilesScanned}}<dt>Scanned</dt><dd>{{comma .FilesScanned}} source files, {{comma .LinesScanned}} lines{{if .SkippedText}} <span class="meta">(skipped: {{.SkippedText}})</span>{{end}}</dd>{{else if .SkippedText}}<dt>Skipped</dt><dd>{{.SkippedText}}</dd>{{end}}
 <dt>Notice files</dt><dd>{{if .NoticeFiles}}{{range $i, $f := .NoticeFiles}}{{if $i}}, {{end}}{{$f}}{{end}}{{else}}none found{{end}}</dd>
 <dt>Made</dt><dd>{{.Created}} by {{.Tool}}</dd>
 </dl>

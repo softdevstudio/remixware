@@ -206,9 +206,21 @@ one of them finds is reported once.
 `--from` also reads a findings file written by `remixware scan --json`,
 so a scan made on one machine can be checked on another.
 
-Answers from SCANOSS and files read with `--from` come from elsewhere, so
-Remixware keeps their text to printable characters on one line before it
-prints them or writes them into reports and notices.
+Answers from SCANOSS, files read with `--from` and indexes made elsewhere
+can't take over your terminal or your notices file. Characters a terminal
+acts on (escape sequences, line breaks inside a name, direction marks) are
+taken out of their text, which otherwise stays as it is, spacing included,
+so copyright lines still match. Everything Remixware prints goes through
+the same filter, and a copyright line that would start a Markdown block in
+a notices file is escaped. An entry of a results or findings file whose
+path points outside the project, or holds such characters, is left out
+with a warning, and `check` then exits with 2. A results file may give one
+file at most 100 SCANOSS matches, each listing at most 100 licences,
+copyright lines or package URLs, and a findings file may give one file at
+most 1,000 findings; more ends the command with exit code 2. Because of
+this, a file whose name holds a backslash or starts like a drive (`c:x.go`,
+possible on Linux and macOS) is found by `--scanoss`, but a check that
+reads the saved answers back with `--from` exits with 2.
 
 ## Findings
 
@@ -327,6 +339,7 @@ answer or refused.
   the project was compared with, each with a `kind`: `index`, `scanoss`
   (a results file), `remixware` (a findings file) or `scanoss-api` (the
   SCANOSS service, with its URL as `path` and the number of `files` sent).
+  For a results or findings file, `dropped` counts the entries left out.
 - `--spdx FILE`: an SPDX 2.3 document (JSON) with each copied snippet (its
   byte and line ranges), its source, its licence and its copyright lines,
   for software bills of materials.

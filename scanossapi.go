@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -99,23 +100,6 @@ func publicURL(p *url.URL) string {
 	return printable((&url.URL{Scheme: p.Scheme, Host: p.Host, Path: p.Path}).String(), 300)
 }
 
-// printable keeps text from elsewhere fit for a terminal or a Markdown
-// file: anything that isn't a printable character (line breaks, escape
-// sequences, direction marks) becomes a space, runs of spaces become one,
-// and the text is cut at max characters.
-func printable(s string, max int) string {
-	s = strings.Join(strings.Fields(strings.Map(func(r rune) rune {
-		if unicode.IsPrint(r) {
-			return r
-		}
-		return ' '
-	}, s)), " ")
-	if r := []rune(s); len(r) > max {
-		s = string(r[:max]) + "..."
-	}
-	return s
-}
-
 type scanossBatch struct {
 	wfp   string
 	names map[string]string // name sent -> project path
@@ -148,10 +132,15 @@ func ScanSCANOSS(project string, opt SCANOSSOptions) (*SCANOSSResult, error) {
 	if opt.Workers <= 0 {
 		opt.Workers = 4
 	}
+	// A redirect could send the key and the fingerprints to any host, so
+	// none is followed, with a client of the caller's own too.
+	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	if opt.Client == nil {
-		// A redirect could send the key and the fingerprints to any host,
-		// so none is followed.
-		opt.Client = &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+		opt.Client = &http.Client{CheckRedirect: noRedirect}
+	} else {
+		c := *opt.Client
+		c.CheckRedirect = noRedirect
+		opt.Client = &c
 	}
 	if opt.sleep == nil {
 		opt.sleep = sleepCtx
@@ -323,8 +312,13 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 			if errors.As(err, &ue) {
 				err = ue.Err
 			}
+			if strings.Contains(err.Error(), "Location header") {
+				// A redirect whose target can't be read: Go reports it before
+				// asking whether to follow it.
+				return nil, fmt.Errorf("SCANOSS: %s answered with a redirect to an address that can't be read. %s", host, noRedirectHint)
+			}
 			if last {
-				return nil, fmt.Errorf("SCANOSS: no answer from %s after %d tries: %s", host, try+1, printable(err.Error(), 300))
+				return nil, fmt.Errorf("SCANOSS: no answer from %s after %s: %s", host, triesText(try+1), printable(err.Error(), 300))
 			}
 			if err := again(try, "no answer from "+host, 5*time.Second); err != nil {
 				return nil, err
@@ -349,9 +343,20 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 			// The service drops the files of a part of its work that failed
 			// and still answers 200 with the rest. A check must not pass on
 			// the files it didn't answer about.
-			why := fmt.Sprintf("the answer from %s covers %d of the %d files sent", host, len(got), len(b.names))
+			var missing []string
+			for name, path := range b.names {
+				if _, ok := got[name]; !ok {
+					missing = append(missing, printable(path, 200))
+				}
+			}
+			sort.Strings(missing)
+			left := strings.Join(missing[:min(len(missing), 5)], ", ")
+			if len(missing) > 5 {
+				left += fmt.Sprintf(" and %d more", len(missing)-5)
+			}
+			why := fmt.Sprintf("the answer from %s covers %d of the %d files sent; it leaves out %s", host, len(got), len(b.names), left)
 			if last {
-				return nil, fmt.Errorf("SCANOSS: %s, after %d tries", why, try+1)
+				return nil, fmt.Errorf("SCANOSS: %s, after %s. Try again later, or leave those files out with --exclude", why, triesText(try+1))
 			}
 			if err := again(try, why, 5*time.Second); err != nil {
 				return nil, err
@@ -388,7 +393,7 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 				what = "the answer was cut off: " + printable(rerr.Error(), 200)
 			}
 			if last {
-				return nil, fmt.Errorf("SCANOSS: %s (HTTP %d from %s after %d tries)%s", what, resp.StatusCode, host, try+1, bodyNote(data))
+				return nil, fmt.Errorf("SCANOSS: %s (HTTP %d from %s after %s)%s", what, resp.StatusCode, host, triesText(try+1), bodyNote(data))
 			}
 			if err := again(try, fmt.Sprintf("%s (HTTP %d from %s)", what, resp.StatusCode, host), min(wait, scanossMaxBackoff)); err != nil {
 				return nil, err
@@ -398,8 +403,7 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 			if loc, err := req.URL.Parse(resp.Header.Get("Location")); err == nil && resp.Header.Get("Location") != "" {
 				to = " to " + publicURL(loc)
 			}
-			return nil, fmt.Errorf("SCANOSS: %s answered with a redirect%s (HTTP %d). Remixware doesn't follow redirects, since they could take the key and the fingerprints elsewhere: if you trust the new address, give it with --scanoss-url",
-				host, to, resp.StatusCode)
+			return nil, fmt.Errorf("SCANOSS: %s answered with a redirect%s (HTTP %d). %s", host, to, resp.StatusCode, noRedirectHint)
 		case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
 			return nil, fmt.Errorf("SCANOSS: %s refused the request (HTTP %d)%s. Check the API key (--scanoss-key or SCANOSS_API_KEY) and the URL",
 				host, resp.StatusCode, bodyNote(data))
@@ -409,10 +413,21 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 	}
 }
 
+// noRedirectHint ends the error for a redirect.
+const noRedirectHint = "Remixware doesn't follow redirects, since they could take the key and the fingerprints elsewhere: if you trust the new address, give it with --scanoss-url"
+
+func triesText(n int) string {
+	if n == 1 {
+		return "1 try"
+	}
+	return fmt.Sprintf("%d tries", n)
+}
+
 // scanossAnswer reads one answer: an object that maps each name sent to a
 // list of matches. Names that weren't in the request are dropped, and so
-// are null or empty lists: the service gives every file it answers about
-// at least one entry, "none" when nothing matched.
+// are lists without an entry that has an id: the service gives every file
+// it answers about at least one entry, with the id "none" when nothing
+// matched. A file without one counts as not answered.
 func scanossAnswer(data []byte, host string, b scanossBatch) (map[string]json.RawMessage, error) {
 	var got map[string]json.RawMessage
 	if err := json.Unmarshal(data, &got); err != nil {
@@ -423,14 +438,18 @@ func scanossAnswer(data []byte, host string, b scanossBatch) (map[string]json.Ra
 		if _, ok := b.names[name]; !ok {
 			continue
 		}
-		var list []json.RawMessage
+		var list []struct {
+			ID string `json:"id"`
+		}
 		if err := json.Unmarshal(matches, &list); err != nil {
-			return nil, fmt.Errorf("SCANOSS: the answer from %s about %s isn't a list of matches", host, b.names[name])
+			return nil, fmt.Errorf("SCANOSS: the answer from %s about %s isn't a list of matches", host, printable(b.names[name], 200))
 		}
-		if len(list) == 0 {
-			continue
+		for _, m := range list {
+			if m.ID != "" {
+				out[name] = matches
+				break
+			}
 		}
-		out[name] = matches
 	}
 	return out, nil
 }
@@ -562,7 +581,7 @@ func (r *SCANOSSResult) Findings(project string) ([]Finding, Input, error) {
 	if err != nil {
 		return nil, Input{}, err
 	}
-	found, err := scanossFindings(r.Results, "the SCANOSS answers", abs, true)
+	found, _, err := scanossFindings(r.Results, "the SCANOSS answers", abs, true)
 	if err != nil {
 		return nil, Input{}, err
 	}

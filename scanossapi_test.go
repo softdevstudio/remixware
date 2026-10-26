@@ -467,7 +467,7 @@ func TestSCANOSSServiceQuirks(t *testing.T) {
   "url_hash": "00000000000000000000000000000004","licenses": [{"name": "MIT","patent_hints": "no", "copyleft": "no",
   "checklist_url": "https://example.com/MIT.txt","osadl_updated": "2026-02-12T16:31:00+0000","source": "component_declared",
   "url": "https://spdx.org/licenses/MIT.html"}],"server": {"version": "5.4.27","kb_version": {"monthly":"26.10", "daily":"26.10.19"}}}]`
-	found, err := scanossFindings(map[string]json.RawMessage{"web/fmt.js": json.RawMessage(answer)}, "quirks", t.TempDir(), false)
+	found, _, err := scanossFindings(map[string]json.RawMessage{"web/fmt.js": json.RawMessage(answer)}, "quirks", t.TempDir(), false)
 	if err != nil || len(found) != 1 {
 		t.Fatalf("%v, %d findings", err, len(found))
 	}
@@ -667,6 +667,7 @@ func TestSCANOSSIncompleteAnswers(t *testing.T) {
 		{"one file left out", &fakeSCANOSS{drop: func(_ int, name string) bool { return name == "1.go" }}},
 		{"null entries", &fakeSCANOSS{answer: func(string, string) string { return "null" }}},
 		{"empty lists", &fakeSCANOSS{answer: func(string, string) string { return "[]" }}},
+		{"entries without an id", &fakeSCANOSS{answer: func(string, string) string { return `[{}, null, {"id": ""}]` }}},
 	}
 	for _, c := range cases {
 		c.fake.t = t
@@ -675,7 +676,8 @@ func TestSCANOSSIncompleteAnswers(t *testing.T) {
 		_, err := ScanSCANOSS(clean, SCANOSSOptions{URL: srv.URL, Retries: 1, Workers: 1, sleep: noSleep,
 			Progress: func(f string, a ...any) { said = append(said, fmt.Sprintf(f, a...)) }})
 		srv.Close()
-		if err == nil || !strings.Contains(err.Error(), "files sent, after 2 tries") || !strings.Contains(err.Error(), "covers") {
+		if err == nil || !strings.Contains(err.Error(), "after 2 tries") || !strings.Contains(err.Error(), "covers") ||
+			!strings.Contains(err.Error(), "it leaves out cli/flags.go") {
 			t.Errorf("%s: error %v", c.name, err)
 		}
 		if len(c.fake.reqs) != 2 || len(said) < 2 || !strings.Contains(said[len(said)-1], "asking again in 5 seconds (try 2 of 2)") {
@@ -708,13 +710,10 @@ func TestSCANOSSRedirect(t *testing.T) {
 		srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "http://bot:pw@"+collect.Listener.Addr().String()+"/collect?token=T", code)
 		}))
-		client := srv.Client()
-		client.CheckRedirect = nil
-		// The test server's client trusts its certificate; Remixware's own
-		// client settings are what's under test, so only its transport is
-		// borrowed.
+		// The test server's own client trusts its certificate and follows
+		// redirects: a caller's client mustn't follow them either.
 		_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, APIKey: "SECRET", Retries: -1, sleep: noSleep,
-			Client: noRedirects(client)})
+			Client: srv.Client()})
 		srv.Close()
 		want := "answered with a redirect to http://" + collect.Listener.Addr().String() + "/collect (HTTP "
 		if err == nil || !strings.Contains(err.Error(), want) || strings.Contains(err.Error(), "pw") || strings.Contains(err.Error(), "token") {
@@ -724,12 +723,6 @@ func TestSCANOSSRedirect(t *testing.T) {
 	if len(got) != 0 {
 		t.Errorf("the redirect target got %d requests, keys %q", len(got), got)
 	}
-}
-
-// noRedirects is the client ScanSCANOSS makes when it's given none, with
-// another client's transport.
-func noRedirects(c *http.Client) *http.Client {
-	return &http.Client{Transport: c.Transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 }
 
 // The default client doesn't follow redirects either.
@@ -744,6 +737,21 @@ func TestSCANOSSDefaultClientNoRedirects(t *testing.T) {
 	_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, APIKey: "SECRET", Retries: -1, sleep: noSleep})
 	if err == nil || !strings.Contains(err.Error(), "--scanoss-url") || hits != 0 {
 		t.Errorf("error %v, %d requests at the redirect's target", err, hits)
+	}
+}
+
+// A redirect to an address that can't be read ends the scan at once.
+func TestSCANOSSBadRedirect(t *testing.T) {
+	hits := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits++
+		w.Header().Set("Location", "http://[::1")
+		w.WriteHeader(http.StatusFound)
+	}))
+	defer srv.Close()
+	_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, sleep: noSleep})
+	if err == nil || !strings.Contains(err.Error(), "can't be read") || hits != 1 {
+		t.Errorf("error %v after %d requests", err, hits)
 	}
 }
 
@@ -786,7 +794,7 @@ func TestSCANOSSAnswerText(t *testing.T) {
 		"licenses":   []map[string]string{{"name": "MIT" + evil, "source": "license_file"}},
 		"copyrights": []map[string]string{{"name": "Copyright (c) 2020 X\n\n## Injected heading\n"}},
 	}})
-	found, err := scanossFindings(map[string]json.RawMessage{"a.go": answer}, "evil", t.TempDir(), false)
+	found, _, err := scanossFindings(map[string]json.RawMessage{"a.go": answer}, "evil", t.TempDir(), false)
 	if err != nil || len(found) != 1 {
 		t.Fatalf("%v, %d findings", err, len(found))
 	}
@@ -796,7 +804,7 @@ func TestSCANOSSAnswerText(t *testing.T) {
 			t.Errorf("finding carries %q: %s", bad, text)
 		}
 	}
-	if c := found[0].Source.Copyrights; len(c) != 1 || c[0] != "Copyright (c) 2020 X ## Injected heading" {
+	if c := found[0].Source.Copyrights; len(c) != 1 || c[0] != "Copyright (c) 2020 X  ## Injected heading " {
 		t.Errorf("copyrights %q", c)
 	}
 }
@@ -806,12 +814,12 @@ func TestSCANOSSAnswerText(t *testing.T) {
 func TestSCANOSSTooManyMatches(t *testing.T) {
 	one := `{"id": "file", "lines": "all", "matched": "100%", "component": "c", "file": "f"}`
 	many := "[" + strings.TrimSuffix(strings.Repeat(one+",", scanossMaxMatches+1), ",") + "]"
-	if _, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(many)}, "big", t.TempDir(), false); err == nil ||
+	if _, _, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(many)}, "big", t.TempDir(), false); err == nil ||
 		!strings.Contains(err.Error(), "more than 100 matches") {
 		t.Errorf("error %v", err)
 	}
 	ok := "[" + strings.TrimSuffix(strings.Repeat(one+",", scanossMaxMatches), ",") + "]"
-	found, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(ok)}, "ok", t.TempDir(), false)
+	found, _, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(ok)}, "ok", t.TempDir(), false)
 	if err != nil || len(found) != scanossMaxMatches {
 		t.Errorf("%v, %d findings", err, len(found))
 	}

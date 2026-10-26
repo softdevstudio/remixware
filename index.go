@@ -844,11 +844,12 @@ func LoadIndex(path string) (*Index, error) {
 		return nil, damaged("bad header", nil)
 	}
 	if ix.Format != indexFormat || ix.K != kgramSize || ix.W != windowSize || ix.MinDistinct != minDistinct || ix.Norm != normVersion {
-		return nil, fmt.Errorf("%s was made by %s with other settings: rebuild it with remixware index", path, ix.Tool)
+		return nil, fmt.Errorf("%s was made by %s with other settings: rebuild it with remixware index", path, printable(ix.Tool, 100))
 	}
 	if err := ix.validate(); err != nil {
 		return nil, fmt.Errorf("%s: damaged index (%v)", path, err)
 	}
+	ix.cleanText()
 	count, err := binary.ReadUvarint(br)
 	if err != nil || count > uint64(limit)/indexRecordSize {
 		return nil, damaged("more fingerprints than the file can hold", err)
@@ -968,6 +969,28 @@ func decodeList[T any](dec *json.Decoder, out *[]T, max int) error {
 
 // validate checks that the index header holds together: every component
 // and file is there, and every number that points at one points inside.
+// cleanText takes the characters a terminal acts on out of the text an
+// index carries, which may come from another machine and ends up in
+// terminals, reports and notices (see oneLine). Paths stay as they are:
+// they're checked before any file is read, and shown only through the
+// terminal filter of the command line.
+func (ix *Index) cleanText() {
+	for _, c := range ix.Components {
+		c.Key, c.Name, c.Version = oneLine(c.Key), oneLine(c.Name), oneLine(c.Version)
+		c.License, c.LicenseFrom, c.URL, c.PURL = oneLine(c.License), oneLine(c.LicenseFrom), oneLine(c.URL), oneLine(c.PURL)
+		for i := range c.Copyrights {
+			c.Copyrights[i] = oneLine(c.Copyrights[i])
+		}
+		c.LicenseText, c.NoticeText = textBlock(c.LicenseText), textBlock(c.NoticeText)
+	}
+	for _, f := range ix.Files {
+		f.License = oneLine(f.License)
+		for i := range f.Copyrights {
+			f.Copyrights[i] = oneLine(f.Copyrights[i])
+		}
+	}
+}
+
 func (ix *Index) validate() error {
 	for i, c := range ix.Components {
 		if c == nil {

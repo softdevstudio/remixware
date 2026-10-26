@@ -159,6 +159,10 @@ type Input struct {
 	Components int    `json:"components,omitempty"`
 	Files      int    `json:"files,omitempty"`
 	Matches    int    `json:"matches,omitempty"`
+	// Dropped counts entries of a results or findings file left out because
+	// their path points outside the project or holds characters a
+	// terminal acts on.
+	Dropped int `json:"dropped,omitempty"`
 }
 
 // findingID names a finding by the copy and where in the source it came

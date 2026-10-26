@@ -24,17 +24,32 @@ binary. It connects to the network only when asked to, with `--scanoss`.
   (`testdata/scanoss/wfp/expected.wfp`, made by `scripts/wfp-golden.py`).
   One known difference: scanoss.py's binaryornot takes some text files for
   binary by their first bytes ("BM", "MZ", "RIFF", "PACK"...) and sends no
-  hashes for them; Remixware hashes every file it sends (it never sends
-  files with NUL bytes). `scanossapi.go` sends them to the service
+  hashes for them; Remixware hashes every file it sends (it doesn't send
+  files with NUL bytes near the start). `scanossapi.go` sends them to the service
   (`--scanoss`) in batches of 32 files or 32 KB, file names replaced by
   numbers, and reads the answers with the code that reads results files.
   The answers are untrusted input: only names that were sent count, every
   name sent must come back (the API server drops the files of a failed
   engine run and still answers 200), a response is read up to 64 MB, a file
   entry may hold at most 100 matches, redirects aren't followed (they'd
-  carry the key), and all service text goes through `printable` before it
-  reaches a terminal, report or notice. Reports and errors show the URL
-  without user name, password or query.
+  carry the key), and reports and errors show the URL without user name,
+  password or query.
+- `clean.go` keeps text from elsewhere (SCANOSS answers, results and
+  findings files, indexes made elsewhere) from acting on terminals:
+  `oneLine` replaces only what a terminal acts on (C0 controls but tab,
+  DEL, C1, U+2028/2029, bidi marks, invalid UTF-8) and keeps everything
+  else, spacing and joiners included, because copyright lines are matched
+  exactly (keepsNotice, credit). Don't widen it: the first version also
+  collapsed spaces and dropped format characters, which made checks fail
+  on credited code and dropped files with everyday Unicode names.
+  `TerminalText` filters everything the CLI prints, `mdLine` escapes a
+  copyright line that would start a Markdown block in notices, `importPath`
+  drops untrusted paths a terminal could act on (counted as `dropped`,
+  and `check` exits 2), while `projectPath` stays a shape check for the
+  reports, which read Remixware's own paths. Limits: 100 matches per
+  project file in SCANOSS results (counted per cleaned path), 100
+  licences/copyrights/purls per match, 1,000 findings per file in a
+  findings file.
 - `policy.go` evaluates statuses, notice files and allow rules;
   `notice.go` writes notices with the texts in `licensetexts/` (from the
   SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write
@@ -159,6 +174,11 @@ Known gaps, not planned yet:
   copies of 50 to 99 tokens are found about half the time (see
   test/results/benchmark/recall.txt).
 - Python functions are often short, so Python recall is the lowest.
+- A file whose name holds a backslash or starts like a drive (`c:x.go`,
+  possible on Linux and macOS) gets its findings from `--scanoss`, but
+  reading the saved answers back with `--from` leaves it out (paths in
+  results files are untrusted and may come from Windows), so that check
+  exits 2.
 - `--scanoss` findings are what SCANOSS says: Remixware doesn't hold the
   matched source, so the HTML report shows only the project's side of
   them, and a SCANOSS answer it can't map to a licence reads as review.

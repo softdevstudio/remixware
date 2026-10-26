@@ -166,9 +166,11 @@ func readNotices(project string, pol *Policy) (text string, files []string) {
 // creditNeedles returns the strings that show a notice credits a source.
 func creditNeedles(s Source) []string {
 	var out []string
+	seen := map[string]bool{}
 	add := func(v string) {
 		v = strings.ToLower(strings.TrimSpace(v))
-		if len(v) >= 4 && !containsString(out, v) {
+		if len(v) >= 4 && !seen[v] {
+			seen[v] = true
 			out = append(out, v)
 		}
 	}

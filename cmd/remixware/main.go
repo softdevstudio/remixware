@@ -50,7 +50,22 @@ const (
 	exitUsage = 2 // bad arguments, unreadable files and other errors
 )
 
+// terminal filters what a command prints through remixware.TerminalText.
+type terminal struct{ w io.Writer }
+
+func (t terminal) Write(p []byte) (int, error) {
+	s := string(p)
+	if clean := remixware.TerminalText(s); clean != s {
+		if _, err := io.WriteString(t.w, clean); err != nil {
+			return 0, err
+		}
+		return len(p), nil
+	}
+	return t.w.Write(p)
+}
+
 func run(args []string, stdout, stderr io.Writer) int {
+	stdout, stderr = terminal{stdout}, terminal{stderr}
 	if len(args) == 0 {
 		fmt.Fprint(stderr, usage)
 		return exitUsage
@@ -338,6 +353,10 @@ func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpt
 		if err != nil {
 			return nil, nil, nil, err
 		}
+		if in.Dropped > 0 {
+			fmt.Fprintf(stderr, "remixware: %s: %s left out: their paths point outside the project or hold characters a terminal acts on\n",
+				p, plural(in.Dropped, "1 entry with matches", comma(in.Dropped)+" entries with matches"))
+		}
 		res.Add(found, in, texts)
 	}
 	if o.scanoss {
@@ -438,7 +457,7 @@ func header(w io.Writer, res *remixware.Results) {
 		fmt.Fprintf(w, "Scanned %s %s (%s lines) in %s%s\n", comma(res.FilesScanned), plural(res.FilesScanned, "file", "files"),
 			comma(res.LinesScanned), shownPath(res.Project), skippedNote(res))
 	} else {
-		fmt.Fprintf(w, "Project %s\n", shownPath(res.Project))
+		fmt.Fprintf(w, "Project %s%s\n", shownPath(res.Project), skippedNote(res))
 	}
 	lic := res.ProjectLicense
 	if res.ProjectLicenseFrom != "" {
@@ -601,6 +620,11 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 			shownPath(res.Project), skippedNote(res))
 	}
 	for _, in := range res.Inputs {
+		// A results file read only in part can't vouch for the project.
+		if in.Dropped > 0 {
+			return exitUsage, fmt.Errorf("%s holds entries for paths outside the project or with characters a terminal acts on; a check can't pass on a results file it couldn't read whole",
+				in.Path)
+		}
 		if in.Kind == "scanoss-api" && in.Files == 0 && len(o.indexes) == 0 {
 			return exitUsage, fmt.Errorf("no source files to send to SCANOSS in %s; check the folder, --exclude and the policy's ignore list",
 				shownPath(res.Project))

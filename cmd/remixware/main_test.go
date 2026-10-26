@@ -348,3 +348,58 @@ func TestSCANOSSFlags(t *testing.T) {
 	expect(t, cli("check", t.TempDir(), "--scanoss", "--scanoss-url", srv.URL), exitUsage, "no source files to send to SCANOSS")
 	expect(t, cli("check", shop), exitUsage, "--scanoss (the SCANOSS service)")
 }
+
+// Everything the command line prints goes through the terminal filter: a
+// file name holding an escape sequence shows as U+FFFD.
+func TestTerminalFilter(t *testing.T) {
+	dir := t.TempDir()
+	data, err := os.ReadFile(fixture("projects", "shopfront", "internal", "csvio", "split.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	evil := "split\x1b[2J\x1b[1;1HPASS.go"
+	if err := os.WriteFile(filepath.Join(dir, evil), data, 0o644); err != nil {
+		t.Skip("no such file names here:", err)
+	}
+	r := cli("check", dir, "--index", upstreamIndex(t), "--license", "MIT")
+	expect(t, r, exitFail, "split�[2J�[1;1HPASS.go")
+	if strings.ContainsRune(r.stdout+r.stderr, '\x1b') {
+		t.Errorf("an escape character got through:\n%q", r.stdout)
+	}
+}
+
+// A --scanoss run without an index says what it passed over, and
+// --scanoss-out makes its folder.
+func TestSCANOSSOnlyRun(t *testing.T) {
+	srv, _ := fakeService(t, "", 0)
+	t.Setenv("SCANOSS_API_KEY", "")
+	t.Setenv("SCANOSS_SCAN_URL", "")
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.go"), []byte("package a\n\nfunc A() int { return 1 }\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(dir, "a.go"), filepath.Join(dir, "b.go")); err != nil {
+		t.Skip("no symbolic links here:", err)
+	}
+	out := filepath.Join(t.TempDir(), "deep", "er", "scanoss.json")
+	expect(t, cli("scan", dir, "--scanoss", "--scanoss-url", srv.URL, "--scanoss-out", out), exitOK, "1 symbolic link, not followed")
+	if _, err := os.Stat(out); err != nil {
+		t.Errorf("--scanoss-out: %v", err)
+	}
+}
+
+// A results file read only in part: scan says so, check can't pass.
+func TestDroppedEntries(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "ok.go"), []byte("package ok\n\nfunc OK() int { return 1 }\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	match := `[{"id": "file", "lines": "all", "matched": "100%", "component": "x", "licenses": [{"name": "MIT", "source": "license_file"}]}]`
+	results := filepath.Join(t.TempDir(), "scanoss.json")
+	if err := os.WriteFile(results, []byte(`{"ok.go": `+match+`, "c:gpl.go": `+match+`}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	expect(t, cli("scan", dir, "--from", results, "--license", "MIT"), exitOK, "1 entry with matches left out")
+	expect(t, cli("check", dir, "--from", results, "--license", "MIT", "--fail-on", "conflict"), exitUsage,
+		"a check can't pass on a results file it couldn't read whole")
+}

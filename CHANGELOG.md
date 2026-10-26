@@ -30,11 +30,19 @@
   minified library.
 - JSON reports list the service as an input of kind `scanoss-api`, with
   its address.
-- Text from SCANOSS answers and from files read with `--from` is kept to
-  printable characters on one line, so it can't move the cursor, clear the
-  screen or add lines to a notices file; licence texts keep their line
-  breaks. Paths in those files with characters that aren't printable are
-  left out.
+- Text from SCANOSS answers, results files and indexes made elsewhere
+  can't act on a terminal: escape sequences, line breaks inside a name and
+  direction marks are taken out, and everything else stays, spacing
+  included, so copyright lines still match. Everything the command prints
+  goes through the same filter. A copyright line that would start a
+  Markdown block in a notices file is escaped.
+- An entry of a results or findings file whose path points outside the
+  project or holds such characters is left out with a warning, counted as
+  `dropped` in the JSON report's `inputs`, and makes `check` exit with 2.
+- A results file may give one file at most 100 SCANOSS matches, each with
+  at most 100 licences, copyright lines or package URLs, and a findings
+  file at most 1,000 findings per file; more ends the command with exit
+  code 2, since a broken or made-up file could otherwise cost hours.
 - SCANOSS answers write a missing vendor as "None". Remixware no longer
   puts "None/" in front of such a component's name, in results files read
   with `--from` too.

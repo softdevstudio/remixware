@@ -47,6 +47,7 @@ keeps the copyright lines and licence text that the project's licence asks for.
 type noticeEntry struct {
 	src    Source
 	usedIn []string
+	seen   map[string]bool // copyright lines and places already listed
 }
 
 // NoticeResult is what Notices produced.
@@ -80,16 +81,19 @@ func Notices(res *Results, existing string, all bool) NoticeResult {
 		}
 		e, ok := byKey[f.Source.Key]
 		if !ok {
-			e = &noticeEntry{src: f.Source}
+			e = &noticeEntry{src: f.Source, seen: map[string]bool{}}
+			e.src.Copyrights = nil
 			byKey[f.Source.Key] = e
 			order = append(order, f.Source.Key)
 		}
-		loc := fmt.Sprintf("`%s` lines %s", f.File, f.Lines)
-		if !containsString(e.usedIn, loc) {
+		loc := codeSpan(oneLine(f.File)) + " lines " + f.Lines.String()
+		if !e.seen["\x00"+loc] {
+			e.seen["\x00"+loc] = true
 			e.usedIn = append(e.usedIn, loc)
 		}
 		for _, c := range f.Source.Copyrights {
-			if !containsString(e.src.Copyrights, c) {
+			if !e.seen[c] {
+				e.seen[c] = true
 				e.src.Copyrights = append(e.src.Copyrights, c)
 			}
 		}
@@ -111,11 +115,13 @@ func Notices(res *Results, existing string, all bool) NoticeResult {
 
 func writeNoticeEntry(b *strings.Builder, e *noticeEntry, texts *ComponentTexts, out *NoticeResult) {
 	s := e.src
-	fmt.Fprintf(b, "\n## %s\n\n", s.label())
-	fmt.Fprintf(b, "- Source: %s\n", s.Key)
-	fmt.Fprintf(b, "- Licence: %s\n", s.License)
+	// Text from elsewhere stays on its line (see oneLine), and a copyright
+	// line can't start a Markdown block (see mdLine).
+	fmt.Fprintf(b, "\n## %s\n\n", oneLine(s.label()))
+	fmt.Fprintf(b, "- Source: %s\n", oneLine(s.Key))
+	fmt.Fprintf(b, "- Licence: %s\n", oneLine(s.License))
 	if s.URL != "" {
-		fmt.Fprintf(b, "- Home: %s\n", s.URL)
+		fmt.Fprintf(b, "- Home: %s\n", oneLine(s.URL))
 	}
 	fmt.Fprintf(b, "- Used in: %s\n\n", strings.Join(e.usedIn, ", "))
 	// The component's own licence files come first. Every licence the
@@ -168,7 +174,7 @@ func writeNoticeEntry(b *strings.Builder, e *noticeEntry, texts *ComponentTexts,
 	switch {
 	case len(lines) > 0:
 		for _, c := range lines {
-			fmt.Fprintf(b, "%s  \n", c)
+			fmt.Fprintf(b, "%s  \n", mdLine(c))
 		}
 		b.WriteString("\n")
 	case len(s.Copyrights) == 0:
@@ -209,4 +215,23 @@ func noticeLicenseIDs(expr string) []string {
 		return []string{e.id}
 	}
 	return dedupe(walk(parseLicenseExpr(expr)))
+}
+
+// codeSpan writes s as Markdown code: in a run of backticks longer than
+// any s holds, so a backtick in a file name can't end it early.
+func codeSpan(s string) string {
+	longest, run := 0, 0
+	for _, r := range s {
+		if r == '`' {
+			run++
+			longest = max(longest, run)
+		} else {
+			run = 0
+		}
+	}
+	fence := strings.Repeat("`", longest+1)
+	if strings.HasPrefix(s, "`") || strings.HasSuffix(s, "`") {
+		s = " " + s + " "
+	}
+	return fence + s + fence
 }
