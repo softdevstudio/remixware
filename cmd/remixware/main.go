@@ -678,8 +678,16 @@ func cmdNotice(args []string, stdout, stderr io.Writer) error {
 // shownPath shows a folder inside the current one by its relative path.
 func shownPath(p string) string {
 	if wd, err := os.Getwd(); err == nil {
-		if rel, err := filepath.Rel(wd, p); err == nil && !strings.HasPrefix(rel, "..") {
-			return filepath.ToSlash(rel)
+		// The scan names the project with links resolved; so might the
+		// working folder need to be.
+		dirs := []string{wd}
+		if real, err := filepath.EvalSymlinks(wd); err == nil && real != wd {
+			dirs = append(dirs, real)
+		}
+		for _, d := range dirs {
+			if rel, err := filepath.Rel(d, p); err == nil && !strings.HasPrefix(rel, "..") {
+				return filepath.ToSlash(rel)
+			}
 		}
 	}
 	return p

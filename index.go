@@ -124,7 +124,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 
 	var pending []pendingFile
 	for _, root := range roots {
-		abs, err := filepath.Abs(root)
+		abs, err := realPath(root)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,7 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 		go func() {
 			defer wg.Done()
 			for i := range next {
-				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License)
+				results[i] = fingerprintSourceFile(pending[i], ix.Components[pending[i].comp].License, opt.License != "")
 			}
 		}()
 	}
@@ -216,6 +216,20 @@ func BuildIndex(roots []string, opt IndexOptions) (*Index, error) {
 	ix.fps = fps
 	ix.filterCommon(opt.MaxDF)
 	return ix, nil
+}
+
+// realPath returns the absolute path of a folder with symbolic links
+// resolved, so an index and a scan name the same files the same way
+// however the folder was reached (/tmp and /private/tmp on macOS).
+func realPath(p string) (string, error) {
+	abs, err := filepath.Abs(p)
+	if err != nil {
+		return "", err
+	}
+	if real, err := filepath.EvalSymlinks(abs); err == nil {
+		return real, nil
+	}
+	return abs, nil
 }
 
 // depth counts the dependency folders (vendor, node_modules and the like)
@@ -383,9 +397,12 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 			licPaths = append(licPaths, filepath.Join(p, f))
 		}
 		// A licence file the manifest names counts only inside the indexed
-		// folder: "../../secret.key" stays out of the index.
-		if m != nil && m.licFile != "" && m.licFile != root && within(m.licFile, root) {
-			licPaths = append(licPaths, m.licFile)
+		// folder, after links are followed: "../../secret.key", or a path
+		// through a linked folder, stays out of the index.
+		if m != nil && m.licFile != "" {
+			if real, err := filepath.EvalSymlinks(m.licFile); err == nil && real != root && within(real, root) {
+				licPaths = append(licPaths, real)
+			}
 		}
 		if info.reuseDir {
 			sub, _ := os.ReadDir(filepath.Join(p, "LICENSES"))
@@ -536,9 +553,11 @@ func manifestFile(kind string) string {
 }
 
 // fingerprintSourceFile reads and fingerprints one file. Its own licence
-// comes from the comments at its top (see fileLicense). That holds with
-// --license too, which only sets what the component's licence is.
-func fingerprintSourceFile(p pendingFile, compLicense string) fileResult {
+// comes from the comments at its top (see fileLicense). An SPDX tag is the
+// file's own statement and replaces the component's licence, except when
+// the user named the licence with --license (forced): then the tag can add
+// to it but not take its place.
+func fingerprintSourceFile(p pendingFile, compLicense string, forced bool) fileResult {
 	data, skip := readSource(p.abs)
 	if skip != "" {
 		return fileResult{skip: skip}
@@ -548,9 +567,11 @@ func fingerprintSourceFile(p pendingFile, compLicense string) fileResult {
 	fps := winnow(toks, sx)
 	sf := &SourceFile{Comp: p.comp, Path: p.rel, Abs: p.abs, Lines: countLines(data), Tokens: len(toks), Sum: fileSum(data)}
 	head := leadingComments(data, sx, 16<<10)
-	// An SPDX tag is the file's own explicit statement of its licence.
 	if id := spdxTagLicense(head); id != "" {
-		if !sameLicense(id, compLicense) {
+		switch {
+		case forced:
+			sf.License = fileLicense(compLicense, id, "")
+		case !sameLicense(id, compLicense):
 			sf.License = id
 		}
 	} else {
@@ -807,20 +828,21 @@ func LoadIndex(path string) (*Index, error) {
 		return fmt.Errorf("%s: damaged index (%s)", path, what)
 	}
 	n, err := binary.ReadUvarint(br)
-	if err != nil || n > uint64(limit) {
+	if err != nil || n > uint64(limit) || n > 1<<30 {
 		return nil, damaged("a header longer than the file can hold", err)
 	}
-	// Read what is there rather than trust the length: a damaged or made-up
-	// file can't make Remixware allocate memory it doesn't need.
-	head, err := io.ReadAll(io.LimitReader(br, int64(n)))
-	if err != nil || uint64(len(head)) != n {
-		return nil, damaged("bad header", err)
-	}
+	// The header is read entry by entry rather than all at once, so one
+	// that lists far more files or components than the file could hold is
+	// refused before it fills memory. A real entry doesn't pack below a few
+	// bytes: every file carries its own checksum.
 	ix := &Index{Path: path}
-	if err := json.Unmarshal(head, &ix.indexHeader); err != nil {
-		return nil, fmt.Errorf("%s: damaged index header: %v", path, err)
+	hr := &io.LimitedReader{R: br, N: int64(n)}
+	if err := decodeHeader(hr, &ix.indexHeader, int(st.Size()/8)+1024); err != nil {
+		return nil, damaged("bad header: "+err.Error(), err)
 	}
-	head = nil
+	if hr.N != 0 {
+		return nil, damaged("bad header", nil)
+	}
 	if ix.Format != indexFormat || ix.K != kgramSize || ix.W != windowSize || ix.MinDistinct != minDistinct || ix.Norm != normVersion {
 		return nil, fmt.Errorf("%s was made by %s with other settings: rebuild it with remixware index", path, ix.Tool)
 	}
@@ -869,6 +891,79 @@ func LoadIndex(path string) (*Index, error) {
 		return nil, damaged("checksum failed or data after the end", err)
 	}
 	return ix, nil
+}
+
+// decodeHeader reads an index header from JSON, refusing more than max
+// files or components, and more than a few thousand indexed folders.
+func decodeHeader(r io.Reader, h *indexHeader, max int) error {
+	dec := json.NewDecoder(r)
+	if tok, err := dec.Token(); err != nil {
+		return err
+	} else if d, ok := tok.(json.Delim); !ok || d != '{' {
+		return errors.New("not a JSON object")
+	}
+	fields := map[string]any{"format": &h.Format, "tool": &h.Tool, "created": &h.Created, "k": &h.K, "w": &h.W,
+		"min_distinct": &h.MinDistinct, "norm": &h.Norm, "lines": &h.Lines, "duplicates": &h.Duplicates,
+		"skipped": &h.Skipped, "max_df": &h.MaxDF, "dropped_common": &h.Dropped}
+	for dec.More() {
+		tok, err := dec.Token()
+		if err != nil {
+			return err
+		}
+		switch key, _ := tok.(string); key {
+		case "files":
+			err = decodeList(dec, &h.Files, max)
+		case "components":
+			err = decodeList(dec, &h.Components, max)
+		case "roots":
+			err = decodeList(dec, &h.Roots, 4096)
+		default:
+			if f, ok := fields[key]; ok {
+				err = dec.Decode(f)
+			} else {
+				var skip json.RawMessage
+				err = dec.Decode(&skip)
+			}
+		}
+		if err != nil {
+			return err
+		}
+	}
+	if _, err := dec.Token(); err != nil {
+		return err
+	}
+	// Nothing may follow the header but the end of it.
+	if extra, _ := io.Copy(io.Discard, io.MultiReader(dec.Buffered(), r)); extra != 0 {
+		return errors.New("data after the header")
+	}
+	return nil
+}
+
+// decodeList reads a JSON list (or null) element by element, refusing more
+// than max elements.
+func decodeList[T any](dec *json.Decoder, out *[]T, max int) error {
+	tok, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if tok == nil {
+		return nil
+	}
+	if d, ok := tok.(json.Delim); !ok || d != '[' {
+		return errors.New("a list that isn't one")
+	}
+	for dec.More() {
+		if len(*out) >= max {
+			return errors.New("more entries than the file can hold")
+		}
+		var v T
+		if err := dec.Decode(&v); err != nil {
+			return err
+		}
+		*out = append(*out, v)
+	}
+	_, err = dec.Token()
+	return err
 }
 
 // validate checks that the index header holds together: every component

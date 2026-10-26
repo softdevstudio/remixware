@@ -254,9 +254,33 @@ func joinPieces(in []Finding) []Finding {
 		}
 		return a.Lines.Start < b.Lines.Start
 	})
+	// Where every finding of a file sits, to see what lies between two
+	// pieces.
+	type place struct {
+		i     int
+		lines Range
+	}
+	places := map[string][]place{}
+	for i, f := range in {
+		places[f.File] = append(places[f.File], place{i, f.Lines})
+	}
+	// between reports whether another finding of the file lies mostly in
+	// lines a..b: then the code between two pieces came from somewhere
+	// else, and the pieces are two copies, not one with lines added.
+	between := func(f Finding, self, a, b int) bool {
+		for _, o := range places[f.File] {
+			if o.i == self {
+				continue
+			}
+			if ov := min(o.lines.End, b) - max(o.lines.Start, a) + 1; ov >= 3 && 2*ov >= o.lines.len() {
+				return true
+			}
+		}
+		return false
+	}
 	var out []Finding
 	group := 0 // where the pieces of this file and source file start in out
-	for _, f := range in {
+	for i, f := range in {
 		if group < len(out) {
 			if q := out[group]; q.File != f.File || q.Source.Key != f.Source.Key || q.Source.File != f.Source.File {
 				group = len(out)
@@ -270,6 +294,9 @@ func joinPieces(in []Finding) []Finding {
 		best, bestShift := -1, 0
 		for k := len(out) - 1; k >= group; k-- {
 			shift, ok := joinable(out[k], f)
+			if gap := f.Lines.Start - out[k].Lines.End - 1; ok && gap >= 3 && between(f, i, out[k].Lines.End+1, f.Lines.Start-1) {
+				ok = false
+			}
 			if ok && (best < 0 || shift < bestShift || shift == bestShift && out[k].Match.Tokens > out[best].Match.Tokens) {
 				best, bestShift = k, shift
 			}

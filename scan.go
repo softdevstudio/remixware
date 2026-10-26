@@ -33,7 +33,7 @@ type ScanOptions struct {
 
 // Scan fingerprints a project and compares it with the indexes.
 func Scan(project string, opt ScanOptions) (*Results, error) {
-	abs, err := filepath.Abs(project)
+	abs, err := realPath(project)
 	if err != nil {
 		return nil, err
 	}
@@ -62,17 +62,18 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 
 	// What each indexed file is to this project:
 	//  - outside it: code the project may have copied from;
-	//  - inside it, in an index of a folder inside the project, such as
-	//    ./vendor or ./third_party: declared third-party code. The project
-	//    may have copied from it, and its folder isn't scanned as if it
-	//    were the project's own code;
-	//  - inside it, in an index of the project's folder or one above it:
-	//    the project's own code. It is scanned like the rest, and nothing
-	//    is reported as copied from it.
-	// An index names the folders it was made from and where its components
-	// sit, and it could be made up. A folder it declares is skipped only
-	// when a file in it still matches the index byte for byte.
-	cs := classifyIndexes(opt.Indexes, abs)
+	//  - inside it, in a component that is third-party code (one under a
+	//    folder such as vendor or third_party, one with a licence of its
+	//    own that differs from the project's, or one in an index made from
+	//    a folder inside the project, such as ./vendor): the rest of the
+	//    project may have copied from it, and a file isn't reported as a
+	//    copy of the component it's part of;
+	//  - inside it otherwise: the project's own code, scanned like the
+	//    rest, and nothing is reported as copied from it.
+	// No index makes a scan skip a file: what an index says, made up or not,
+	// can only add matches against its own entries or leave them out.
+	projLicense, _ := DetectProjectLicense(abs)
+	cs := classifyIndexes(opt.Indexes, abs, projLicense)
 
 	var files, unreadable []string
 	err = filepath.WalkDir(abs, func(path string, d fs.DirEntry, err error) error {
@@ -105,10 +106,6 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 			return nil
 		}
 		if !d.Type().IsRegular() || languageFor(d.Name()) == nil {
-			return nil
-		}
-		if cs.declaredFolder(path) {
-			res.Skipped["declared"]++
 			return nil
 		}
 		files = append(files, path)
@@ -205,80 +202,36 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 // indexClasses says what the files and components of each index are to one
 // project (see Scan).
 type indexClasses struct {
-	project  string
-	own      [][]bool         // per index and file: the project's own code
-	homes    []map[string]int // per index: folder of a component inside the project -> component
-	declared []string         // folders skipped as declared third-party code
+	project string
+	own     [][]bool         // per index and file: the project's own code
+	homes   []map[string]int // per index: folder of a third-party component inside the project -> component
 }
 
-func classifyIndexes(indexes []*Index, project string) *indexClasses {
+func classifyIndexes(indexes []*Index, project, projLicense string) *indexClasses {
 	cs := &indexClasses{project: project, own: make([][]bool, len(indexes)), homes: make([]map[string]int, len(indexes))}
 	inside := func(p string) bool { return localPath(p) && within(p, project) }
 	for k, ix := range indexes {
-		fromInside := func(p string) bool {
-			r := ix.rootOf(p)
-			return r != "" && r != project && within(r, project)
+		third := make([]bool, len(ix.Components))
+		cs.homes[k] = map[string]int{}
+		for ci, c := range ix.Components {
+			if c.Root == project || !inside(c.Root) {
+				continue
+			}
+			r := ix.rootOf(c.Root)
+			fromInside := r != "" && r != project && within(r, project)
+			ownLicence := c.License != "" && c.License != LicenseNone && !strings.HasPrefix(c.LicenseFrom, "inherited from") &&
+				!sameLicense(c.License, projLicense)
+			if fromInside || ownLicence || dependencyBoundary(relSlash(project, c.Root)) {
+				third[ci] = true
+				cs.homes[k][c.Root] = ci
+			}
 		}
 		cs.own[k] = make([]bool, len(ix.Files))
 		for i, f := range ix.Files {
-			cs.own[k][i] = inside(f.Abs) && !fromInside(f.Abs)
-		}
-		cs.homes[k] = map[string]int{}
-		var candidates []int
-		for ci, c := range ix.Components {
-			if c.Root != project && inside(c.Root) && fromInside(c.Root) {
-				cs.homes[k][c.Root] = ci
-				candidates = append(candidates, ci)
-			}
-		}
-		for _, ci := range ix.unchangedComponents(candidates) {
-			cs.declared = append(cs.declared, ix.Components[ci].Root)
+			cs.own[k][i] = inside(f.Abs) && !third[f.Comp]
 		}
 	}
 	return cs
-}
-
-// unchangedComponents returns the components, of those asked about, of
-// which at least one file is still on disk with the bytes the index holds.
-// A few files of each are tried.
-func (ix *Index) unchangedComponents(comps []int) []int {
-	if len(comps) == 0 {
-		return nil
-	}
-	want := map[int][]int{}
-	for _, ci := range comps {
-		want[ci] = nil
-	}
-	for i, f := range ix.Files {
-		if list, ok := want[f.Comp]; ok && len(list) < 3 {
-			want[f.Comp] = append(list, i)
-		}
-	}
-	var out []int
-	for _, ci := range comps {
-		for _, i := range want[ci] {
-			f := ix.Files[i]
-			if !ix.readable(f.Abs) || f.Sum == "" {
-				continue
-			}
-			if data, skip := readSource(f.Abs); skip == "" && fileSum(data) == f.Sum {
-				out = append(out, ci)
-				break
-			}
-		}
-	}
-	return out
-}
-
-// declaredFolder reports whether a project file sits in a folder an index
-// declares as third-party code.
-func (cs *indexClasses) declaredFolder(p string) bool {
-	for _, d := range cs.declared {
-		if within(p, d) {
-			return true
-		}
-	}
-	return false
 }
 
 // homeOf returns the components of index k whose folder, inside the

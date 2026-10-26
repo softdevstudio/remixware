@@ -524,7 +524,7 @@ func TestFileHeaderLicences(t *testing.T) {
 	dir := t.TempDir()
 	for _, c := range cases {
 		p := writeTemp(t, dir, c.file, c.src)
-		r := fingerprintSourceFile(pendingFile{abs: p, rel: c.file}, c.comp)
+		r := fingerprintSourceFile(pendingFile{abs: p, rel: c.file}, c.comp, false)
 		if r.sf == nil {
 			t.Fatalf("%s: not fingerprinted (%s)", c.name, r.skip)
 		}
@@ -545,8 +545,19 @@ func TestFileHeaderLicences(t *testing.T) {
 	for _, f := range ix.Files {
 		got[f.Path] = f.License
 	}
-	if got["o.c"] != "GPL-2.0-or-later AND LicenseRef-Proprietary" || got["w.go"] != "GPL-2.0-only" {
+	if got["o.c"] != "GPL-2.0-or-later AND LicenseRef-Proprietary" || got["w.go"] != "GPL-2.0-only AND LicenseRef-Proprietary" {
 		t.Errorf("--license: file licences %q", got)
+	}
+	// What --license names can't be swapped for a laxer tag either.
+	writeTemp(t, up, "w.go", "// SPDX-License-Identifier: MIT\npackage x\n")
+	ix, err = BuildIndex([]string{up}, IndexOptions{License: "GPL-3.0-only"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range ix.Files {
+		if f.Path == "w.go" && f.License != "GPL-3.0-only AND MIT" {
+			t.Errorf("--license GPL-3.0-only, tag MIT: %q", f.License)
+		}
 	}
 }
 
@@ -962,6 +973,10 @@ func TestJoinPieces(t *testing.T) {
 		return Finding{File: "x.go", Lines: Range{a, b}, Match: Match{Kind: "verbatim", Tokens: tokens, Coverage: 1},
 			Source: Source{Key: "k", Component: "k", File: "s.go", Lines: Range{sa, sb}, Via: "index"}}
 	}
+	other := func(a, b int) Finding {
+		return Finding{File: "x.go", Lines: Range{a, b}, Match: Match{Kind: "verbatim", Tokens: 150, Coverage: 1},
+			Source: Source{Key: "gpl", Component: "gpl", File: "n.go", Lines: Range{10, 40}, Via: "index"}}
+	}
 	cases := []struct {
 		name  string
 		in    []Finding
@@ -979,6 +994,14 @@ func TestJoinPieces(t *testing.T) {
 		{"look-alikes in between", []Finding{piece(1, 680, 1, 680, 2800), piece(522, 548, 485, 513, 140),
 			piece(548, 740, 548, 740, 950), piece(700, 760, 740, 800, 300), piece(735, 900, 735, 900, 800)},
 			[]Range{{1, 900}, {522, 548}, {700, 760}}},
+		// Functions A, Z, B of one source copied with Z in the middle: A and
+		// B are next to each other in the source, but Z is between them here.
+		{"copied in another order", []Finding{piece(1, 20, 1, 20, 120), piece(22, 40, 300, 318, 110), piece(42, 60, 22, 40, 110)},
+			[]Range{{1, 20}, {22, 40}, {42, 60}}},
+		// Code from another source between two pieces isn't lines added to
+		// one copy.
+		{"another source in between", []Finding{piece(3, 40, 645, 682, 200), other(45, 75), piece(80, 110, 684, 719, 180)},
+			[]Range{{3, 40}, {45, 75}, {80, 110}}},
 	}
 	for _, c := range cases {
 		out := joinPieces(c.in)
@@ -986,6 +1009,8 @@ func TestJoinPieces(t *testing.T) {
 		for _, f := range out {
 			got = append(got, f.Lines)
 		}
+		sort.SliceStable(got, func(i, j int) bool { return got[i].Start < got[j].Start })
+		sort.SliceStable(c.lines, func(i, j int) bool { return c.lines[i].Start < c.lines[j].Start })
 		if len(got) != len(c.lines) {
 			t.Errorf("%s: got %v, want %v", c.name, got, c.lines)
 			continue
@@ -1037,5 +1062,59 @@ func TestFingerprintsMatchNormVersion(t *testing.T) {
 		t.Fatalf("the fingerprints of testdata/upstream changed (digest %s, want %q for normVersion %d). "+
 			"If tokenizing or fingerprinting changed, bump normVersion in fingerprint.go; then, or if only the fixtures changed, record the new digest here",
 			got, want, normVersion)
+	}
+}
+
+// Real-world headers that name several licences. GNU notices offer a
+// choice of versions, not of licences, and warranty or file wording with
+// "either ... or" isn't a choice either: those licences all apply.
+func TestHeaderChoices(t *testing.T) {
+	want := map[string]string{
+		"gcc-form+isc.c":          "GPL-2.0-or-later AND ISC",
+		"gnu-form+isc.c":          "GPL-2.0-or-later AND ISC",
+		"mpl-exhibit-b+bsd.c":     "BSD-3-Clause AND MPL-2.0",
+		"apache+mit-either-in.c":  "Apache-2.0 AND MIT",
+		"nosa-warranty+gpl.c":     "GPL-2.0-only AND MIT",
+		"gpl+alternatively-see.c": "GPL-2.0-only AND MIT",
+		"kde-form+mit.c":          "LGPL-2.1-or-later AND MIT",
+		"gcc-runtime.c":           "GPL-3.0-or-later",
+	}
+	for name, w := range want {
+		src := mustRead(t, filepath.Join("testdata", "headers", name))
+		head := leadingComments(src, languageFor(name), 16<<10)
+		if got := headerLicense(head); got != w {
+			t.Errorf("%s: %q, want %q", name, got, w)
+		}
+	}
+	// A choice offered in one sentence doesn't swallow a licence named in
+	// another.
+	head := "Licensed under the Apache License, Version 2.0 or the MIT license, at your option.\n\n" +
+		"The tables come from Foo, under the GNU General Public License version 2.\n"
+	if got := headerLicense(head); got != "(Apache-2.0 OR MIT) AND GPL-2.0-only" {
+		t.Errorf("choice plus another licence: %q", got)
+	}
+	// "Dual licensed." on its own offers the licences of the next sentence.
+	head = "This file is dual licensed.\nYou may use it under the MIT License or under the Apache License, Version 2.0.\n"
+	if got := headerLicense(head); got != "Apache-2.0 OR MIT" {
+		t.Errorf("dual licensed, then the licences: %q", got)
+	}
+}
+
+// For code with no licence of its own, a licence named for the code it came
+// from isn't the file's.
+func TestOriginSentences(t *testing.T) {
+	cases := map[string]bool{
+		"Based on code from Foo. Foo is released under the MIT license.\n":                                        true,
+		"Adapted from Bar (https://example.com/bar).\n\nBar is licensed under the Apache License, Version 2.0.\n": true,
+		"Based on code from fastsort, released under the MIT license.\n":                                          true,
+		"Originally written for the Foo project.\nReleased under the MIT license.\n":                              false,
+		"Copyright (c) 2015 Sam Poe. Portions copyright (c) 2014 Lee Doe.\nLicensed under the MIT License.\n":     false,
+		"This file is a port of Foo. This file is licensed under the MIT License.\n":                              false,
+		"Licensed under the MIT License.\n":                                                                       false,
+	}
+	for head, want := range cases {
+		if got := originOnly(head); got != want {
+			t.Errorf("%q: origin only %v, want %v", head, got, want)
+		}
 	}
 }

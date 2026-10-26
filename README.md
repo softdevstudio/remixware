@@ -93,7 +93,7 @@ folders, where it gets none. Code with no licence at all is reported as
 - A crate whose `Cargo.toml` says `license.workspace = true` takes the
   licence of its workspace, when the workspace is inside the indexed
   folder. A licence file that a manifest names counts only inside the
-  indexed folder too.
+  indexed folder too, with links followed.
 - A licence text with a condition on top, such as the Commons Clause after
   the Apache License, counts as both.
 - Python distributions that install into one folder, such as `google/`, are
@@ -102,11 +102,16 @@ folders, where it gets none. Code with no licence at all is reported as
   comments at its top is that file's licence. A licence notice there that
   names something other than the component's licence is counted along with
   it, so a header can't hide a stricter licence: a file headed MIT inside a
-  GPL project counts as both. A header that offers a choice including the
-  component's licence ("BSD, or alternatively the GPL", "either the GPL or
-  the CDDL") is the file's own, wider grant and counts as written. Only
-  comments count, not code. Headers count with `--license` too, which sets
-  the licence of the components, not of each file.
+  GPL project counts as both. Licences a header offers as a choice ("BSD,
+  or alternatively the GPL", "either the GPL or the CDDL", "at your option")
+  count as one, and when the component's licence is among them the header's
+  wider grant counts as written. A GNU notice's "version 2, or (at your
+  option) any later version" is a choice of versions, not of licences.
+  Where the component has no licence, a header that only names the licence
+  of the code it came from ("Based on Foo. Foo is MIT licensed.") gives the
+  file none. Only comments count, not code.
+- `--license` sets the licence of the components. Headers and SPDX tags
+  still count with it, and add to it rather than replace it.
 - Symbolic links are never followed and only regular files are read, so a
   `NOTICE` that links to a file elsewhere on the machine stays out of the
   index.
@@ -116,22 +121,25 @@ remixware index ./some-project --name github.com/acme/tool --version v1.2.0 --ou
 remixware index ~/src/old-product --license LicenseRef-Proprietary --out ours.rmx
 ```
 
-An index of a folder inside your project, such as your own `vendor`
-folder, declares it as third-party code: the scan skips that folder while
-it still holds what was indexed, so its files aren't reported as copies of
-themselves, and the rest of the project is still checked for code copied
-from it. An index of a folder above the project holds the project itself
-and declares none of it: every file of the project is scanned, and nothing
-is reported as copied from the project's own code. `node_modules`,
-`vendor`, `third_party` and virtual environments aren't scanned unless you
-pass `--include-deps`, and `.git` never is. Symbolic links aren't followed
-in the project either, and the scan says how many it passed over.
+An index can hold code inside your project, such as your own `vendor`
+folder, or the whole project when you index a folder above it. Indexed
+code inside the project is third-party code when it sits in a folder such
+as `vendor` or `third_party`, has a licence of its own that differs from
+the project's, or comes from an index of a folder inside the project. The
+rest of the project is checked for code copied from it, and no file is
+reported as a copy of the component it's part of. Everything else inside
+the project is the project's own code: it's scanned like the rest, and
+nothing is reported as copied from it. An index never makes a scan skip a
+file. `node_modules`, `vendor`, `third_party` and virtual environments
+aren't scanned unless you pass `--include-deps`, and `.git` never is.
+Symbolic links aren't followed in the project, and the scan says how many
+it passed over.
 
 An index is data. One made on another machine, or by someone else, can't
 show a scan any file on your machine that it doesn't hold: an indexed file
 is read back only when its bytes still match the checksum in the index. An
 index that doesn't hold together, or that unpacks to far more than its
-size, is refused as damaged.
+size or lists more files than it could hold, is refused as damaged.
 
 ## With SCANOSS
 

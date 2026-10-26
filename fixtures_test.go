@@ -227,7 +227,10 @@ func TestIncludeDepsScansVendor(t *testing.T) {
 
 // An index of the project's own vendor folder covers it: those files are
 // declared dependencies, not copies.
-func TestDeclaredFoldersAreSkipped(t *testing.T) {
+// An index of the project's own vendor folder: the vendored files are
+// scanned (with --include-deps) but not reported as copies of themselves,
+// and code copied from them elsewhere in the project is found.
+func TestIndexedVendorFolder(t *testing.T) {
 	vix, err := BuildIndex([]string{filepath.Join(project("shopfront"), "vendor")}, IndexOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -235,11 +238,11 @@ func TestDeclaredFoldersAreSkipped(t *testing.T) {
 	res := scanProject(t, project("shopfront"), nil, ScanOptions{Indexes: []*Index{vix}, IncludeDeps: true})
 	for _, f := range res.Findings {
 		if strings.HasPrefix(f.File, "vendor/") {
-			t.Errorf("declared folder reported: %s", f.File)
+			t.Errorf("vendored file reported as a copy: %s from %s", f.File, f.Source.File)
 		}
 	}
-	if res.Skipped["declared"] == 0 {
-		t.Errorf("no declared folder skipped: %v", res.Skipped)
+	if len(res.Skipped) != 0 {
+		t.Errorf("skipped %v", res.Skipped)
 	}
 	// The copy outside vendor/ is still found.
 	ok := false
@@ -1161,12 +1164,11 @@ func TestResultsFilesCantReadOutsideTheProject(t *testing.T) {
 	}
 }
 
-// An index that holds the project, made from a folder above it, doesn't
-// hide any of it: a vendored GPL copy with its own licence file is still
-// found, and code a sub-module shares with the root isn't reported as
-// copied from the project's own code. Only an index of a folder inside the
-// project declares that folder, and only while it still holds what the
-// index has.
+// An index that holds the project, made from a folder above it or from the
+// project's own folder: a vendored GPL copy with its own licence file is
+// third-party code, scanned and copied from like any other, while code a
+// sub-module shares with the root isn't reported as copied from the
+// project's own code. No index makes the scan skip a folder.
 func TestIndexThatHoldsTheProject(t *testing.T) {
 	src := t.TempDir()
 	gpl := string(mustRead(t, filepath.Join("testdata", "upstream", "gplsort", "natural.go")))
@@ -1198,8 +1200,8 @@ func TestIndexThatHoldsTheProject(t *testing.T) {
 		t.Errorf("index of the folder above: %q, skipped %v", got, res.Skipped)
 	}
 
-	// An index of ./internal declares natsort: its copy is skipped, and a
-	// project file copied from it is reported.
+	// An index of ./internal: natsort is third-party code, and a project
+	// file copied from it is reported.
 	writeTemp(t, proj, "sort.go", gpl)
 	inner, err := BuildIndex([]string{filepath.Join(proj, "internal")}, IndexOptions{})
 	if err != nil {
@@ -1210,8 +1212,32 @@ func TestIndexThatHoldsTheProject(t *testing.T) {
 	for _, f := range res.Findings {
 		got = append(got, f.File+" "+f.Status)
 	}
-	if strings.Join(got, "|") != "sort.go conflict" || res.Skipped["declared"] != 1 {
+	if strings.Join(got, "|") != "sort.go conflict" || len(res.Skipped) != 0 {
 		t.Errorf("index of ./internal: %q, skipped %v", got, res.Skipped)
+	}
+	// The same with an index of the project, or of the folder above it:
+	// natsort has a licence of its own, so the copy of it is found.
+	for _, root := range []string{proj, src} {
+		ix, err := BuildIndex([]string{root}, IndexOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		res = scanWith(t, ix, proj)
+		if f := findingOf(res, "sort.go"); f == nil || f.Status != StatusConflict {
+			t.Errorf("index of %s: sort.go %+v", filepath.Base(root), f)
+		}
+	}
+	// A vendored folder without a licence of its own counts as third-party
+	// code too, by where it sits.
+	writeTemp(t, proj, "third_party/half/half.go", csv)
+	writeTemp(t, proj, "third_party/half/go.mod", "module example.net/half\n")
+	writeTemp(t, proj, "cmd/half.go", csv)
+	ix, err := BuildIndex([]string{proj}, IndexOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f := findingOf(scanWith(t, ix, proj), "cmd/half.go"); f == nil || f.Source.Component != "example.net/half" {
+		t.Errorf("copy of a vendored folder without a licence: %+v", f)
 	}
 
 	// A made-up index that names natsort as its own, without holding its
@@ -1228,7 +1254,7 @@ func TestIndexThatHoldsTheProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Skipped["declared"] != 0 || findingOf(res, "internal/natsort/natural.go") == nil {
+	if len(res.Skipped) != 0 || findingOf(res, "internal/natsort/natural.go") == nil {
 		t.Errorf("a made-up index hid a folder: skipped %v, findings %d", res.Skipped, len(res.Findings))
 	}
 }

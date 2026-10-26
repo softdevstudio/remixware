@@ -771,94 +771,268 @@ func licensesIn(t string) []string {
 }
 
 // headerLicense names the licence that the comments at the top of a source
-// file give it, or "". A header naming several licences either offers a
-// choice ("... or the MIT license, at your option"), joined with OR, or
-// means that all of them apply, joined with AND.
+// file give it, or "". Several licences in a header all apply, joined with
+// AND, unless a sentence offers them as a choice ("... or the MIT license,
+// at your option"): the licences named there are joined with OR, and any
+// other licence the header names still applies on top.
 func headerLicense(head string) string {
-	t := normText(head)
-	ids := licensesIn(t)
+	var ts []string
+	for _, s := range sentenceEnd.Split(head, -1) {
+		if n := strings.TrimSpace(normText(s)); n != "" {
+			ts = append(ts, n)
+		}
+	}
+	// The whole text, sentence by sentence, so each mention of a licence
+	// can be traced to its sentence.
+	t, starts := " ", make([]int, len(ts))
+	for i, s := range ts {
+		starts[i] = len(t)
+		t += s + " "
+	}
+	ms := licenceMentions(t)
+	var ids []string
+	for _, m := range ms {
+		if !containsString(ids, m.id) {
+			ids = append(ids, m.id)
+		}
+	}
+	if containsString(ids, "MIT") && containsString(ids, "MIT-0") {
+		ids = removeString(ids, "MIT-0")
+	}
 	switch len(ids) {
 	case 0:
 		return ""
 	case 1:
 		return ids[0]
 	}
-	if offersChoice(t) {
-		sort.Strings(ids)
-		return strings.Join(ids, " OR ")
+	sentenceOf := func(pos int) int { return sort.SearchInts(starts, pos+1) - 1 }
+	named := make([]bool, len(ts))
+	for _, m := range ms {
+		named[sentenceOf(m.pos)] = true
 	}
-	return joinLicenses(ids)
+	// Sentences that offer a choice. One that names no licence offers the
+	// ones the next sentence names; "Alternatively" offers its licences
+	// as well as those of the sentence before that names one.
+	choice := make([]bool, len(ts))
+	for i, s := range ts {
+		sp := " " + s + " "
+		if choiceIn(sp) {
+			choice[i] = true
+			for j := i + 1; !named[i] && j < len(ts); j++ {
+				if named[j] {
+					choice[j] = true
+					break
+				}
+			}
+		}
+		if alternatively.MatchString(markLicences(sp)) {
+			for j := i - 1; j >= 0; j-- {
+				if named[j] {
+					choice[i], choice[j] = true, true
+					break
+				}
+			}
+		}
+	}
+	var opts, rest []string
+	for _, id := range ids {
+		in := false
+		for _, m := range ms {
+			if m.id == id && choice[sentenceOf(m.pos)] {
+				in = true
+				break
+			}
+		}
+		if in {
+			opts = append(opts, id)
+		} else {
+			rest = append(rest, id)
+		}
+	}
+	if len(opts) < 2 {
+		return joinLicenses(ids)
+	}
+	sort.Strings(opts)
+	return joinLicenses(append(rest, strings.Join(opts, " OR ")))
 }
 
-var notAChoice = regexp.MustCompile(` either version [0-9 ]+of the licen[cs]e or (at your option )?(any )?later version | either express(ed)? or implied `)
+func removeString(s []string, v string) []string {
+	var out []string
+	for _, x := range s {
+		if x != v {
+			out = append(out, x)
+		}
+	}
+	return out
+}
 
-// offersChoice reports whether a normalised notice lets the reader pick
-// one of several licences: "dual licensed", "at your option", "either the
-// GPL ... or the CDDL", "Alternatively, this software may be distributed
-// under ...". GNU notices say "either version 2 of the License, or (at your
-// option) any later version", which is about versions, not a choice of
-// licence, and Apache's "either express or implied" is about warranties.
-func offersChoice(t string) bool {
-	t = notAChoice.ReplaceAllString(t, " ")
-	for _, p := range []string{" dual licensed ", " dual licenced ", " dual license ", " dual licence ", " either license ",
-		" either licence ", " at your choice ", " your choice of ", " you may choose ", " alternatively ",
-		" secondary licenses ", " secondary license "} {
+// licenceMention is one place a normalised text names a licence.
+type licenceMention struct {
+	pos int
+	id  string
+}
+
+// licenceMentions returns every place in a normalised text that names a
+// licence or starts its text, in order. Each wording reads as the licence
+// its first mention names, as in licensesIn: a GNU notice's later "see the
+// GNU General Public License for more details" is the same licence again.
+func licenceMentions(t string) []licenceMention {
+	var out []licenceMention
+	for _, sg := range licenseSignatures {
+		needle := " " + sg.phrase + " "
+		id := ""
+		for i := 0; ; {
+			j := strings.Index(t[i:], needle)
+			if j < 0 {
+				break
+			}
+			at := i + j
+			if id == "" {
+				if id = sg.resolve(t[at:], t); id == "" {
+					break
+				}
+			}
+			out = append(out, licenceMention{at, id})
+			i = at + 1
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].pos < out[j].pos })
+	return out
+}
+
+// licenceWording matches the words that name or start a licence.
+var licenceWording = func() *regexp.Regexp {
+	var ps []string
+	for _, sg := range licenseSignatures {
+		ps = append(ps, regexp.QuoteMeta(sg.phrase))
+	}
+	sort.SliceStable(ps, func(i, j int) bool { return len(ps[i]) > len(ps[j]) })
+	return regexp.MustCompile(`\b(?:` + strings.Join(ps, "|") + `)\b`)
+}()
+
+// markLicences replaces each licence named in a normalised text with §.
+func markLicences(t string) string {
+	return " " + strings.Join(strings.Fields(licenceWording.ReplaceAllString(t, " § ")), " ") + " "
+}
+
+var (
+	// "either the GPL ... or the CDDL": a licence right after "either" and
+	// another right after "or". "Either version 2, or (at your option) any
+	// later version" and "either express or implied" have none.
+	eitherOr = regexp.MustCompile(` either (?:[a-z0-9]+ ){0,6}§ (?:[a-z0-9]+ ){0,25}or (?:[a-z0-9]+ ){0,6}§ `)
+	// "Alternatively, this software may be distributed under the GPL": a
+	// licence named in the clause that starts with the word.
+	alternatively = regexp.MustCompile(` alternatively (?:[a-z0-9]+ ){0,25}§ `)
+)
+
+// choicePhrases say outright that licences are offered as a choice.
+var choicePhrases = []string{" dual licensed ", " dual licenced ", " dual license ", " dual licence ", " either license ",
+	" either licence ", " at your choice ", " your choice of "}
+
+// choiceIn reports whether a normalised sentence offers a choice of
+// licences. A GNU notice offers a choice of versions ("or, at your option,
+// any later version"), which isn't one.
+func choiceIn(t string) bool {
+	for _, p := range choicePhrases {
 		if strings.Contains(t, p) {
 			return true
 		}
 	}
-	if i := strings.Index(t, " either "); i >= 0 {
-		rest := t[i+len(" either "):]
-		if len(rest) > 300 {
-			rest = rest[:300]
-		}
-		if strings.Contains(rest, " or ") {
-			return true
-		}
+	if i := strings.Index(t, " you may choose "); i >= 0 && !strings.HasPrefix(t[i+len(" you may choose "):], "any version ") {
+		return true
 	}
 	const opt = " at your option "
 	for i := 0; ; {
 		j := strings.Index(t[i:], opt)
 		if j < 0 {
-			return false
+			break
 		}
 		i += j + len(opt)
-		if !strings.HasPrefix(t[i:], "any later version ") {
+		versions := false
+		for _, p := range []string{"any later ", "any version ", "version ", "a later version ", "later version "} {
+			versions = versions || strings.HasPrefix(t[i:], p)
+		}
+		if !versions {
 			return true
 		}
 	}
+	return eitherOr.MatchString(markLicences(t))
+}
+
+// offersChoice reports whether a normalised text, such as a short licence
+// file, lets the reader pick one of the licences it names.
+func offersChoice(t string) bool {
+	if choiceIn(t) {
+		return true
+	}
+	m := markLicences(t)
+	loc := alternatively.FindStringIndex(m)
+	return loc != nil && strings.Contains(m[:loc[0]], "§")
 }
 
 // originWords say where code came from rather than what licence it has:
 // "based on code released under the MIT license".
-var originWords = []string{" based on ", " derived from ", " adapted from ", " ported from ", " taken from ", " copied from ",
-	" borrowed from ", " inspired by ", " modified from ", " originally ", " portions "}
+var originWords = []string{" based on ", " derived from ", " adapted from ", " ported from ", " port of ", " taken from ",
+	" copied from ", " borrowed from ", " inspired by ", " modified from ", " originally ", " portions "}
 
-// sentenceEnd splits comment text into sentences: at . ! ? or ; before a
+func hasOriginWord(t string) bool {
+	for _, w := range originWords {
+		if strings.Contains(t, w) {
+			return true
+		}
+	}
+	return false
+}
+
+// sentenceEnd splits comment text into sentences: at . ! or ? before a
 // space, and at blank lines.
-var sentenceEnd = regexp.MustCompile(`[.!?;]+\s|\n\s*\n`)
+var sentenceEnd = regexp.MustCompile(`[.!?]+\s|\n\s*\n`)
 
-// originOnly reports whether every sentence of a header that names a
-// licence also says where code came from ("Portions are based on code
-// released under the MIT license"): then the licence is the origin's, not
-// necessarily the file's. A header that says "Originally written for Foo."
-// and then "Released under the MIT license." does give the file a licence.
+// aboutThisFile reports whether a normalised sentence naming a licence
+// gives it to the file it's in ("Released under the MIT license", "This
+// file is licensed under ...", a licence's own wording) rather than to
+// someone else's code ("Foo is licensed under the MIT license").
+func aboutThisFile(t string) bool {
+	for _, p := range []string{" licensed ", " licenced ", " released ", " distributed ", " available ", " published ",
+		" provided ", " made available ", " under the ", " this ", " these ", " the contents of this ", " copyright ", " c ",
+		" permission is hereby granted ", " permission to use ", " redistribution and use ", " you can redistribute ",
+		" you may ", " use of this source code ", " subject to ", " spdx license identifier "} {
+		if strings.HasPrefix(t, p) {
+			return true
+		}
+	}
+	for _, p := range []string{" this file ", " this code ", " this software ", " this program ", " this library ",
+		" this module ", " this package ", " this project ", " this source ", " this work ", " this header ", " these files "} {
+		if strings.Contains(t, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// originOnly reports whether the licences a header names belong to the
+// code it came from rather than to the file. That's so when the header
+// says where code came from, and no sentence naming a licence gives it to
+// the file itself: "Adapted from Bar. Bar is licensed under the Apache
+// License" names Bar's licence. "Originally written for Foo. Released under
+// the MIT license" gives the file one.
 func originOnly(head string) bool {
+	sentences := sentenceEnd.Split(head, -1)
+	origin := false
+	for _, s := range sentences {
+		origin = origin || hasOriginWord(normText(s))
+	}
+	if !origin {
+		return false
+	}
 	mentions := 0
-	for _, s := range sentenceEnd.Split(head, -1) {
+	for _, s := range sentences {
 		t := normText(s)
 		if len(licensesIn(t)) == 0 {
 			continue
 		}
 		mentions++
-		origin := false
-		for _, w := range originWords {
-			if strings.Contains(t, w) {
-				origin = true
-				break
-			}
-		}
-		if !origin {
+		if !hasOriginWord(t) && aboutThisFile(t) {
 			return false
 		}
 	}

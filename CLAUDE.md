@@ -70,10 +70,11 @@ content and config values only; never touch the theme).
   less. `TestFingerprintsMatchNormVersion` fails until the digest for the
   new version is recorded in it.
 - Indexes and results files from elsewhere are untrusted input: keep
-  `Index.validate`, `Index.readable`, the checksum checks (`sourceTokens`,
-  `unchangedComponents`) and `projectPath` in the way of every file read
-  they could steer, and keep `LoadIndex` from allocating for what a file
-  only claims. A change to the index layout bumps `indexFormat`.
+  `Index.validate`, `Index.readable`, the checksum check in
+  `sourceTokens` and `projectPath` in the way of every file read they could
+  steer, keep `LoadIndex` (and `decodeHeader`) from allocating for what a
+  file only claims, and never let an index make a scan skip a project file.
+  A change to the index layout bumps `indexFormat`.
 
 ## State
 
@@ -90,8 +91,13 @@ more). The second found 13 more, several from the first round's fixes:
 an index holding the project hid its sub-folders, crafted indexes could
 still show local files or crash a scan, review verdicts passed check
 without a notice, "Alternatively" headers read as AND, identical large
-files split into many findings, and others. All were fixed with tests
-before release; index format 2 adds file checksums. Not yet released.
+files split into many findings, and others. A third, focused check of
+those fixes found 10 more, among them a GPL notice's "either version 2, or
+(at your option) any later version" read as a choice of licences, vendored
+GPL code inside an indexed project counted as the project's own, and a
+made-up index still able to make a scan skip a folder (scans no longer
+skip anything an index names). All were fixed with tests before release;
+index format 2 adds file checksums. Not yet released.
 
 ## Gaps and to-do
 
@@ -109,6 +115,11 @@ Known gaps, not planned yet:
   first, unless the second is a condition such as the Commons Clause.
 - When a manifest and a licence file name different licences, the
   manifest's wins.
+- A Cargo workspace member indexed without its workspace folder has no
+  licence from the workspace, so its copies show as no-license.
+- Header choices are read from their wording ("dual licensed", "at your
+  option", "either the X or the Y", "Alternatively ... X"). Other wordings
+  read as all the named licences applying, the safe side.
 - Symbolic links in a project are counted, not followed: code in a linked
   file or folder isn't checked unless it's in the project too.
 - The Flask docs theme in requests (a BSD text with an extra request) is
