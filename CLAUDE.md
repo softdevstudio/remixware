@@ -57,6 +57,9 @@ content and config values only; never touch the theme).
   problem to 15 minutes and report early.
 - Don't push to main while a release run is going (the release must tag
   main's head).
+- In workflow steps, write a command's output to a file and grep the
+  file. `cmd | grep -q` fails under pipefail when grep stops reading
+  early (SIGPIPE); that broke the first 0.1.0 release run on arm64.
 - The release runs after *any* CI run on main completes, and builds the
   commit that CI run tested. Raise VERSION only in a commit you want
   released.
@@ -97,7 +100,9 @@ those fixes found 10 more, among them a GPL notice's "either version 2, or
 GPL code inside an indexed project counted as the project's own, and a
 made-up index still able to make a scan skip a folder (scans no longer
 skip anything an index names). All were fixed with tests before release;
-index format 2 adds file checksums. Not yet released.
+index format 2 adds file checksums. Released 2026-10-26 as v0.1.0: five
+archives plus SHA256SUMS, checked by downloading the Linux build,
+verifying its checksum and running it on the fixtures.
 
 ## Gaps and to-do
 
