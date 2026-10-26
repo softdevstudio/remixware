@@ -244,7 +244,14 @@ readSmall allocating its whole limit per file (33 s for 20,000 small
 licence files), NOTICE and licence texts cut differently by an index and a
 findings file (so --index and --from disagreed), unread files counted
 twice, "either way" read as a choice, and wording. All fixed with tests;
-both reviewers' reproductions pass.
+both reviewers' reproductions pass. Released 2026-10-26 as v0.2.1: five
+archives plus SHA256SUMS. The downloaded Linux build was checked
+(checksum, the fixtures' findings and check exit codes, typer 0.27.3
+against Click 8.3.1 giving 61 attributed), and remixware.com went up with
+the three case studies, the Case Studies menu link and its gallery recorded
+from 0.2.1. The recorded speeds (index 1.4 s, unrelated scan 169,000
+lines/s) came out lower than 0.2.0's; three alternating benchmark runs of
+each version gave the same speeds, so it's run-to-run noise.
 
 ## Gaps and to-do
 
