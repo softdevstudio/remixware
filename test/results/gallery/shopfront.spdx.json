@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "shopfront copied code",
-  "documentNamespace": "https://remixware.com/spdx/shopfront-492981283a7c517f",
+  "documentNamespace": "https://remixware.com/spdx/shopfront-c6cf69d06119bc10",
   "creationInfo": {
-    "created": "2026-10-26T06:39:45Z",
+    "created": "2026-10-26T08:11:37Z",
     "creators": [
       "Tool: remixware-0.1.0"
     ]
@@ -129,6 +129,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-1",
+            "offset": 60
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-1",
+            "offset": 1277
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-1",
             "lineNumber": 2
           },
           "endPointer": {
@@ -149,6 +159,16 @@
       "name": "from example.com/fastcsv",
       "snippetFromFile": "SPDXRef-File-2",
       "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-2",
+            "offset": 45
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-2",
+            "offset": 1036
+          }
+        },
         {
           "startPointer": {
             "reference": "SPDXRef-File-2",
@@ -175,6 +195,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-3",
+            "offset": 152
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-3",
+            "offset": 891
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-3",
             "lineNumber": 7
           },
           "endPointer": {
@@ -195,6 +225,16 @@
       "name": "from upstream",
       "snippetFromFile": "SPDXRef-File-4",
       "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-4",
+            "offset": 55
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-4",
+            "offset": 503
+          }
+        },
         {
           "startPointer": {
             "reference": "SPDXRef-File-4",
@@ -221,6 +261,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-5",
+            "offset": 194
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-5",
+            "offset": 1055
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-5",
             "lineNumber": 13
           },
           "endPointer": {
@@ -244,6 +294,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-6",
+            "offset": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-6",
+            "offset": 1002
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-6",
             "lineNumber": 1
           },
           "endPointer": {
@@ -257,13 +317,23 @@
         "AGPL-3.0-or-later"
       ],
       "copyrightText": "Copyright (C) 2022 Noor Haddad",
-      "comment": "Matches agplwiki 0.4.0, agplwiki/text.py lines 1-36 (copied with some edits). Remixware status: conflict."
+      "comment": "Matches agplwiki 0.4.0, agplwiki/text.py lines 1-36 (copied as is). Remixware status: conflict."
     },
     {
       "SPDXID": "SPDXRef-Snippet-7",
       "name": "from tinyjson@1.2.0",
       "snippetFromFile": "SPDXRef-File-7",
       "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-7",
+            "offset": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-7",
+            "offset": 1075
+          }
+        },
         {
           "startPointer": {
             "reference": "SPDXRef-File-7",
@@ -290,6 +360,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-8",
+            "offset": 1
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-8",
+            "offset": 489
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-8",
             "lineNumber": 1
           },
           "endPointer": {
@@ -310,6 +390,16 @@
       "name": "from jsutil@3.1.0",
       "snippetFromFile": "SPDXRef-File-9",
       "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-9",
+            "offset": 45
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-9",
+            "offset": 568
+          }
+        },
         {
           "startPointer": {
             "reference": "SPDXRef-File-9",

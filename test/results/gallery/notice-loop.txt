@@ -1,0 +1,68 @@
+$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet
+
+ATTRIBUTION MISSING  internal/csvio/split.go:2-45
+                     example.com/fastcsv, fastcsv.go:2-45 (MIT), copied as is, 100% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  tools/prettyjson.py:1-32
+                     tinyjson 1.2.0, __init__.py:1-32 (MIT), copied with names changed, 100% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  web/pad.js:1-28
+                     leftpadx 1.0.4, index.js:1-28 (ISC), copied as is, 100% match
+                     Keep its copyright line and the ISC licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  web/util.js:3-25
+                     jsutil 3.1.0, index.js:6-28 (BSD-3-Clause), copied with names changed, 100% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+REVIEW               internal/cache/lru.go:2-52
+                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
+                     MPL-2.0 applies file by file: keep the copied code in its own file under
+                     MPL-2.0, keep its notice, and publish your changes to that file.
+
+9 findings: 2 conflict, 1 no license, 1 review, 4 attribution missing, 1 attributed.
+FAIL: 4 findings break the policy (fail on: attribution-missing).
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)
+(exit 1)
+
+$ remixware notice . --index upstream.rmx --out THIRD_PARTY_NOTICES.md
+not written: example.org/gplsort (internal/files/order.go): conflict, a notice doesn't fix it
+not written: upstream (internal/format/bytes.go): no license, a notice doesn't fix it
+not written: agplwiki 0.4.0 (scripts/slug.py): conflict, a notice doesn't fix it
+finish by hand: leftpadx 1.0.4: copyright line not known, copy it from the source
+added 5 entries to THIRD_PARTY_NOTICES.md: example.com/fastcsv, example.net/mplcache, jsutil@3.1.0, leftpadx@1.0.4, tinyjson@1.2.0
+
+$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet
+
+ATTRIBUTION MISSING  web/pad.js:1-28
+                     leftpadx 1.0.4, index.js:1-28 (ISC), copied as is, 100% match
+                     Keep its copyright line and the ISC licence text with your copy, for example
+                     in a third-party notices file. Its entry in the notices isn't finished: fill
+                     in what it says to copy there.
+
+REVIEW               internal/cache/lru.go:2-52
+                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
+                     MPL-2.0 applies file by file: keep the copied code in its own file under
+                     MPL-2.0, keep its notice, and publish your changes to that file.
+
+9 findings: 2 conflict, 1 no license, 1 review, 1 attribution missing, 4 attributed.
+FAIL: 1 finding breaks the policy (fail on: attribution-missing).
+Attribution can be fixed with: remixware notice --out THIRD_PARTY_NOTICES.md (same --index/--from flags)
+(exit 1)
+
+(the copyright line notice asked for, filled in by hand in THIRD_PARTY_NOTICES.md)
+
+$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet
+
+REVIEW               internal/cache/lru.go:2-52
+                     example.net/mplcache, lru.go:6-57 (MPL-2.0), copied with edits, 100% match
+                     MPL-2.0 applies file by file: keep the copied code in its own file under
+                     MPL-2.0, keep its notice, and publish your changes to that file.
+
+9 findings: 2 conflict, 1 no license, 1 review, 5 attributed.
+PASS: no findings break the policy (fail on: attribution-missing).

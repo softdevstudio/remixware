@@ -6,8 +6,8 @@ toml        v1.4.0      29 files    9925 lines  0 matches
 chi         v5.1.0      73 files    9730 lines  0 matches
 color       v1.18.0      4 files    1393 lines  0 matches
 koa         2.15.3      74 files    6857 lines  0 matches
-typer       0.12.5     575 files   22161 lines  3 matches
-    typer/_completion_classes.py:36-47 matches click src/click/shell_completion.py:335-368 (edited, 100%, 108 tokens)
+typer       0.12.5     575 files   22161 lines  5 matches
+    typer/_completion_classes.py:36-47 matches click src/click/shell_completion.py:335-346 (verbatim, 100%, 54 tokens)
       |   36         cwords = click.parser.split_arg_string(os.environ["COMP_WORDS"])
       |   37         cword = int(os.environ["COMP_CWORD"])
       |   38         args = cwords[1:cword]
@@ -39,6 +39,40 @@ typer       0.12.5     575 files   22161 lines  3 matches
       >  113     if opt[1:2] == first:
       >  114         return opt[:2], opt[2:]
       >  115     return first, opt[1:]
+    typer/core.py:476-523 matches click src/click/core.py:2734-2778 (verbatim, 85%, 163 tokens)
+      |  476     def get_help_record(self, ctx: click.Context) -> Optional[Tuple[str, str]]:
+      |  477         # Duplicate all of Click's logic only to modify a single line, to allow boolean
+      |  478         # flags with only names for False values as it's currently supported by Typer
+      |  479         # Ref: https://typer.tiangolo.com/tutorial/parameter-types/bool/#only-names-for-false
+      |  480         if self.hidden:
+      |  481             return None
+      |  482 
+      |  483         any_prefix_is_slash = False
+      > 2734     def get_help_record(self, ctx: Context) -> t.Optional[t.Tuple[str, str]]:
+      > 2735         if self.hidden:
+      > 2736             return None
+      > 2737 
+      > 2738         any_prefix_is_slash = False
+      > 2739 
+      > 2740         def _write_opts(opts: t.Sequence[str]) -> str:
+      > 2741             nonlocal any_prefix_is_slash
+    typer/core.py:543-559 matches click src/click/core.py:2820-2840 (verbatim, 83%, 81 tokens)
+      |  543             if default_string:
+      |  544                 extra.append(_("default: {default}").format(default=default_string))
+      |  545 
+      |  546         if isinstance(self.type, click.types._NumberRangeBase):
+      |  547             range_str = self.type._describe_range()
+      |  548 
+      |  549             if range_str:
+      |  550                 extra.append(range_str)
+      > 2820             if default_string:
+      > 2821                 extra.append(_("default: {default}").format(default=default_string))
+      > 2822 
+      > 2823         if (
+      > 2824             isinstance(self.type, types._NumberRangeBase)
+      > 2825             # skip count with default range type
+      > 2826             and not (self.count and self.type.min == 0 and self.type.max is None)
+      > 2827         ):
     typer/core.py:566-580 matches click src/click/core.py:1380-1388 (edited, 70%, 66 tokens)
       |  566     opts = []
       |  567     for param in self.get_params(ctx):
@@ -59,4 +93,4 @@ typer       0.12.5     575 files   22161 lines  3 matches
 sds         5347739      4 files    1701 lines  0 matches
 parson      ec53fb6      3 files    3713 lines  0 matches
 
-Total: 924 files, 99198 lines scanned, 3 matches.
+Total: 924 files, 99198 lines scanned, 5 matches.

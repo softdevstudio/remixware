@@ -219,6 +219,17 @@ func credited(text string, s Source) bool {
 	return false
 }
 
+// unfinishedEntry reports whether the notices hold an entry for the source
+// that remixware notice wrote and that still waits to be finished.
+func unfinishedEntry(text string, s Source) bool {
+	for _, p := range strings.Split(text, "\n## ") {
+		if strings.Contains(p, unfinishedMark) && containsWord(strings.Join(strings.Fields(p), " "), "source: "+strings.ToLower(s.Key)) {
+			return true
+		}
+	}
+	return false
+}
+
 // finishedNotices drops the entries of a notices text that still say
 // something has to be copied in "before you ship this".
 func finishedNotices(text string) string {
@@ -336,7 +347,10 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 				f.Reason = "The file keeps the original copyright and licence notice. " + f.Reason
 			default:
 				f.Status = StatusAttributionMissing
-				if credited(strings.ToLower(fileText(f.File)), f.Source) {
+				switch {
+				case unfinishedEntry(notices, f.Source):
+					f.Reason += " Its entry in the notices isn't finished: fill in what it says to copy there."
+				case credited(strings.ToLower(fileText(f.File)), f.Source):
 					f.Reason += " The file names its source, but the copyright line and licence text also have to ship with the code."
 				}
 			}

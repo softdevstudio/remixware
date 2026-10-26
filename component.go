@@ -525,6 +525,9 @@ func licenceNamedBy(base string) string {
 	return ""
 }
 
+// maxLicenseText is how much licence text a component keeps for notices.
+const maxLicenseText = 128 << 10
+
 // licenseFromFiles reads licence files and names the licences in them.
 // Licence files usually all apply, joined with AND. Files that each carry
 // one licence in their name, such as LICENSE-MIT and LICENSE-APACHE, are a
@@ -536,6 +539,7 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 	var froms []string
 	var option []bool // the file's licence is one of a choice
 	var choiceText string
+	var textIDs []string // the licences whose text is in text
 	for _, p := range paths {
 		t := readSmall(p, 256<<10)
 		if strings.TrimSpace(t) == "" {
@@ -584,12 +588,16 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		froms = append(froms, base)
 		named := licenceNamedBy(base)
 		option = append(option, named != "" && strings.HasPrefix(id, named))
-		// Every licence file's text: a notice for an "Apache-2.0 AND MIT"
-		// component needs both.
-		if text != "" {
-			text += "\n\n----- " + base + " -----\n\n"
+		// Every licence's text, once: a notice for an "Apache-2.0 AND MIT"
+		// component needs both. A text that doesn't fit is left out whole,
+		// never cut, and a notice then falls back to the standard text.
+		if t = strings.TrimSpace(t); !containsString(textIDs, id) && len(text)+len(t) <= maxLicenseText {
+			if text != "" {
+				text += "\n\n----- " + base + " -----\n\n"
+			}
+			text += t
+			textIDs = append(textIDs, id)
 		}
-		text += strings.TrimSpace(t)
 		copyrights = append(copyrights, copyrightLines(t, 10)...)
 	}
 	// An LGPL-3.0 project ships the GPL-3.0 text too, because the LGPL is
@@ -613,9 +621,6 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 	}
 	if len(ids) == 0 {
 		return "", "", "", dedupe(copyrights)
-	}
-	if len(text) > 64<<10 {
-		text = text[:64<<10]
 	}
 	// A dual-licence statement makes every licence it names an option.
 	if choiceText != "" {

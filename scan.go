@@ -600,9 +600,7 @@ func chainHits(hs []hit) [][]hit {
 			last := c.hits[len(c.hits)-1]
 			ds := h.spos - last.spos
 			dt := h.tpos - last.tpos
-			// A copy runs forwards through both files. A step back in the
-			// indexed file is look-alike code lining up with the wrong place.
-			if ds <= 0 || dt < 0 || dt > maxGap {
+			if ds <= 0 || dt <= -kgramSize || dt > maxGap {
 				continue
 			}
 			drift := dt - ds
@@ -747,6 +745,14 @@ func sourceFromIndex(ix *Index, sf *SourceFile, comp *Component) Source {
 		PURL: comp.PURL, License: comp.License, LicenseFrom: comp.LicenseFrom, Via: "index", Abs: sf.Abs}
 	if sf.License != "" {
 		s.License, s.LicenseFrom = sf.License, "header of "+sf.Path
+		// A header licence added to the component's: say where both came from.
+		if comp.License != "" && comp.License != LicenseNone && strings.Contains(" "+sf.License+" ", " "+comp.License+" ") {
+			from := comp.LicenseFrom
+			if from == "" {
+				from = "the component's licence"
+			}
+			s.LicenseFrom = from + " and the header of " + sf.Path
+		}
 	}
 	s.Copyrights = dedupe(append(append([]string{}, sf.Copyrights...), comp.Copyrights...))
 	if len(s.Copyrights) > 8 {

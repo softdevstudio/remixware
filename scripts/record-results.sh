@@ -51,6 +51,28 @@ done
 "$bin" check testdata/projects/shopfront --index "$ix" > "$g/shopfront-check.txt" 2>/dev/null \
   && { echo "::error::check passed on shopfront, which has conflicts"; exit 1; }
 "$bin" notice testdata/projects/shopfront --index "$ix" --quiet > "$g/shopfront-notices.md" 2>/dev/null
+# The notices loop on a copy of the shop: check, write the notices, check,
+# fill in what notice couldn't find, check again.
+loop="$work/shopfront"
+cp -R testdata/projects/shopfront "$loop"
+{
+  cd "$loop"
+  echo '$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet'
+  "$bin" check . --index "$root/$ix" --fail-on attribution-missing --quiet || echo "(exit $?)"
+  echo
+  echo '$ remixware notice . --index upstream.rmx --out THIRD_PARTY_NOTICES.md'
+  "$bin" notice . --index "$root/$ix" --out THIRD_PARTY_NOTICES.md 2>&1 | grep -v '^scanning '
+  echo
+  echo '$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet'
+  "$bin" check . --index "$root/$ix" --fail-on attribution-missing --quiet || echo "(exit $?)"
+  echo
+  echo "(the copyright line notice asked for, filled in by hand in THIRD_PARTY_NOTICES.md)"
+  sed -i.bak 's/^Copyright: not known\..*/Copyright (c) 2016 The leftpadx authors/' THIRD_PARTY_NOTICES.md && rm -f THIRD_PARTY_NOTICES.md.bak
+  echo
+  echo '$ remixware check . --index upstream.rmx --fail-on attribution-missing --quiet'
+  "$bin" check . --index "$root/$ix" --fail-on attribution-missing --quiet || echo "(exit $?)"
+  cd "$root"
+} > "$g/notice-loop.txt"
 # Paths in the reports are shown from the repository root, not this machine.
 for f in "$g"/*.json "$g"/*.html "$g"/*.txt; do
   sed -i.bak "s#$root/##g" "$f" && rm -f "$f.bak"

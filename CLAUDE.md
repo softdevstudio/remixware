@@ -106,6 +106,10 @@ Known gaps, not planned yet:
   for a binary (Go's crypto/internal/boring LICENSE: Go licence for the
   code, OpenSSL for a .syso) is read as the quoted licence.
 - GPL-1.0 combinations are handled only roughly; it's rare.
+- The workflows use actions/checkout@v4, setup-go@v5 and
+  upload/download-artifact@v4, which GitHub now runs on Node 24 with a
+  deprecation warning. Newer majors exist (checkout v7 in 2026); move one
+  at a time in a quiet moment and watch CI.
 
 ## Next
 

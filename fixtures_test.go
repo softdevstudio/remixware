@@ -689,6 +689,9 @@ func TestNoticesFixAttribution(t *testing.T) {
 		if want := f.File == "web/pad.js"; (f.Status == StatusAttributionMissing) != want {
 			t.Errorf("%s: %s after notices were written", f.File, f.Status)
 		}
+		if f.File == "web/pad.js" && !strings.Contains(f.Reason, "isn't finished") {
+			t.Errorf("web/pad.js: the reason doesn't say its entry waits: %s", f.Reason)
+		}
 	}
 	finished := strings.Replace(string(existing)+nr.Text, "Copyright: not known. Copy the copyright line from the source before you ship this.",
 		"Copyright (c) 2016 The leftpadx authors", 1)

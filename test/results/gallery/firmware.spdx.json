@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "firmware copied code",
-  "documentNamespace": "https://remixware.com/spdx/firmware-b257275e89c4a044",
+  "documentNamespace": "https://remixware.com/spdx/firmware-b39075e1eabf9325",
   "creationInfo": {
-    "created": "2026-10-26T06:39:45Z",
+    "created": "2026-10-26T08:11:37Z",
     "creators": [
       "Tool: remixware-0.1.0"
     ]
@@ -57,6 +57,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-1",
+            "offset": 45
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-1",
+            "offset": 661
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-1",
             "lineNumber": 2
           },
           "endPointer": {
@@ -80,6 +90,16 @@
         {
           "startPointer": {
             "reference": "SPDXRef-File-2",
+            "offset": 88
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-2",
+            "offset": 735
+          }
+        },
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-2",
             "lineNumber": 5
           },
           "endPointer": {
@@ -100,6 +120,16 @@
       "name": "from example.org/gplsort",
       "snippetFromFile": "SPDXRef-File-3",
       "ranges": [
+        {
+          "startPointer": {
+            "reference": "SPDXRef-File-3",
+            "offset": 109
+          },
+          "endPointer": {
+            "reference": "SPDXRef-File-3",
+            "offset": 842
+          }
+        },
         {
           "startPointer": {
             "reference": "SPDXRef-File-3",

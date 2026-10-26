@@ -1,6 +1,6 @@
 Scanned 11 files (474 lines) in testdata/projects/shopfront
 Project licence: MIT (from LICENSE)
-Compared with: gallery-upstream.rmx (10 components, 10 files)
+Compared with: upstream.rmx (10 components, 10 files)
 Notice files: THIRD_PARTY_NOTICES.md
 
 CONFLICT             internal/files/order.go:7-46
@@ -9,7 +9,7 @@ CONFLICT             internal/files/order.go:7-46
                      released under GPL-3.0-or-later. Remove it, rewrite it, or relicense.
 
 CONFLICT             scripts/slug.py:1-36
-                     agplwiki 0.4.0, agplwiki/text.py:1-36 (AGPL-3.0-or-later), copied with edits, 100% match
+                     agplwiki 0.4.0, agplwiki/text.py:1-36 (AGPL-3.0-or-later), copied as is, 100% match
                      AGPL-3.0-or-later code can't go into an MIT project unless the whole program
                      is released under AGPL-3.0-or-later, which also means offering the source to
                      everyone who uses it over a network.
