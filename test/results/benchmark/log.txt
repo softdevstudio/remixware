@@ -33,7 +33,7 @@ Copies of 100 tokens or more, all kinds of change: 1094 of 1114 found (98.2%).
 Copies that were also matched to a different project: 0
 
 unrelated: 5 matches in 99198 lines
-Index: 2784 files, 514366 lines in 959ms (536485 lines/s)
-Scan of the copies: 2880 files, 73568 lines in 934ms (78744 lines/s)
-Scan of the unrelated projects: 924 files, 99198 lines in 369ms (269037 lines/s)
+Index: 2784 files, 514366 lines in 922ms (558049 lines/s)
+Scan of the copies: 2880 files, 73568 lines in 1.065s (69055 lines/s)
+Scan of the unrelated projects: 924 files, 99198 lines in 374ms (265204 lines/s)
 Index file: 6106089 bytes for 514366 lines

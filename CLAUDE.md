@@ -109,10 +109,14 @@ copyright lines were read from inside licence texts (item "(c) under
 Patent Claims ..." of the MPL-2.0, "(c) You must retain ..." of a wrapped
 Apache-2.0 text, the FSF's line at the top of the GPL). A copyright line
 counts as credit, so another library's notice with the same licence text
-credited the copy. `copyrightLines` now skips lettered list items, licence
-documents' own copyrights and templates; checked against all 826 SPDX
-licence texts and 1,300 real licence files. The SCANOSS fixture links to
-example domains (it linked an unrelated real npm package).
+credited the copy. `copyrightLines` now skips item (c) of a lettered list
+(near item (b), or in lower case after a list, and without a company, an
+address or "all rights reserved"), licence documents' own copyrights and
+templates (placeholders in brackets, whole template words). A re-check
+found the first version of this too eager ("Holder Technologies Inc.",
+"<https://...>"); those cases are tests now. Checked against all 826 SPDX
+licence texts and about 19,000 real licence files and source headers. The
+fixtures link to example domains (one linked an unrelated npm package).
 
 ## Gaps and to-do
 

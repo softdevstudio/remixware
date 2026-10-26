@@ -423,7 +423,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 - Source: jsutil@3.1.0
 - Licence: BSD-3-Clause
-- Home: https://github.com/imoreau/jsutil
+- Home: https://example.org/jsutil
 - Used in: `web/util.js` lines 3-25
 
 ```text
@@ -462,7 +462,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 - Source: leftpadx@1.0.4
 - Licence: ISC
-- Home: https://github.com/example/leftpadx
+- Home: https://example.org/leftpadx
 - Used in: `web/pad.js` lines 1-28
 
 Copyright: not known. Copy the copyright line from the source before you ship this.
@@ -480,7 +480,7 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 - Source: tinyjson@1.2.0
 - Licence: MIT
-- Home: https://github.com/example/tinyjson
+- Home: https://example.org/tinyjson
 - Used in: `tools/prettyjson.py` lines 1-32
 
 ```text

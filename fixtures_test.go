@@ -821,7 +821,7 @@ func TestNoticesFixAttribution(t *testing.T) {
 		}
 	}
 	finished := finishNoticeEntry(string(existing)+nr.Text, "leftpadx@1.0.4", "Copyright (c) 2016 The leftpadx authors")
-	finished = finishNoticeEntry(finished, "example.net/mplcache", "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go.")
+	finished = finishNoticeEntry(finished, "example.net/mplcache", "No copyright line in the source; its files carry only the MPL-2.0 notice.")
 	if err := os.WriteFile(notesPath, []byte(finished), 0o644); err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,6 @@
 {
   "tool": "remixware 0.1.1",
-  "created": "2026-10-26T10:43:30Z",
+  "created": "2026-10-26T11:06:25Z",
   "project": "testdata/projects/shopfront",
   "project_license": "MIT",
   "project_license_from": "LICENSE",
@@ -220,7 +220,7 @@
           1,
           32
         ],
-        "url": "https://github.com/example/tinyjson",
+        "url": "https://example.org/tinyjson",
         "purl": "pkg:pypi/tinyjson@1.2.0",
         "license": "MIT",
         "license_from": "tinyjson-1.2.0.dist-info/METADATA",
@@ -254,7 +254,7 @@
           1,
           28
         ],
-        "url": "https://github.com/example/leftpadx",
+        "url": "https://example.org/leftpadx",
         "purl": "pkg:npm/leftpadx@1.0.4",
         "license": "ISC",
         "license_from": "package.json",
@@ -285,7 +285,7 @@
           6,
           28
         ],
-        "url": "https://github.com/imoreau/jsutil",
+        "url": "https://example.org/jsutil",
         "purl": "pkg:npm/jsutil@3.1.0",
         "license": "BSD-3-Clause",
         "license_from": "package.json",

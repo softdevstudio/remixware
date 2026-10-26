@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // Category groups licences by what copying code under them asks of you.
@@ -1130,10 +1132,22 @@ func firstLines(s string, n int) string {
 var (
 	copyrightLine = regexp.MustCompile(`(?i)^(?:copyright\b|\(c\)\s|©)`)
 	copyrightYear = regexp.MustCompile(`\b(1[89]\d\d|20\d\d)\b`)
-	// A placeholder in a template: "<Jahr>", "[fullname]". An e-mail address
-	// in angle brackets isn't one.
-	copyrightPlaceholder = regexp.MustCompile(`<[^<>@]*>|\[[^\]]*\]`)
-	listItemMark         = regexp.MustCompile(`(?i)(^|\s)\([ab]\)\s`)
+	// A template's placeholders: "<year>", "[name of copyright owner]",
+	// "{name of author}", "<Jahr>", or brackets with nothing in them. An
+	// address such as "<jane@example.com>" or "<https://example.com>", or a
+	// note such as "[see AUTHORS]", isn't one.
+	copyrightBrackets = regexp.MustCompile(`<([^<>]*)>|\[([^\[\]]*)\]|\{([^{}]*)\}`)
+	placeholderWords  = regexp.MustCompile(`(?i)\b(years?|yyyy|yy|owners?|holders?|fullname|full name|name of|author|dates?|jahr|inhaber|name des|rechtsinhabers?)\b`)
+	// A template written without brackets: "Copyright (C) year  name of
+	// author". Whole words only, so "Yearling Software" and "Stakeholder
+	// Labs" are names.
+	templatePhrase = regexp.MustCompile(`(?i)\b(year|yyyy|name of|copyright holders?)\b`)
+	// What a holder's "(c) ..." line has and a licence's item (c) doesn't.
+	// "Limited" and "Corporation" count only where a name ends, since a
+	// licence says "not limited to" and "LIABILITY IS LIMITED".
+	holderMarks  = regexp.MustCompile(`(?i)\b(inc|ltd|llc|gmbh|corp|plc|pty)\b|\b(corporation|limited|company|foundation|university)\W*$|all rights reserved|@|\bat\s+[a-z0-9-]+\.[a-z]|https?://|www\.`)
+	listItemMark = regexp.MustCompile(`(?i)(^|\s)\([ab]\)\s`)
+	listItemB    = regexp.MustCompile(`(?i)(^|\s)\(b\)\s`)
 	// What follows a licence document's own copyright: "Everyone is
 	// permitted to copy and distribute verbatim copies of this license
 	// document" (the GNU licences, Artistic 2.0, LPPL, SSPL), "Permission to
@@ -1177,14 +1191,10 @@ func copyrightLines(text string, max int) []string {
 		}
 		low := strings.ToLower(l)
 		hasYear := copyrightYear.MatchString(l)
-		if (strings.ContainsAny(l, "<[") || !hasYear) && (strings.Contains(low, "year") || strings.Contains(low, "owner") ||
-			strings.Contains(low, "holder") || strings.Contains(low, "yyyy") || strings.Contains(low, "name of")) {
+		if copyrightTemplate(l, hasYear) {
 			continue // "Copyright (c) <year> <copyright holders>", "Copyright (C) year  name of author"
 		}
-		if !hasYear && (copyrightPlaceholder.MatchString(l) || strings.Contains(l, "___") || copyrightHolder(l) == "") {
-			continue // "Copyright (C) [dates of first publication] ...", "Copyright (c) ..."
-		}
-		if inList && strings.HasPrefix(low, "(c)") && !hasYear && !strings.HasPrefix(strings.TrimSpace(low[3:]), "copyright") {
+		if strings.HasPrefix(low, "(c)") && !hasYear && licenceListItem(lines, i, inList, strings.TrimSpace(l[3:])) {
 			continue // "(c) under Patent Claims infringed by ...", item (c) of a licence's list
 		}
 		if len(low) > len("copyright") && strings.HasPrefix(low, "copyright") && strings.ContainsRune("\"'”’", []rune(low[len("copyright"):])[0]) {
@@ -1195,7 +1205,7 @@ func copyrightLines(text string, max int) []string {
 		}
 		bad := false
 		for _, w := range []string{"copyright notice", "copyright holders", "copyright holder ", "copyright owner",
-			"copyright law", "copyright and license", "copyright and related", "copyright license", "copyright statement",
+			"copyright law", "copyright and license", "copyright and related", "copyright and permission", "copyright license", "copyright statement",
 			"copyright, patent", "copyright protection", "copyrighted", "copyright interest", "copyright notices"} {
 			if strings.Contains(low, w) {
 				bad = true
@@ -1214,6 +1224,40 @@ func copyrightLines(text string, max int) []string {
 		}
 	}
 	return out
+}
+
+// copyrightTemplate reports whether a copyright line is a template to fill
+// in rather than a statement: a placeholder in brackets, template words
+// without a year, blanks to fill in, or no holder at all.
+func copyrightTemplate(l string, hasYear bool) bool {
+	for _, m := range copyrightBrackets.FindAllStringSubmatch(l, -1) {
+		inner := m[1] + m[2] + m[3]
+		if placeholderWords.MatchString(inner) || strings.TrimSpace(inner) == "" && !hasYear {
+			return true // a line with a year keeps an address someone blanked out: "2002, Dr Brian Gladman <   >"
+		}
+	}
+	return !hasYear && (templatePhrase.MatchString(l) || strings.Contains(l, "___") || copyrightHolder(l) == "")
+}
+
+// licenceListItem reports whether a line led by "(c)" with no year, whose
+// text after the mark is rest, is item (c) of a licence's lettered list:
+// "(c) You must retain, in the Source form ..." two lines after item (b),
+// or "(c) under Patent Claims ..." in lower case after a list. A line with
+// a company, an address or "all rights reserved" is a holder's:
+// "(c) Initech Corporation".
+func licenceListItem(lines []string, i int, listBefore bool, rest string) bool {
+	if strings.HasPrefix(strings.ToLower(rest), "copyright") || holderMarks.MatchString(rest) {
+		return false
+	}
+	if r, _ := utf8.DecodeRuneInString(rest); listBefore && unicode.IsLower(r) {
+		return true
+	}
+	for j := max(0, i-12); j < i; j++ {
+		if l := copyrightText(lines[j]); strings.Contains(l, "(") && listItemB.MatchString(l) {
+			return true
+		}
+	}
+	return false
 }
 
 // licenceDocumentCopyright reports whether the copyright line at lines[i]

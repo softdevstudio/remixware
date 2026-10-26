@@ -514,6 +514,9 @@ distribute verbatim copies of this document is granted.`,
 		"defined term":        `"Copyright" - Includes rights under copyright and under neighbouring rights and similarly related sets of rights under the law of the relevant jurisdiction under Section 6.4.`,
 		"Artistic-2.0 item":   "(b) ensure that the Modified Version ...\n(c) allow anyone who receives a copy of the Modified Version to",
 		"MS-PL item, capital": "(A) No Trademark License\n(B) If you bring a patent claim\n(C) If you distribute any portion of the software, you must retain",
+		"ICU heading":         "COPYRIGHT AND PERMISSION NOTICE (ICU 58 and later)",
+		"escaped template":    "Copyright (C) &lt;year&gt;  &lt;name of author&gt;",
+		"empty brackets":      "Copyright (c) <> []",
 	}
 	for name, text := range notCopyrights {
 		if got := copyrightLines(text, 10); len(got) != 0 {
@@ -529,6 +532,18 @@ distribute verbatim copies of this document is granted.`,
 		"before the GPL text": "Copyright (C) 2019 Tomas Lindqvist\nGNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n" +
 			"Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>\nEveryone is permitted to copy and distribute verbatim copies\nof this license document, but changing it is not allowed.",
 		"a manual's notice": "Copyright (C) 1991, 1992 Hans-Hermann Bode\n\nPermission is granted to make and distribute verbatim copies of this  document provided that the copyright notice and this permission notice are preserved on all copies.",
+		// Names that hold a template word, and brackets that aren't placeholders.
+		"web address":          "Copyright (c) Lea Verou <https://lea.verou.me>",
+		"address with at":      "Copyright (c) Jane Doe <jane at example.com>",
+		"Holder in a name":     "Copyright (c) Holder Technologies Inc.",
+		"holder inside a word": "Copyright (c) Stakeholder Labs",
+		"year inside a word":   "Copyright (c) Yearling Software Ltd",
+		"a note in brackets":   "Copyright (c) The Foo Authors [see AUTHORS]",
+		"blanked address":      "Copyright (C) 2002, Dr Brian Gladman <                 >, Worcester, UK.",
+		// "(c)" lines near a lettered list that are a holder's.
+		"after (a) and (b)":   "// Package ring keeps (a) the newest items and (b) a running total.\n//\n// (c) Jane Doe, all rights reserved.",
+		"company after (b)":   "/*\n * Options: (a) fast mode, (b) safe mode.\n * (C) Acme Systems GmbH\n */",
+		"after Apache's list": "      (b) You must cause any modified files to carry prominent notices\n      (c) You must retain, in the Source form of any Derivative Works\n   END OF TERMS AND CONDITIONS\n\n   (c) Initech Corporation",
 	}
 	for name, text := range copyrights {
 		if got := copyrightLines(text, 10); len(got) != 1 || strings.Contains(got[0], "Free Software") {

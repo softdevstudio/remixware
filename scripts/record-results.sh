@@ -71,7 +71,7 @@ cp -R testdata/projects/shopfront "$loop"
     /^## / { src = "" }
     /^- Source: / { src = $3 }
     /^Copyright: not known\./ && src == "leftpadx@1.0.4" { print "Copyright (c) 2016 The leftpadx authors"; next }
-    /^Copyright: not known\./ && src == "example.net/mplcache" { print "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go."; next }
+    /^Copyright: not known\./ && src == "example.net/mplcache" { print "No copyright line in the source; its files carry only the MPL-2.0 notice."; next }
     { print }
   ' THIRD_PARTY_NOTICES.md > THIRD_PARTY_NOTICES.md.new && mv THIRD_PARTY_NOTICES.md.new THIRD_PARTY_NOTICES.md
   echo

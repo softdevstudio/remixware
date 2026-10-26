@@ -206,7 +206,7 @@ func TestNoticeLoop(t *testing.T) {
 		t.Fatalf("not two lines to finish in the notices:\n%s", after)
 	}
 	finished := finishEntry(after, "leftpadx@1.0.4", "Copyright (c) 2016 The leftpadx authors")
-	finished = finishEntry(finished, "example.net/mplcache", "No copyright line in the source; its MPL-2.0 notice is kept in internal/cache/lru.go.")
+	finished = finishEntry(finished, "example.net/mplcache", "No copyright line in the source; its files carry only the MPL-2.0 notice.")
 	if bytes.Contains(finished, []byte(todo)) {
 		t.Fatalf("entries left unfinished:\n%s", finished)
 	}
