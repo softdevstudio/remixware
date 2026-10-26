@@ -165,7 +165,7 @@ For each file it sends a number with the file's extension, the file's MD5
 and size, and the hashes of its text: no code and no file names. The
 answers are matched back to your files by those numbers. The service's
 [terms](https://www.softwaretransparency.org/terms) apply: it's free and
-comes with no guarantees, it limits how much you ask, and it logs usage.
+comes with no guarantees, it limits how much you ask, and it may log usage.
 Remixware waits and tries again when the service asks it to slow down for a
 moment. When the service asks for a longer wait, as it does once a limit is
 used up (sometimes until the next month), Remixware stops and says until

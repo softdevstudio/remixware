@@ -61,7 +61,15 @@ content and config values only; never touch the theme).
   hand: `gh api -X POST repos/softdevstudio/remixware/actions/workflows/scanoss-live.yml/dispatches -f ref=main`)
   asks the real SCANOSS service about copies of logrus and reports what it
   found as annotations. Run it after any change to `wfp.go` or
-  `scanossapi.go`; these sessions can't reach the service themselves.
+  `scanossapi.go`; these sessions can't reach the service themselves. The
+  free service keeps a monthly limit and turned all of GitHub's runners
+  away from 2026-10-26 to the end of that month (HTTP 503 with a wait until
+  the 1st). When that happens, `scripts/scanoss_live.py request DIR`
+  captures Remixware's request and writes a `submit.js` that posts it from
+  a browser tab on https://api.osskb.org/ (the owner's built-in browser
+  pane, with his OK, worked for 0.2), and `record DIR` replays the saved
+  answer into `test/results/live`. Don't commit the service's answers: its
+  terms allow them for software identification only.
 - main is the default branch. No side branches.
 - GitHub job logs can't be downloaded from these sessions, but annotations
   can. Workflows print `::error::` lines for that reason. Read the real

@@ -437,6 +437,28 @@ func TestSCANOSSRealAnswers(t *testing.T) {
 	}
 }
 
+// Quirks of the live service's answers, as it gave them on 2026-10-26: a
+// missing vendor written as "None", a blank file_url, no copyrights key, a
+// hits count and two package URLs.
+func TestSCANOSSServiceQuirks(t *testing.T) {
+	answer := `[{"id": "snippet","hits": 10,"lines": "7-31","oss_lines": "126-150","matched": "77%",
+  "file_hash": "00000000000000000000000000000002","source_hash": "00000000000000000000000000000003","file_url": " ",
+  "purl": ["pkg:npm/tinyfmt","pkg:github/example/tinyfmt"],"vendor": "None","component": "tinyfmt","version": "2.0.1",
+  "latest": "2.1.0","url": "https://example.com/tinyfmt","status": "pending","release_date": "2018-07-21","file": "fmt.js",
+  "url_hash": "00000000000000000000000000000004","licenses": [{"name": "MIT","patent_hints": "no", "copyleft": "no",
+  "checklist_url": "https://example.com/MIT.txt","osadl_updated": "2026-02-12T16:31:00+0000","source": "component_declared",
+  "url": "https://spdx.org/licenses/MIT.html"}],"server": {"version": "5.4.27","kb_version": {"monthly":"26.10", "daily":"26.10.19"}}}]`
+	found, err := scanossFindings(map[string]json.RawMessage{"web/fmt.js": json.RawMessage(answer)}, "quirks", t.TempDir())
+	if err != nil || len(found) != 1 {
+		t.Fatalf("%v, %d findings", err, len(found))
+	}
+	f := found[0]
+	if f.Source.Component != "tinyfmt" || f.Source.PURL != "pkg:npm/tinyfmt" || f.Source.Version != "2.0.1" ||
+		f.Lines != (Range{7, 31}) || f.Source.Lines != (Range{126, 150}) || f.Source.License != "MIT" || f.Match.Coverage != 0.77 {
+		t.Errorf("finding %+v", f)
+	}
+}
+
 // A service that asks for a longer wait than the tries left could cover
 // gets no more requests, and the error says how long and until when. The
 // free service answers a used-up monthly limit this way.

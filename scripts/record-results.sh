@@ -13,7 +13,9 @@ res="$root/test/results"
 cache="${REMIXWARE_BENCH_CACHE:-$HOME/.cache/remixware-bench}"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-rm -rf "$res"
+# test/results/live holds a check against the live SCANOSS service, made by
+# hand (see its README.md): it stays.
+rm -rf "$res/benchmark" "$res/gallery" "$res/environment.txt" "$res/tests.txt" "$res/gallery.txt"
 mkdir -p "$res/benchmark" "$res/gallery"
 cd "$root"
 

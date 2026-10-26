@@ -140,8 +140,12 @@ func scanossFinding(rel string, m scanossMatch, project string) Finding {
 	}
 	oss := parseRanges(m.OSSLines)
 	name := m.Component
-	if m.Vendor != "" && !strings.Contains(name, "/") && !strings.EqualFold(m.Vendor, m.Component) {
-		name = m.Vendor + "/" + m.Component
+	vendor := m.Vendor
+	if strings.EqualFold(vendor, "none") {
+		vendor = "" // how the service writes a missing vendor
+	}
+	if vendor != "" && !strings.Contains(name, "/") && !strings.EqualFold(vendor, m.Component) {
+		name = vendor + "/" + m.Component
 	}
 	purl := ""
 	if len(m.PURL) > 0 {

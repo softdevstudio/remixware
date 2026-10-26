@@ -1,0 +1,81 @@
+{
+  "tool": "remixware 0.1.1",
+  "created": "2026-10-26T12:23:54Z",
+  "project": "proj",
+  "project_license": "Apache-2.0",
+  "project_license_from": "--license",
+  "inputs": [
+    {
+      "kind": "scanoss-api",
+      "path": "http://127.0.0.1:PORT/scan/direct",
+      "files": 2,
+      "matches": 2
+    }
+  ],
+  "files_scanned": 0,
+  "lines_scanned": 0,
+  "findings": [
+    {
+      "id": "RW-7e6cac79",
+      "file": "internal/fields/fields.go",
+      "lines": [
+        7,
+        31
+      ],
+      "source": {
+        "key": "pkg:golang/github.com/copejon/logrus@v1.8.1-0.20211013152949-b7bf4b8de09b",
+        "component": "github.com/copejon/logrus",
+        "version": "v1.8.1-0.20211013152949-b7bf4b8de09b",
+        "file": "entry.go",
+        "lines": [
+          126,
+          150
+        ],
+        "url": "https://proxy.golang.org/github.com/copejon/logrus/@v/v1.8.1-0.20211013152949-b7bf4b8de09b.zip",
+        "purl": "pkg:golang/github.com/copejon/logrus",
+        "license": "MIT",
+        "license_from": "SCANOSS (component declared)",
+        "via": "scanoss"
+      },
+      "match": {
+        "kind": "snippet",
+        "coverage": 0.77
+      },
+      "status": "attribution-missing",
+      "reason": "Keep its copyright line and the MIT licence text with your copy, for example in a third-party notices file."
+    },
+    {
+      "id": "RW-f616c5b4",
+      "file": "internal/logging/format.go",
+      "lines": [
+        1,
+        339
+      ],
+      "source": {
+        "key": "pkg:golang/github.com/copejon/logrus@v1.8.1-0.20211013152949-b7bf4b8de09b",
+        "component": "github.com/copejon/logrus",
+        "version": "v1.8.1-0.20211013152949-b7bf4b8de09b",
+        "file": "text_formatter.go",
+        "lines": [
+          0,
+          0
+        ],
+        "url": "https://proxy.golang.org/github.com/copejon/logrus/@v/v1.8.1-0.20211013152949-b7bf4b8de09b.zip",
+        "purl": "pkg:golang/github.com/copejon/logrus",
+        "license": "MIT",
+        "license_from": "SCANOSS (component declared)",
+        "via": "scanoss"
+      },
+      "match": {
+        "kind": "file",
+        "coverage": 1,
+        "whole_file": true
+      },
+      "status": "attribution-missing",
+      "reason": "Keep its copyright line and the MIT licence text with your copy, for example in a third-party notices file."
+    }
+  ],
+  "counts": {
+    "attribution-missing": 2
+  }
+}

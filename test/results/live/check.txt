@@ -1,0 +1,19 @@
+$ remixware 0.1.1: remixware scan proj --scanoss --license Apache-2.0 (answer replayed)
+
+SCANOSS: sending the fingerprints of 2 files to 127.0.0.1:PORT in 1 request
+wrote WORKDIR/findings.json
+Project proj
+Project licence: Apache-2.0 (from --license)
+Compared with: the SCANOSS service at 127.0.0.1:PORT (2 files sent, 2 matches)
+
+ATTRIBUTION MISSING  internal/fields/fields.go:7-31
+                     github.com/copejon/logrus v1.8.1-0.20211013152949-b7bf4b8de09b, entry.go:126-150 (MIT), snippet (SCANOSS), 77% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTION MISSING  internal/logging/format.go:1-339
+                     github.com/copejon/logrus v1.8.1-0.20211013152949-b7bf4b8de09b, text_formatter.go (MIT), whole file (SCANOSS), 100% match
+                     Keep its copyright line and the MIT licence text with your copy, for example
+                     in a third-party notices file.
+
+2 findings: 2 attribution missing.
