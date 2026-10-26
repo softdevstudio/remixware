@@ -4,3 +4,4 @@ dist/
 /remixware.exe
 *.rmx
 remixware-report*.html
+__pycache__/
