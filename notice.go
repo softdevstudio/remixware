@@ -76,7 +76,9 @@ func Notices(res *Results, existing string, all bool) NoticeResult {
 			continue
 		case cat == CatPublicDomain || cat == CatNone:
 			continue
-		case f.Status == StatusAttributed && !all:
+		case (f.Status == StatusAttributed || f.Credited) && !all:
+			// Credited already, such as an MPL copy that needs a review
+			// and keeps its licence next to it.
 			continue
 		}
 		e, ok := byKey[f.Source.Key]

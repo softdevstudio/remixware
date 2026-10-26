@@ -348,6 +348,7 @@ func compare(cmd string, args []string, stderr io.Writer, check func(*compareOpt
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	res.Exclude = append(append([]string{}, o.exclude...), pol.Ignore...)
 	for _, p := range o.from {
 		found, in, texts, err := remixware.ImportResults(p, res.Project)
 		if err != nil {
@@ -688,6 +689,8 @@ func skippedNote(res *remixware.Results) string {
 			k = plural(n, "symbolic link", "symbolic links") + ", not followed"
 		case "too-large":
 			k = "over 2 MB"
+		case "licence-files":
+			k = plural(n, "licence or notice file", "licence or notice files") + " not read for credit (Remixware reads up to 64 MB and 20,000 files)"
 		}
 		parts = append(parts, fmt.Sprintf("%d %s", n, k))
 	}

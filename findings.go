@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -100,6 +99,9 @@ type Finding struct {
 	Status  string   `json:"status"`
 	Reason  string   `json:"reason"`
 	Allowed string   `json:"allowed,omitempty"`
+	// Credited is set when the project carries the copy's notice: in its
+	// notices, in a licence file, or in the copied file's own header.
+	Credited bool `json:"credited,omitempty"`
 
 	score float64
 }
@@ -150,6 +152,9 @@ type Results struct {
 	Findings           []Finding                  `json:"findings"`
 	Counts             map[string]int             `json:"counts"`
 	Texts              map[string]*ComponentTexts `json:"texts,omitempty"`
+	// Exclude holds the patterns of project paths left out (--exclude),
+	// which Evaluate also leaves out when it looks for licence files.
+	Exclude []string `json:"-"`
 }
 
 // Input is one index or result file the project was compared with.
@@ -424,7 +429,9 @@ func (r *Results) recount() {
 // NewResults starts empty results for a project that is not scanned
 // locally, only compared through imported result files.
 func NewResults(project string) (*Results, error) {
-	abs, err := filepath.Abs(project)
+	// The real path, as Scan uses: a project reached through a symbolic
+	// link is walked like any other.
+	abs, err := realPath(project)
 	if err != nil {
 		return nil, err
 	}

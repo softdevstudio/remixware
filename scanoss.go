@@ -96,9 +96,21 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			}
 			texts := map[string]*ComponentTexts{}
 			for k, t := range r.Texts {
-				if t != nil {
-					texts[oneLine(k)] = &ComponentTexts{LicenseText: textBlock(t.LicenseText), NoticeText: textBlock(t.NoticeText)}
+				if t == nil {
+					continue
 				}
+				// An index keeps up to maxLicenseText of licence text and
+				// maxNoticeText of NOTICE, and cleaning can make a text
+				// up to three times longer. A licence text longer than
+				// that was made elsewhere, and a cut licence text is a
+				// wrong one, so it's left out and notices use the standard
+				// text. A NOTICE is cut the way an index cuts it, since
+				// the part kept still has to be found.
+				lt := t.LicenseText
+				if len(lt) > 3*maxLicenseText {
+					lt = ""
+				}
+				texts[oneLine(k)] = &ComponentTexts{LicenseText: textBlock(lt), NoticeText: cutText(textBlock(t.NoticeText), 3*maxNoticeText)}
 			}
 			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept), Dropped: dropped}, texts, nil
 		}

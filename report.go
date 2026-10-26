@@ -187,6 +187,8 @@ func skippedText(k string) string {
 		return "unreadable"
 	case "symlink":
 		return "symbolic links, not followed"
+	case "licence-files":
+		return "licence or notice files not read for credit (Remixware reads up to 64 MB and 20,000 files)"
 	}
 	return k
 }

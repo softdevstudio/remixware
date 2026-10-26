@@ -55,7 +55,8 @@ func Scan(project string, opt ScanOptions) (*Results, error) {
 		progress = func(string, ...any) {}
 	}
 	res := &Results{Tool: "remixware " + Version, Created: time.Now().UTC().Format(time.RFC3339), Project: abs,
-		Skipped: map[string]int{}, MinTokens: opt.MinTokens, MinLines: opt.MinLines, Texts: map[string]*ComponentTexts{}}
+		Skipped: map[string]int{}, MinTokens: opt.MinTokens, MinLines: opt.MinLines, Texts: map[string]*ComponentTexts{},
+		Exclude: append([]string{}, opt.Exclude...)}
 	for _, ix := range opt.Indexes {
 		res.Inputs = append(res.Inputs, Input{Kind: "index", Path: ix.Path, Components: len(ix.Components), Files: len(ix.Files)})
 	}

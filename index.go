@@ -423,7 +423,7 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 		}
 		c.LicenseText, c.Copyrights = text, cr
 		if info.noticeFile != "" {
-			c.NoticeText = strings.TrimSpace(readSmall(filepath.Join(p, info.noticeFile), 16<<10))
+			c.NoticeText = strings.TrimSpace(cutText(readSmall(filepath.Join(p, info.noticeFile), maxNoticeText+1), maxNoticeText))
 		}
 		if c.URL == "" {
 			c.URL = gitRemote(p)
@@ -487,6 +487,40 @@ func (ix *Index) discover(root string, opt IndexOptions) ([]pendingFile, error) 
 		}
 		if c.License == "" {
 			c.License, c.LicenseFrom = LicenseNone, ""
+		}
+	}
+	// A distribution read from its metadata, such as the .egg-info of a
+	// source release on PyPI, knows its licence but not the licence file,
+	// which sits at the top of the release. It takes the licence text, the
+	// copyright lines and the NOTICE of the component above it when that
+	// is the same project's: the same licence, no dependency folder in
+	// between. Without them, a copy kept with its licence can't be told
+	// from one without. Only distributions: an npm package or a folder
+	// without a licence file of its own may well have other holders.
+	fromDist := map[int]bool{}
+	for _, is := range distComps {
+		for _, i := range is {
+			fromDist[i] = true
+		}
+	}
+	for _, i := range created {
+		c := ix.Components[i]
+		if !fromDist[i] || c.LicenseText != "" || len(c.Copyrights) > 0 || c.NoticeText != "" {
+			continue
+		}
+		for q := filepath.Dir(c.Root); within(q, root) && q != filepath.Dir(q); q = filepath.Dir(q) {
+			if dependencyBoundary(relSlash(q, c.Root)) {
+				break
+			}
+			if j, ok := compByRoot[q]; ok && j != i {
+				if up := ix.Components[j]; sameLicense(up.License, c.License) {
+					c.LicenseText, c.Copyrights, c.NoticeText = up.LicenseText, up.Copyrights, up.NoticeText
+				}
+				break
+			}
+			if q == root {
+				break
+			}
 		}
 	}
 	if opt.License != "" {

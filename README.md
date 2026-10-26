@@ -234,7 +234,7 @@ Every finding has a status:
 | `no-license` | No licence was found for the source, so nobody has given permission to copy it. |
 | `review` | A person has to look: a file-level copyleft licence such as MPL-2.0 or LGPL, code that fits only if your project moves to another licence version (Apache-2.0 into GPL-2.0-or-later), a licence text Remixware doesn't recognise, or the same code also found under stricter terms. A copy that also needs its notice shows as `attribution-missing` until your notices have it. |
 | `attribution-missing` | The licence allows the copy, but its copyright line and licence text have to ship with your code, and your notice files don't have them. |
-| `attributed` | Allowed, and credited: your notice files name the source, or the copied file kept its original copyright header. |
+| `attributed` | Allowed, and credited: your notice files name the source, a licence or notice file elsewhere in the project does, or the copied file kept its original copyright header. |
 | `allowed` | Accepted by a rule in your policy file. |
 | `ok` | Public domain or similar: nothing to do. |
 
@@ -264,6 +264,25 @@ copyright lines, or the `Source:` line `remixware notice` writes, as a whole
 word: `github.com/acme/tool-extras` doesn't credit `github.com/acme/tool`. A
 bare name like `errors` doesn't count, since it's an everyday word, and
 neither does an entry `remixware notice` left for you to finish.
+
+Credit kept with the code counts too. Projects that vendor a library often
+keep its licence in the library's own folder (`typer/_click/LICENSE.txt`,
+`pip/_vendor/requests/LICENSE`), or keep a second licence file at the top
+(`LICENSE.xmpp-client`). Remixware reads the licence files (`LICENSE*`,
+`COPYING*`) and notice files anywhere in the project, and a source counts as
+credited when one of them has its full copyright line or its name as above.
+Source and build files named like notices (`attribution.go`,
+`ThirdParty.cmake`) don't count. Paths `--exclude` and the policy's `ignore`
+name are left out, and so are folders a scan skips, such as `vendor/` and
+`node_modules/`: a dependency's licence there doesn't credit code copied out
+of it into your own files, since the package manager may update or drop it.
+Some licence texts name no copyright holder, as Apache-2.0 and MPL-2.0
+don't. For a source like that, its own licence text counts when it is kept
+whole in the nearest folder with a licence file (`LICENSE*`, `COPYING*`),
+starting with the copy's own, but not in the project's top folder, where the
+same text could belong to any other library. If the source also ships a
+NOTICE, its NOTICE text has to be there as well, as Apache-2.0 asks. Without
+it, the finding says the licence is there and the NOTICE text isn't.
 
 ## Policy file
 
@@ -337,7 +356,8 @@ answer or refused.
   works offline and in dark mode.
 - `--json FILE`: the findings for other tools. The fields are `findings`
   (each with `id`, `file`, `lines`, `status`, `reason`, `source` and
-  `match`), `counts` per status, and what was scanned. `inputs` lists what
+  `match`, and `credited` when the project carries the copy's notice),
+  `counts` per status, and what was scanned. `inputs` lists what
   the project was compared with, each with a `kind`: `index`, `scanoss`
   (a results file), `remixware` (a findings file) or `scanoss-api` (the
   SCANOSS service, with its URL as `path` and the number of `files` sent).

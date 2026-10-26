@@ -1,6 +1,6 @@
 {
-  "tool": "remixware 0.2.0",
-  "created": "2026-10-26T14:06:45Z",
+  "tool": "remixware 0.2.1",
+  "created": "2026-10-26T16:16:27Z",
   "project": "testdata/projects/shopfront",
   "project_license": "MIT",
   "project_license_from": "LICENSE",
@@ -195,7 +195,8 @@
         "tokens": 204
       },
       "status": "attributed",
-      "reason": "Credited in the project's notices. Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the project ships, and mark files you changed."
+      "reason": "Credited in the project's notices. Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the project ships, and mark files you changed.",
+      "credited": true
     },
     {
       "id": "RW-a64e598d",

@@ -83,7 +83,36 @@ func isLicenseFileName(name string) bool {
 	if l := languageFor(low); l != nil {
 		return false
 	}
+	// Nor packages, archives and images: pip's tests hold wheels called
+	// license.dist-0.1-py2.py3-none-any.whl.
+	if notTextExt[strings.TrimPrefix(filepath.Ext(low), ".")] {
+		return false
+	}
 	return !strings.HasSuffix(low, ".json") && !strings.HasSuffix(low, ".html") && !strings.HasSuffix(low, ".xml")
+}
+
+// notTextExt are file extensions that are never a licence text.
+var notTextExt = map[string]bool{
+	"whl": true, "egg": true, "zip": true, "gz": true, "tgz": true, "bz2": true, "xz": true, "zst": true,
+	"7z": true, "rar": true, "tar": true, "jar": true, "war": true, "ear": true, "nupkg": true, "gem": true,
+	"deb": true, "rpm": true, "apk": true, "png": true, "jpg": true, "jpeg": true, "gif": true, "bmp": true,
+	"ico": true, "webp": true, "svg": true, "pdf": true, "so": true, "dll": true, "dylib": true, "exe": true,
+	"bin": true, "o": true, "a": true, "class": true, "pyc": true, "pyo": true, "wasm": true,
+}
+
+// noticeText reports whether a file named like a notice can be one: not
+// source code (attribution.go), nor a build or configuration file that
+// names its dependencies (ThirdParty.cmake, third_party_repos.bzl).
+func noticeText(name string) bool {
+	if languageFor(name) != nil {
+		return false
+	}
+	switch strings.ToLower(strings.TrimPrefix(filepath.Ext(name), ".")) {
+	case "cmake", "bzl", "bazel", "gn", "gni", "mk", "make", "gradle", "kts", "yml", "yaml", "toml", "cfg", "ini",
+		"lock", "sum", "mod", "sh", "bash", "bat", "cmd", "ps1", "nix", "pc", "in", "am", "ac", "m4", "spec", "props", "targets":
+		return false
+	}
+	return true
 }
 
 func isNoticeFileName(name string) bool {
@@ -149,8 +178,14 @@ func readSmall(path string, max int64) string {
 		return ""
 	}
 	defer f.Close()
-	if st, err := f.Stat(); err != nil || !st.Mode().IsRegular() {
+	st, err := f.Stat()
+	if err != nil || !st.Mode().IsRegular() {
 		return ""
+	}
+	// No more than the file holds: callers read thousands of small
+	// licence files with a large max.
+	if s := st.Size(); s >= 0 && s < max {
+		max = s + 1
 	}
 	buf := make([]byte, max)
 	n, _ := f.Read(buf)
@@ -418,14 +453,44 @@ func readPyproject(path string) *manifest {
 			return nil
 		}
 	}
-	m := &manifest{kind: "pypi", name: p["name"], version: p["version"], license: p["license"], dir: filepath.Dir(path)}
+	m := &manifest{kind: "pypi", name: p["name"], version: p["version"], license: pyLicense(p["license"]), dir: filepath.Dir(path)}
 	if f := p["license.file"]; f != "" {
 		m.licFile = filepath.Join(m.dir, filepath.FromSlash(f))
 	}
 	if m.license == "" {
-		m.license = p["license.text"]
+		m.license = pyLicense(p["license.text"])
 	}
 	return m
+}
+
+// pyLicense reads the licence a pyproject.toml gives: an SPDX expression
+// ("MIT OR Apache-2.0"), or a name in words ("ISC License", "Mozilla Public
+// License 2.0"). Words it can't place are left out, so the licence files
+// decide, as with a METADATA License line.
+func pyLicense(v string) string {
+	v = strings.TrimSpace(v)
+	switch {
+	case v == "" || len(v) > 200:
+		return ""
+	case lookupLicense(canonicalID(v)).Cat != CatUnknown:
+		return canonicalID(v) // "ISC License"
+	}
+	e := parseLicenseExpr(v)
+	known := true
+	for _, l := range e.leaves() {
+		if lookupLicense(l.id).Cat == CatUnknown {
+			known = false
+		}
+	}
+	switch {
+	case known:
+		return e.String()
+	case DetectLicense(v) != "":
+		return DetectLicense(v) // "Mozilla Public License 2.0"
+	case pyClassifierLicense[strings.ToLower(v)] != "":
+		return pyClassifierLicense[strings.ToLower(v)]
+	}
+	return ""
 }
 
 var pyClassifierLicense = map[string]string{
@@ -557,8 +622,12 @@ func licenceNamedBy(base string) string {
 	return ""
 }
 
-// maxLicenseText is how much licence text a component keeps for notices.
-const maxLicenseText = 128 << 10
+// maxLicenseText is how much licence text a component keeps for notices,
+// and maxNoticeText how much of its NOTICE file.
+const (
+	maxLicenseText = 128 << 10
+	maxNoticeText  = 16 << 10
+)
 
 // licenseFromFiles reads licence files and names the licences in them.
 // Licence files usually all apply, joined with AND. Files that each carry
@@ -572,13 +641,30 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 	var option []bool // the file's licence is one of a choice
 	var choiceText string
 	var textIDs []string // the licences whose text is in text
+	// A short licence file can offer the others as a choice: packaging's
+	// LICENSE reads "made available under the terms of either of the licenses
+	// found in LICENSE.APACHE or LICENSE.BSD". It isn't a licence itself, and
+	// the files it names become options.
+	pointer, chosen := map[string]bool{}, map[string]bool{}
+	for _, p := range paths {
+		if names := licenseFilePointer(readSmall(p, 4<<10), p, paths); len(names) > 0 {
+			pointer[p] = true
+			for _, n := range names {
+				chosen[n] = true
+			}
+		}
+	}
 	for _, p := range paths {
 		t := readSmall(p, 256<<10)
-		if strings.TrimSpace(t) == "" {
+		if strings.TrimSpace(t) == "" || strings.ContainsRune(t[:min(len(t), 8<<10)], 0) {
+			continue // empty, or not text
+		}
+		base := filepath.Base(p)
+		if pointer[p] {
+			copyrights = append(copyrights, copyrightLines(t, 10)...)
 			continue
 		}
 		id := DetectLicense(t)
-		base := filepath.Base(p)
 		if id == "" && len(t) < 2000 && offersChoice(normText(t)) {
 			// "This project is dual-licensed under the Unlicense and MIT."
 			choiceText = normText(t)
@@ -619,15 +705,16 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		ids = append(ids, id)
 		froms = append(froms, base)
 		named := licenceNamedBy(base)
-		option = append(option, named != "" && strings.HasPrefix(id, named))
+		option = append(option, named != "" && strings.HasPrefix(id, named) || chosen[p])
 		// Every licence's text, once: a notice for an "Apache-2.0 AND MIT"
 		// component needs both. A text that doesn't fit is left out whole,
 		// never cut, and a notice then falls back to the standard text.
-		if t = strings.TrimSpace(t); !containsString(textIDs, id) && len(text)+len(t) <= maxLicenseText {
-			if text != "" {
-				text += "\n\n----- " + base + " -----\n\n"
-			}
-			text += t
+		sep := ""
+		if text != "" {
+			sep = "\n\n----- " + base + " -----\n\n"
+		}
+		if t = strings.TrimSpace(t); !containsString(textIDs, id) && len(text)+len(sep)+len(t) <= maxLicenseText {
+			text += sep + t
 			textIDs = append(textIDs, id)
 		}
 		copyrights = append(copyrights, copyrightLines(t, 10)...)
@@ -677,6 +764,79 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		rest = append(rest, opts...)
 	}
 	return joinLicenses(rest), strings.Join(froms, ", "), text, dedupe(copyrights)
+}
+
+// licenseFilePointer returns the other licence files that a short file offers
+// as a choice, or nil. Only that wording counts: the files listed as
+// alternatives ("LICENSE.APACHE or LICENSE.BSD"), with "either" before them
+// or "at your option" or "your choice" in the text. Any other short file is
+// read as a licence text of its own, since it may add terms. A file whose
+// text is a licence is never a pointer.
+func licenseFilePointer(t, self string, paths []string) []string {
+	if t = strings.TrimSpace(t); t == "" || len(t) > 1000 || strings.ContainsRune(t, 0) || DetectLicense(t) != "" {
+		return nil
+	}
+	low := strings.ToLower(t)
+	type mention struct {
+		at, end int
+		path    string
+	}
+	var ms []mention
+	for _, p := range paths {
+		if p == self {
+			continue
+		}
+		b := strings.ToLower(filepath.Base(p))
+		if i := wordIndex(low, b); i >= 0 {
+			ms = append(ms, mention{i, i + len(b), p})
+		}
+	}
+	if len(ms) < 2 {
+		return nil
+	}
+	sort.Slice(ms, func(i, j int) bool { return ms[i].at < ms[j].at })
+	// The named files are listed as alternatives: "LICENSE.APACHE or
+	// LICENSE.BSD", "LICENSE-MIT, LICENSE-0BSD or LICENSE-APACHE". Any
+	// other wording between them ("is under", "and") isn't a choice.
+	or := false
+	for i := 1; i < len(ms); i++ {
+		if ms[i].at < ms[i-1].end {
+			return nil
+		}
+		switch normText(low[ms[i-1].end:ms[i].at]) {
+		case " or ":
+			or = true
+		case " ":
+		default:
+			return nil
+		}
+	}
+	if !or {
+		return nil
+	}
+	// And the sentence that names them offers the choice: "either" before
+	// the files ("either way" is no choice), or "at your option" or "your
+	// choice". A sentence ends at ". ", "; " or a blank line; a dot inside a
+	// file name doesn't end one.
+	start, end := 0, len(low)
+	for _, sep := range []string{". ", ".\n", "; ", ";\n", "\n\n"} {
+		if i := strings.LastIndex(low[:ms[0].at], sep); i >= 0 && i+len(sep) > start {
+			start = i + len(sep)
+		}
+		if i := strings.Index(low[ms[len(ms)-1].end:], sep); i >= 0 && ms[len(ms)-1].end+i < end {
+			end = ms[len(ms)-1].end + i
+		}
+	}
+	before, sentence := normText(low[start:ms[0].at]), normText(low[start:end])
+	either := strings.Contains(before, " either ") && !strings.Contains(before, " either way ")
+	if !either && !strings.Contains(sentence, " at your option ") && !strings.Contains(sentence, " your choice ") {
+		return nil
+	}
+	named := make([]string, len(ms))
+	for i, m := range ms {
+		named[i] = m.path
+	}
+	return named
 }
 
 // mentionsLicence reports whether a normalised text names a licence, by its
@@ -734,7 +894,8 @@ func dependencyBoundary(rel string) bool {
 	for _, part := range strings.Split(filepath.ToSlash(rel), "/") {
 		switch strings.ToLower(part) {
 		case "node_modules", "vendor", "third_party", "third-party", "thirdparty", "external", "extern",
-			"deps", "bower_components", "site-packages", "dist-packages", "pods", "submodules":
+			"deps", "bower_components", "site-packages", "dist-packages", "pods", "submodules",
+			"_vendor", "vendored", "_vendored":
 			return true
 		}
 	}

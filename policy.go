@@ -152,11 +152,13 @@ func readNotices(project string, pol *Policy) (text string, files []string) {
 		case e.IsDir() && noticeDirs[strings.ToLower(e.Name())]:
 			sub, _ := os.ReadDir(p)
 			for _, s := range sub {
-				if !s.IsDir() {
+				if !s.IsDir() && noticeText(s.Name()) {
 					add(filepath.Join(p, s.Name()))
 				}
 			}
-		case !e.IsDir() && noticeName.MatchString(e.Name()):
+		case !e.IsDir() && noticeName.MatchString(e.Name()) && noticeText(e.Name()):
+			// attribution.go is code and ThirdParty.cmake a build file,
+			// whatever their names say.
 			add(p)
 		}
 	}
@@ -253,9 +255,13 @@ func finishedNotices(text string) string {
 // containsWord reports whether needle occurs in text with no letter, digit,
 // '_' or '-' right after it, and none of those or '.' right before it,
 // where the needle itself starts or ends with one.
-func containsWord(text, needle string) bool {
+func containsWord(text, needle string) bool { return wordIndex(text, needle) >= 0 }
+
+// wordIndex is where needle first occurs in text as a whole word, as
+// containsWord decides it, or -1.
+func wordIndex(text, needle string) int {
 	if needle == "" {
-		return false
+		return -1
 	}
 	isWord := func(c byte) bool {
 		return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-'
@@ -263,13 +269,13 @@ func containsWord(text, needle string) bool {
 	for i := 0; ; {
 		j := strings.Index(text[i:], needle)
 		if j < 0 {
-			return false
+			return -1
 		}
 		at, end := i+j, i+j+len(needle)
 		before := at == 0 || !isWord(needle[0]) || !(isWord(text[at-1]) || text[at-1] == '.')
 		after := end == len(text) || !isWord(needle[len(needle)-1]) || !isWord(text[end])
 		if before && after {
-			return true
+			return at
 		}
 		i = at + 1
 	}
@@ -334,6 +340,7 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 	res.ProjectNote = classifyProject(parseLicenseExpr(res.ProjectLicense).leaves()[0].id).note
 	notices, files := readNotices(res.Project, pol)
 	res.NoticeFiles = files
+	near := newNearbyNotices(res.Project, append(append([]string{}, res.Exclude...), pol.Ignore...))
 
 	fileTexts := map[string]string{}
 	fileText := func(rel string) string {
@@ -350,7 +357,7 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 		if matchAny(pol.Ignore, f.File) {
 			continue
 		}
-		f.Status, f.Reason, f.Allowed = "", "", ""
+		f.Status, f.Reason, f.Allowed, f.Credited = "", "", "", false
 		v := evaluate(f.Source.License, res.ProjectLicense)
 		f.Reason = v.reason
 		notice := false // the copyright line and licence text have to ship with the copy
@@ -382,11 +389,23 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 		// review doesn't fail a check by default: until the notice is
 		// there, the copy counts as attribution missing.
 		if notice {
+			var by, textOnly string
+			var withCopy bool
 			switch {
 			case credited(notices, f.Source):
-				f.Reason = "Credited in the project's notices. " + f.Reason
+				f.Reason, f.Credited = "Credited in the project's notices. "+f.Reason, true
 			case keepsNotice(f.File, fileText(f.File), f.Source):
-				f.Reason = "The file keeps the original copyright and licence notice. " + f.Reason
+				f.Reason, f.Credited = "The file keeps the original copyright and licence notice. "+f.Reason, true
+			case func() bool {
+				by, withCopy, textOnly = near.credit(f.File, f.Source, res.Texts[f.Source.Key])
+				return by != ""
+			}():
+				f.Credited = true
+				if withCopy {
+					f.Reason = "Credited in " + by + ", kept with the copy. " + f.Reason
+				} else {
+					f.Reason = "Credited in " + by + ". " + f.Reason
+				}
 			default:
 				if f.Status == StatusReview {
 					f.Reason += " Its copyright line and licence text also have to ship with your copy: until your notices carry them, this counts as attribution missing."
@@ -395,6 +414,8 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 				switch {
 				case unfinishedEntry(notices, f.Source):
 					f.Reason += " Its entry in the notices isn't finished: fill in what it says to copy there."
+				case textOnly != "":
+					f.Reason += " Its licence text is kept with the copy, in " + textOnly + ", but its NOTICE text isn't."
 				case credited(strings.ToLower(fileText(f.File)), f.Source):
 					f.Reason += " The file names its source, but the copyright line and licence text also have to ship with the code."
 				}
@@ -408,6 +429,16 @@ func Evaluate(res *Results, pol *Policy, licenseOverride string) {
 		kept = append(kept, f)
 	}
 	res.Findings = kept
+	// Credit in the files left unread can't count: say so.
+	if res.Skipped != nil {
+		delete(res.Skipped, "licence-files")
+	}
+	if len(near.unread) > 0 {
+		if res.Skipped == nil {
+			res.Skipped = map[string]int{}
+		}
+		res.Skipped["licence-files"] = len(near.unread)
+	}
 	res.recount()
 }
 

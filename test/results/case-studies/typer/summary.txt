@@ -1,0 +1,13 @@
+recorded with remixware 0.2.1
+
+typer-0.12.5 (licence MIT, 575 files, 22161 lines), compared with Click 8.1.7:
+  5 copies of Click code: 5 attribution missing
+  copied lines: 99
+  files holding Click's copyright line "Copyright 2014 Pallets": none
+
+typer-0.27.3 (licence MIT, 648 files, 36490 lines), compared with Click 8.3.1:
+  61 copies of Click code: 61 attributed
+  39 of them in typer/_click, 22 elsewhere in typer
+  copied lines: 5366
+  credited in typer/_click/LICENSE.txt: 61
+  files holding Click's copyright line "Copyright 2014 Pallets": typer/_click/LICENSE.txt

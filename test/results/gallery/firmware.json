@@ -1,6 +1,6 @@
 {
-  "tool": "remixware 0.2.0",
-  "created": "2026-10-26T14:06:45Z",
+  "tool": "remixware 0.2.1",
+  "created": "2026-10-26T16:16:27Z",
   "project": "testdata/projects/firmware",
   "project_license": "GPL-2.0-only",
   "project_license_from": "COPYING",

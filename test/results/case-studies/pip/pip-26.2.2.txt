@@ -1,0 +1,1364 @@
+$ remixware scan pip-26.2.2 --index indexes/pip-vendored.rmx --exclude src/pip/_internal/ --exclude src/pip/*.py --exclude tests/ --exclude docs/ --exclude tools/ --exclude news/ --exclude build-project/ --exclude noxfile.py
+
+Scanned 254 files (99,820 lines) in pip-26.2.2 (1 file skipped: 1 minified)
+Project licence: MIT (from pyproject.toml)
+Compared with: indexes/pip-vendored.rmx (33 components, 1,327 files)
+
+REVIEW               src/pip/_vendor/certifi/__main__.py:3-12
+                     certifi 2026.10.19, __main__.py:3-12 (MPL-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/certifi/LICENSE, kept with the copy. MPL-2.0
+                     applies file by file: keep the copied code in its own file under MPL-2.0, keep
+                     its notice, and publish your changes to that file.
+
+REVIEW               src/pip/_vendor/certifi/core.py:1-83
+                     certifi 2026.10.19, core.py:1-83 (MPL-2.0), copied with edits, 100% match
+                     Credited in src/pip/_vendor/certifi/LICENSE, kept with the copy. MPL-2.0
+                     applies file by file: keep the copied code in its own file under MPL-2.0, keep
+                     its notice, and publish your changes to that file.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/__init__.py:50-214
+                     requests 2.34.2, __init__.py:57-219 (Apache-2.0), copied as is, 88% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/_internal_utils.py:1-51
+                     requests 2.34.2, _internal_utils.py:1-51 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/_types.py:1-183
+                     requests 2.34.2, _types.py:1-183 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/adapters.py:34-748
+                     requests 2.34.2, adapters.py:34-748 (Apache-2.0), copied as is, 98% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/api.py:1-180
+                     requests 2.34.2, api.py:1-180 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/auth.py:1-354
+                     requests 2.34.2, auth.py:1-354 (Apache-2.0), copied as is, 96% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/compat.py:19-96
+                     requests 2.34.2, compat.py:21-113 (Apache-2.0), copied as is, 88% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/cookies.py:1-625
+                     requests 2.34.2, cookies.py:1-625 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/exceptions.py:12-162
+                     requests 2.34.2, exceptions.py:12-162 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/help.py:20-127
+                     requests 2.34.2, help.py:27-134 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/hooks.py:1-48
+                     requests 2.34.2, hooks.py:1-48 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/models.py:1-1180
+                     requests 2.34.2, models.py:1-1180 (Apache-2.0), copied as is, 97% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/packages.py:10-25
+                     requests 2.34.2, packages.py:9-23 (Apache-2.0), copied as is, 72% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/sessions.py:1-920
+                     requests 2.34.2, sessions.py:1-920 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/status_codes.py:1-128
+                     requests 2.34.2, status_codes.py:1-128 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/structures.py:1-130
+                     requests 2.34.2, structures.py:1-130 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTION MISSING  src/pip/_vendor/requests/utils.py:1-1155
+                     requests 2.34.2, utils.py:1-1155 (Apache-2.0), copied as is, 100% match
+                     Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Its licence text is kept with the
+                     copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/_cmd.py:19-70
+                     CacheControl 0.14.4, cachecontrol/_cmd.py:19-70 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/adapter.py:23-167
+                     CacheControl 0.14.4, cachecontrol/adapter.py:23-167 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/cache.py:5-75
+                     CacheControl 0.14.4, cachecontrol/cache.py:5-75 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/caches/file_cache.py:4-145
+                     CacheControl 0.14.4, cachecontrol/caches/file_cache.py:4-145 (Apache-2.0), copied as is, 96% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/caches/redis_cache.py:10-48
+                     CacheControl 0.14.4, cachecontrol/caches/redis_cache.py:10-48 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/controller.py:5-511
+                     CacheControl 0.14.4, cachecontrol/controller.py:5-511 (Apache-2.0), copied as is, 95% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/filewrapper.py:4-121
+                     CacheControl 0.14.4, cachecontrol/filewrapper.py:4-121 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/heuristics.py:4-157
+                     CacheControl 0.14.4, cachecontrol/heuristics.py:4-157 (Apache-2.0), copied as is, 98% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/serialize.py:14-146
+                     CacheControl 0.14.4, cachecontrol/serialize.py:14-146 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/cachecontrol/wrapper.py:17-43
+                     CacheControl 0.14.4, cachecontrol/wrapper.py:17-43 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/cachecontrol/LICENSE.txt, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/distlib/__init__.py:7-33
+                     distlib 0.4.2, __init__.py:7-33 (PSF-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distlib/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the PSF-2.0 licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/distlib/compat.py:7-1107
+                     distlib 0.4.2, compat.py:7-1107 (PSF-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distlib/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the PSF-2.0 licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/distlib/resources.py:7-372
+                     distlib 0.4.2, resources.py:7-372 (PSF-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distlib/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the PSF-2.0 licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/distlib/scripts.py:7-451
+                     distlib 0.4.2, scripts.py:7-451 (PSF-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distlib/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the PSF-2.0 licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/distlib/util.py:5-2021
+                     distlib 0.4.2, util.py:5-2021 (PSF-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distlib/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the PSF-2.0 licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/distro/__init__.py:1-54
+                     distro 1.9.0, __init__.py:1-54 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/distro/LICENSE, kept with the copy. Keep its
+                     copyright line, the Apache-2.0 licence text and any NOTICE text the project
+                     ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/distro/distro.py:16-1403
+                     distro 1.9.0, distro.py:16-1403 (Apache-2.0), copied as is, 100% match
+                     The file keeps the original copyright and licence notice. Keep its copyright
+                     line, the Apache-2.0 licence text and any NOTICE text the project ships, and
+                     mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/idna/__init__.py:1-45
+                     idna, idna/__init__.py:1-45 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/cli.py:1-128
+                     idna, idna/cli.py:1-128 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/codec.py:1-159
+                     idna, idna/codec.py:1-159 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/compat.py:1-41
+                     idna, idna/compat.py:1-41 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/core.py:1-648
+                     idna, idna/core.py:1-648 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/idnadata.py:3-309
+                     idna, idna/idnadata.py:3-309 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/idnadata.py:438-854
+                     idna, idna/idnadata.py:438-854 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/intranges.py:1-55
+                     idna, idna/intranges.py:1-55 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/uts46data.py:3-219
+                     idna, idna/uts46data.py:3-219 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/idna/uts46data.py:8180-8729
+                     idna, idna/uts46data.py:8180-8729 (BSD-3-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/idna/LICENSE.md, kept with the copy. Keep its
+                     copyright line and the BSD-3-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/msgpack/__init__.py:2-55
+                     msgpack 1.1.2, __init__.py:2-55 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/msgpack/COPYING, kept with the copy. Keep its
+                     copyright line, the Apache-2.0 licence text and any NOTICE text the project
+                     ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/msgpack/exceptions.py:1-48
+                     msgpack 1.1.2, exceptions.py:1-48 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/msgpack/COPYING, kept with the copy. Keep its
+                     copyright line, the Apache-2.0 licence text and any NOTICE text the project
+                     ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/msgpack/ext.py:1-170
+                     msgpack 1.1.2, ext.py:1-170 (Apache-2.0), copied as is, 100% match
+                     Credited in src/pip/_vendor/msgpack/COPYING, kept with the copy. Keep its
+                     copyright line, the Apache-2.0 licence text and any NOTICE text the project
+                     ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/msgpack/fallback.py:1-929
+                     msgpack 1.1.2, fallback.py:1-929 (Apache-2.0), copied as is, 99% match
+                     Credited in src/pip/_vendor/msgpack/COPYING, kept with the copy. Keep its
+                     copyright line, the Apache-2.0 licence text and any NOTICE text the project
+                     ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/_elffile.py:1-108
+                     packaging, src/packaging/_elffile.py:1-108 (Apache-2.0 OR BSD-2-Clause), copied as is, 89% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/_manylinux.py:1-262
+                     packaging, src/packaging/_manylinux.py:1-262 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/_musllinux.py:1-85
+                     packaging, src/packaging/_musllinux.py:1-85 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/_parser.py:1-393
+                     packaging, src/packaging/_parser.py:1-393 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/_tokenizer.py:1-193
+                     packaging, src/packaging/_tokenizer.py:1-193 (Apache-2.0 OR BSD-2-Clause), copied as is, 90% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/dependency_groups.py:1-302
+                     packaging, src/packaging/dependency_groups.py:1-302 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/direct_url.py:1-325
+                     packaging, src/packaging/direct_url.py:1-325 (Apache-2.0 OR BSD-2-Clause), copied as is, 99% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/errors.py:1-94
+                     packaging, src/packaging/errors.py:1-94 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/licenses/__init__.py:32-186
+                     packaging, src/packaging/licenses/__init__.py:32-186 ((Apache-2.0 OR BSD-2-Clause) AND MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed. Keep its copyright line and the MIT
+                     licence text with your copy, for example in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/packaging/licenses/_spdx.py:2-52
+                     packaging, src/packaging/licenses/_spdx.py:2-52 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/licenses/_spdx.py:682-754
+                     packaging, src/packaging/licenses/_spdx.py:682-754 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/markers.py:5-492
+                     packaging, src/packaging/markers.py:5-492 (Apache-2.0 OR BSD-2-Clause), copied as is, 98% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/metadata.py:1-964
+                     packaging, src/packaging/metadata.py:1-964 (Apache-2.0 OR BSD-2-Clause), copied as is, 99% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/pylock.py:1-905
+                     packaging, src/packaging/pylock.py:1-905 (Apache-2.0 OR BSD-2-Clause), copied as is, 95% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/requirements.py:4-129
+                     packaging, src/packaging/requirements.py:4-129 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/specifiers.py:4-1943
+                     packaging, src/packaging/specifiers.py:4-1943 (Apache-2.0 OR BSD-2-Clause), copied as is, 99% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/tags.py:5-932
+                     packaging, src/packaging/tags.py:5-932 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/utils.py:5-296
+                     packaging, src/packaging/utils.py:5-296 (Apache-2.0 OR BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/packaging/version.py:4-1231
+                     packaging, src/packaging/version.py:4-1231 (Apache-2.0 OR BSD-2-Clause), copied as is, 90% match
+                     Credited in src/pip/_vendor/packaging/LICENSE.BSD, kept with the copy. Keep
+                     its copyright line, the Apache-2.0 licence text and any NOTICE text the
+                     project ships, and mark files you changed.
+
+ATTRIBUTED           src/pip/_vendor/pkg_resources/__init__.py:4-3676
+                     setuptools 70.3.0, __init__.py:4-3677 (MIT), copied with edits, 100% match
+                     Credited in src/pip/_vendor/pkg_resources/LICENSE, kept with the copy. Keep
+                     its copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/__init__.py:32-56
+                     setuptools 70.3.0, _vendor/platformdirs/__init__.py:21-49 (MIT), copied with edits, 53% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/__init__.py:644-917
+                     platformdirs, src/platformdirs/__init__.py:644-917 (MIT), copied as is, 86% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/__main__.py:5-66
+                     platformdirs, src/platformdirs/__main__.py:5-66 (MIT), copied as is, 85% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/_xdg.py:1-171
+                     platformdirs, src/platformdirs/_xdg.py:1-171 (MIT), copied as is, 96% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/android.py:1-300
+                     platformdirs, src/platformdirs/android.py:1-300 (MIT), copied as is, 90% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/api.py:1-463
+                     platformdirs, src/platformdirs/api.py:1-463 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/macos.py:1-223
+                     platformdirs, src/platformdirs/macos.py:1-223 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/unix.py:1-321
+                     platformdirs, src/platformdirs/unix.py:1-321 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/version.py:3-24
+                     platformdirs, src/platformdirs/version.py:3-24 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/platformdirs/windows.py:1-395
+                     platformdirs, src/platformdirs/windows.py:1-395 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/platformdirs/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/__init__.py:1-82
+                     Pygments, pygments/__init__.py:1-82 (BSD-2-Clause), copied as is, 95% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/console.py:1-70
+                     Pygments, pygments/console.py:1-70 (BSD-2-Clause), copied as is, 93% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/filter.py:1-70
+                     Pygments, pygments/filter.py:1-70 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/filters/__init__.py:19-414
+                     Pygments, pygments/filters/__init__.py:19-414 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/filters/__init__.py:568-942
+                     Pygments, pygments/filters/__init__.py:568-942 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/formatter.py:14-129
+                     Pygments, pygments/formatter.py:14-129 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/formatters/__init__.py:19-157
+                     Pygments, pygments/formatters/__init__.py:19-157 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/lexer.py:20-965
+                     Pygments, pygments/lexer.py:20-963 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/lexers/__init__.py:20-362
+                     Pygments, pygments/lexers/__init__.py:20-362 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/lexers/python.py:13-1204
+                     Pygments, pygments/lexers/python.py:13-1204 (BSD-2-Clause), copied as is, 98% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/modeline.py:1-43
+                     Pygments, pygments/modeline.py:1-43 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/plugin.py:1-74
+                     Pygments, pygments/plugin.py:1-74 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/regexopt.py:1-102
+                     Pygments, pygments/regexopt.py:1-102 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/scanner.py:1-104
+                     Pygments, pygments/scanner.py:1-104 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/sphinxext.py:1-247
+                     Pygments, pygments/sphinxext.py:1-247 (BSD-2-Clause), copied as is, 95% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/style.py:11-203
+                     Pygments, pygments/style.py:11-203 (BSD-2-Clause), copied as is, 91% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/styles/__init__.py:13-61
+                     Pygments, pygments/styles/__init__.py:13-61 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/token.py:1-214
+                     Pygments, pygments/token.py:1-214 (BSD-2-Clause), copied as is, 81% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pygments/util.py:1-324
+                     Pygments, pygments/util.py:1-324 (BSD-2-Clause), copied as is, 100% match
+                     Credited in src/pip/_vendor/pygments/LICENSE, kept with the copy. Keep its
+                     copyright line and the BSD-2-Clause licence text with your copy, for example
+                     in a third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pyproject_hooks/__init__.py:1-31
+                     pyproject_hooks, src/pyproject_hooks/__init__.py:1-31 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/pyproject_hooks/LICENSE, kept with the copy. Keep
+                     its copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pyproject_hooks/_impl.py:1-410
+                     pyproject_hooks, src/pyproject_hooks/_impl.py:1-410 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/pyproject_hooks/LICENSE, kept with the copy. Keep
+                     its copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pyproject_hooks/_in_process/__init__.py:1-21
+                     pyproject_hooks, src/pyproject_hooks/_in_process/__init__.py:1-21 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/pyproject_hooks/LICENSE, kept with the copy. Keep
+                     its copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/pyproject_hooks/_in_process/_in_process.py:1-389
+                     pyproject_hooks, src/pyproject_hooks/_in_process/_in_process.py:1-389 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/pyproject_hooks/LICENSE, kept with the copy. Keep
+                     its copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/__init__.py:1-27
+                     resolvelib 1.2.1, __init__.py:1-27 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/providers.py:1-196
+                     resolvelib 1.2.1, providers.py:1-196 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/reporters.py:1-55
+                     resolvelib 1.2.1, reporters.py:1-55 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/resolvers/__init__.py:1-27
+                     resolvelib 1.2.1, resolvers/__init__.py:1-27 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/resolvers/abstract.py:1-47
+                     resolvelib 1.2.1, resolvers/abstract.py:1-47 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/resolvers/criterion.py:1-48
+                     resolvelib 1.2.1, resolvers/criterion.py:1-48 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/resolvers/exceptions.py:1-57
+                     resolvelib 1.2.1, resolvers/exceptions.py:1-57 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/resolvers/resolution.py:1-627
+                     resolvelib 1.2.1, resolvers/resolution.py:1-627 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/resolvelib/structs.py:1-209
+                     resolvelib 1.2.1, structs.py:1-209 (ISC), copied as is, 100% match
+                     Credited in src/pip/_vendor/resolvelib/LICENSE, kept with the copy. Keep its
+                     copyright line and the ISC licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/__init__.py:1-177
+                     rich 14.2.0, rich/__init__.py:1-177 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/__main__.py:15-245
+                     rich 14.2.0, rich/__main__.py:15-245 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_emoji_replace.py:1-32
+                     rich 14.2.0, rich/_emoji_replace.py:1-32 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_fileno.py:1-24
+                     rich 14.2.0, rich/_fileno.py:1-24 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_inspect.py:1-268
+                     rich 14.2.0, rich/_inspect.py:1-268 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_log_render.py:1-94
+                     rich 14.2.0, rich/_log_render.py:1-94 (MIT), copied as is, 97% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_loop.py:1-43
+                     rich 14.2.0, rich/_loop.py:1-43 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_null_file.py:1-69
+                     rich 14.2.0, rich/_null_file.py:1-69 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_palettes.py:1-103
+                     rich 14.2.0, rich/_palettes.py:1-103 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_ratio.py:1-153
+                     rich 14.2.0, rich/_ratio.py:1-153 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_stack.py:1-16
+                     rich 14.2.0, rich/_stack.py:1-16 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_timer.py:1-19
+                     rich 14.2.0, rich/_timer.py:1-19 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_win32_console.py:1-661
+                     rich 14.2.0, rich/_win32_console.py:1-661 (MIT), copied as is, 96% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_windows.py:1-67
+                     rich 14.2.0, rich/_windows.py:1-67 (MIT), copied as is, 95% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_windows_renderer.py:4-56
+                     rich 14.2.0, rich/_windows_renderer.py:4-56 (MIT), copied as is, 93% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/_wrap.py:1-93
+                     rich 14.2.0, rich/_wrap.py:1-93 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/abc.py:1-33
+                     rich 14.2.0, rich/abc.py:1-33 (MIT), copied as is, 89% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/align.py:1-306
+                     rich 14.2.0, rich/align.py:1-306 (MIT), copied as is, 93% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/ansi.py:1-241
+                     rich 14.2.0, rich/ansi.py:1-241 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/bar.py:1-93
+                     rich 14.2.0, rich/bar.py:1-93 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/box.py:7-472
+                     rich 14.2.0, rich/box.py:7-472 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/cells.py:1-174
+                     rich 14.2.0, rich/cells.py:1-174 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/color.py:1-152
+                     rich 14.2.0, rich/color.py:1-152 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/color.py:181-621
+                     rich 14.2.0, rich/color.py:181-621 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/color_triplet.py:1-38
+                     rich 14.2.0, rich/color_triplet.py:1-38 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/columns.py:1-187
+                     rich 14.2.0, rich/columns.py:1-187 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/console.py:1-2680
+                     rich 14.2.0, rich/console.py:1-2680 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/constrain.py:1-37
+                     rich 14.2.0, rich/constrain.py:1-37 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/containers.py:1-167
+                     rich 14.2.0, rich/containers.py:1-167 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/control.py:1-219
+                     rich 14.2.0, rich/control.py:1-219 (MIT), copied as is, 91% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/default_styles.py:1-193
+                     rich 14.2.0, rich/default_styles.py:1-193 (MIT), copied as is, 84% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/diagnose.py:7-39
+                     rich 14.2.0, rich/diagnose.py:7-39 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/emoji.py:1-91
+                     rich 14.2.0, rich/emoji.py:1-91 (MIT), copied as is, 97% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/errors.py:1-34
+                     rich 14.2.0, rich/errors.py:1-34 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/file_proxy.py:1-57
+                     rich 14.2.0, rich/file_proxy.py:1-57 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/filesize.py:1-88
+                     rich 14.2.0, rich/filesize.py:1-88 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/highlighter.py:1-232
+                     rich 14.2.0, rich/highlighter.py:1-232 (MIT), copied as is, 88% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/json.py:1-139
+                     rich 14.2.0, rich/json.py:1-139 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/jupyter.py:4-101
+                     rich 14.2.0, rich/jupyter.py:4-101 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/layout.py:1-442
+                     rich 14.2.0, rich/layout.py:1-442 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/live.py:1-400
+                     rich 14.2.0, rich/live.py:1-400 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/live_render.py:1-106
+                     rich 14.2.0, rich/live_render.py:1-106 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/logging.py:1-297
+                     rich 14.2.0, rich/logging.py:1-297 (MIT), copied as is, 95% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/markup.py:1-251
+                     rich 14.2.0, rich/markup.py:1-251 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/measure.py:1-151
+                     rich 14.2.0, rich/measure.py:1-151 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/padding.py:1-138
+                     rich 14.2.0, rich/padding.py:1-138 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/pager.py:1-34
+                     rich 14.2.0, rich/pager.py:1-34 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/palette.py:1-100
+                     rich 14.2.0, rich/palette.py:1-100 (MIT), copied as is, 83% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/panel.py:1-317
+                     rich 14.2.0, rich/panel.py:1-317 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/pretty.py:1-1016
+                     rich 14.2.0, rich/pretty.py:1-1016 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/progress.py:1-1715
+                     rich 14.2.0, rich/progress.py:1-1715 (MIT), copied as is, 95% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/progress_bar.py:1-223
+                     rich 14.2.0, rich/progress_bar.py:1-223 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/prompt.py:1-400
+                     rich 14.2.0, rich/prompt.py:1-400 (MIT), copied as is, 92% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/protocol.py:1-42
+                     rich 14.2.0, rich/protocol.py:1-42 (MIT), copied with edits, 94% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/repr.py:1-149
+                     rich 14.2.0, rich/repr.py:1-149 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/rule.py:1-130
+                     rich 14.2.0, rich/rule.py:1-130 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/scope.py:1-86
+                     rich 14.2.0, rich/scope.py:1-86 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/screen.py:1-54
+                     rich 14.2.0, rich/screen.py:1-54 (MIT), copied as is, 94% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/segment.py:1-752
+                     rich 14.2.0, rich/segment.py:1-752 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/spinner.py:1-132
+                     rich 14.2.0, rich/spinner.py:1-132 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/status.py:1-131
+                     rich 14.2.0, rich/status.py:1-131 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/style.py:1-792
+                     rich 14.2.0, rich/style.py:1-792 (MIT), copied as is, 96% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/styled.py:1-42
+                     rich 14.2.0, rich/styled.py:1-42 (MIT), copied as is, 92% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/syntax.py:1-985
+                     rich 14.2.0, rich/syntax.py:1-985 (MIT), copied as is, 94% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/table.py:1-1006
+                     rich 14.2.0, rich/table.py:1-1006 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/terminal_theme.py:1-153
+                     rich 14.2.0, rich/terminal_theme.py:1-153 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/text.py:1-1361
+                     rich 14.2.0, rich/text.py:1-1361 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/theme.py:1-115
+                     rich 14.2.0, rich/theme.py:1-115 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/traceback.py:1-899
+                     rich 14.2.0, rich/traceback.py:1-899 (MIT), copied as is, 97% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/rich/tree.py:1-257
+                     rich 14.2.0, rich/tree.py:1-257 (MIT), copied as is, 97% match
+                     Credited in src/pip/_vendor/rich/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/tomli/_parser.py:5-793
+                     tomli 2.4.1, src/tomli/_parser.py:5-793 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/tomli/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/tomli/_re.py:5-119
+                     tomli 2.4.1, src/tomli/_re.py:5-119 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/tomli/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/tomli_w/_writer.py:1-229
+                     tomli_w 1.2.0, src/tomli_w/_writer.py:1-229 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/tomli_w/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/__init__.py:1-36
+                     truststore, src/truststore/__init__.py:1-36 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/_api.py:1-341
+                     truststore, src/truststore/_api.py:1-341 (MIT), copied as is, 90% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/_macos.py:1-571
+                     truststore, src/truststore/_macos.py:1-571 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/_openssl.py:1-68
+                     truststore, src/truststore/_openssl.py:1-68 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/_ssl_constants.py:1-31
+                     truststore, src/truststore/_ssl_constants.py:1-31 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/truststore/_windows.py:1-567
+                     truststore, src/truststore/_windows.py:1-567 (MIT), copied as is, 93% match
+                     Credited in src/pip/_vendor/truststore/LICENSE, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/__init__.py:1-211
+                     urllib3, src/urllib3/__init__.py:1-211 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/_base_connection.py:1-167
+                     urllib3, src/urllib3/_base_connection.py:1-167 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/_collections.py:1-486
+                     urllib3, src/urllib3/_collections.py:1-486 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/_request_methods.py:1-278
+                     urllib3, src/urllib3/_request_methods.py:1-278 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/_version.py:3-24
+                     urllib3, src/urllib3/_version.py:3-24 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/connection.py:1-1099
+                     urllib3, src/urllib3/connection.py:1-1099 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/connectionpool.py:1-1191
+                     urllib3, src/urllib3/connectionpool.py:1-1191 (MIT), copied as is, 97% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/emscripten/connection.py:1-260
+                     urllib3, src/urllib3/contrib/emscripten/connection.py:1-260 (MIT), copied as is, 98% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/emscripten/emscripten_fetch_worker.js:1-110
+                     urllib3, src/urllib3/contrib/emscripten/emscripten_fetch_worker.js:1-110 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/emscripten/fetch.py:1-726
+                     urllib3, src/urllib3/contrib/emscripten/fetch.py:1-726 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/emscripten/request.py:1-22
+                     urllib3, src/urllib3/contrib/emscripten/request.py:1-22 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/emscripten/response.py:1-281
+                     urllib3, src/urllib3/contrib/emscripten/response.py:1-281 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/pyopenssl.py:1-563
+                     urllib3, src/urllib3/contrib/pyopenssl.py:1-563 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/contrib/socks.py:1-228
+                     urllib3, src/urllib3/contrib/socks.py:1-228 (MIT), copied as is, 96% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/exceptions.py:1-335
+                     urllib3, src/urllib3/exceptions.py:1-335 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/fields.py:1-341
+                     urllib3, src/urllib3/fields.py:1-341 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/filepost.py:1-89
+                     urllib3, src/urllib3/filepost.py:1-89 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/http2/__init__.py:1-53
+                     urllib3, src/urllib3/http2/__init__.py:1-53 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/http2/connection.py:1-356
+                     urllib3, src/urllib3/http2/connection.py:1-356 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/http2/probe.py:1-87
+                     urllib3, src/urllib3/http2/probe.py:1-87 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/poolmanager.py:1-653
+                     urllib3, src/urllib3/poolmanager.py:1-653 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/response.py:1-1487
+                     urllib3, src/urllib3/response.py:1-1493 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/__init__.py:2-42
+                     urllib3, src/urllib3/util/__init__.py:2-42 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/connection.py:1-137
+                     urllib3, src/urllib3/util/connection.py:1-137 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/proxy.py:1-43
+                     urllib3, src/urllib3/util/proxy.py:1-43 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/request.py:1-254
+                     urllib3, src/urllib3/util/request.py:1-263 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/response.py:1-101
+                     urllib3, src/urllib3/util/response.py:1-101 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/retry.py:1-557
+                     urllib3, src/urllib3/util/retry.py:1-557 (MIT), copied as is, 96% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/ssl_.py:1-477
+                     urllib3, src/urllib3/util/ssl_.py:1-477 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/ssl_match_hostname.py:1-153
+                     urllib3, src/urllib3/util/ssl_match_hostname.py:1-153 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/ssltransport.py:1-271
+                     urllib3, src/urllib3/util/ssltransport.py:1-271 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/timeout.py:1-275
+                     urllib3, src/urllib3/util/timeout.py:1-275 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/url.py:1-469
+                     urllib3, src/urllib3/util/url.py:1-469 (MIT), copied as is, 99% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/util.py:1-42
+                     urllib3, src/urllib3/util/util.py:1-42 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           src/pip/_vendor/urllib3/util/wait.py:1-124
+                     urllib3, src/urllib3/util/wait.py:1-124 (MIT), copied as is, 100% match
+                     Credited in src/pip/_vendor/urllib3/LICENSE.txt, kept with the copy. Keep its
+                     copyright line and the MIT licence text with your copy, for example in a
+                     third-party notices file.
+
+226 findings: 2 review, 17 attribution missing, 207 attributed.

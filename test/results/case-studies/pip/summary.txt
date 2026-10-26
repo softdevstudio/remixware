@@ -1,0 +1,47 @@
+recorded with remixware 0.2.1
+
+pip 26.2.2 (licence MIT), its vendored folder src/pip/_vendor compared with the 18 releases vendor.txt lists:
+  226 copies: 207 attributed, 17 attribution missing, 2 review
+
+  folder             source                           licence                      copies  status, credited in
+  cachecontrol       CacheControl 0.14.4              Apache-2.0                       10  10 attributed; src/pip/_vendor/cachecontrol/LICENSE.txt
+  certifi            certifi 2026.10.19               MPL-2.0                           2  2 review; src/pip/_vendor/certifi/LICENSE
+  distlib            distlib 0.4.2                    PSF-2.0                           5  5 attributed; src/pip/_vendor/distlib/LICENSE.txt
+  distro             distro 1.9.0                     Apache-2.0                        2  2 attributed; src/pip/_vendor/distro/LICENSE, the file's own header
+  idna               idna                             BSD-3-Clause                     10  10 attributed; src/pip/_vendor/idna/LICENSE.md
+  msgpack            msgpack 1.1.2                    Apache-2.0                        4  4 attributed; src/pip/_vendor/msgpack/COPYING
+  packaging          packaging                        (Apache-2.0 OR BSD-2-Clause) AND MIT, Apache-2.0 OR BSD-2-Clause     19  19 attributed; src/pip/_vendor/packaging/LICENSE.BSD
+  pkg_resources      setuptools 70.3.0                MIT                               1  1 attributed; src/pip/_vendor/pkg_resources/LICENSE
+  platformdirs       platformdirs, setuptools 70.3.0  MIT                              10  10 attributed; src/pip/_vendor/platformdirs/LICENSE
+  pygments           Pygments                         BSD-2-Clause                     19  19 attributed; src/pip/_vendor/pygments/LICENSE
+  pyproject_hooks    pyproject_hooks                  MIT                               4  4 attributed; src/pip/_vendor/pyproject_hooks/LICENSE
+  requests           requests 2.34.2                  Apache-2.0                       17  17 attribution missing
+  resolvelib         resolvelib 1.2.1                 ISC                               9  9 attributed; src/pip/_vendor/resolvelib/LICENSE
+  rich               rich 14.2.0                      MIT                              70  70 attributed; src/pip/_vendor/rich/LICENSE
+  tomli              tomli 2.4.1                      MIT                               2  2 attributed; src/pip/_vendor/tomli/LICENSE
+  tomli_w            tomli_w 1.2.0                    MIT                               1  1 attributed; src/pip/_vendor/tomli_w/LICENSE
+  truststore         truststore                       MIT                               6  6 attributed; src/pip/_vendor/truststore/LICENSE
+  urllib3            urllib3                          MIT                              35  35 attributed; src/pip/_vendor/urllib3/LICENSE.txt
+
+Why attribution is missing:
+  17 x Keep its copyright line, the Apache-2.0 licence text and any NOTICE text the project ships, and mark files you changed. Its licence text is kept with the copy, in src/pip/_vendor/requests/LICENSE, but its NOTICE text isn't.
+
+Releases, from PyPI, with the SHA-256 PyPI publishes:
+  e6220afafa4c22a47dd0badb319f84475d79108100d04e26e8542ef7d3ab05a1  cachecontrol-0.14.4.tar.gz
+  baeb401c90f27acd15c4861ae0847d1e731c27ac3dbf4210643ba61fa1e813db  distlib-0.4.2.tar.gz
+  2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed  distro-1.9.0.tar.gz
+  3b60763c1373dd60f398488069bcdc703cd08a711477b5d480eecc9f9626f47e  msgpack-1.1.2.tar.gz
+  ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661  packaging-26.2.tar.gz
+  31e761a6a0ca04faf7353ea759bdba55652be214725111e5aac52dfa29d4bef7  platformdirs-4.10.0.tar.gz
+  1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8  pyproject_hooks-1.2.0.tar.gz
+  f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed  requests-2.34.2.tar.gz
+  035c1e85572b141bf1c3a3eff0e33a8eb74917522f2559075ff8d2fea780a1ae  certifi-2026.10.19.tar.gz
+  ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848  idna-3.18.tar.gz
+  231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c  urllib3-2.7.0.tar.gz
+  73ff50c7c0c1c77c8243079283f4edb376f0f6442433aecb8ce7e6d0b92d1fe4  rich-14.2.0.tar.gz
+  6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f  pygments-2.20.0.tar.gz
+  7d08a2022f6e16ce405d60b68c390f054efcfd0477d4b9bd019cc941c28fad1c  resolvelib-1.2.1.tar.gz
+  f171bab1dfbc86b132997f26a119f6056a57950d058587841a0082e8830f9dc5  setuptools-70.3.0.tar.gz
+  7c7e1a961a0b2f2472c1ac5b69affa0ae1132c39adcb67aba98568702b9cc23f  tomli-2.4.1.tar.gz
+  2dd14fac5a47c27be9cd4c976af5a12d87fb1f0b4512f81d69cce3b35ae25021  tomli_w-1.2.0.tar.gz
+  9d91bd436463ad5e4ee4aba766628dd6cd7010cf3e2461756b3303710eebc301  truststore-0.10.4.tar.gz

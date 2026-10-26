@@ -1,0 +1,373 @@
+$ remixware scan typer-0.27.3 --index indexes/click-8.3.1.rmx
+
+Scanned 648 files (36,490 lines) in typer-0.27.3
+Project licence: MIT (from pyproject.toml)
+Compared with: indexes/click-8.3.1.rmx (12 components, 63 files)
+
+ATTRIBUTED           typer/_click/_compat.py:35-99
+                     click 8.3.1, src/click/_compat.py:37-113 (BSD-3-Clause), copied with edits, 64% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_compat.py:103-202
+                     click 8.3.1, src/click/_compat.py:138-241 (BSD-3-Clause), copied as is, 60% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_compat.py:209-237
+                     click 8.3.1, src/click/_compat.py:250-278 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_compat.py:270-522
+                     click 8.3.1, src/click/_compat.py:317-572 (BSD-3-Clause), copied as is, 83% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_compat.py:538-569
+                     click 8.3.1, src/click/_compat.py:591-616 (BSD-3-Clause), copied as is, 73% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_termui_impl.py:26-342
+                     click 8.3.1, src/click/_termui_impl.py:33-366 (BSD-3-Clause), copied as is, 94% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_termui_impl.py:345-522
+                     click 8.3.1, src/click/_termui_impl.py:676-852 (BSD-3-Clause), copied as is, 93% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_textwrap.py:3-46
+                     click 8.3.1, src/click/_textwrap.py:5-51 (BSD-3-Clause), copied as is, 87% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/_winconsole.py:43-300
+                     click 8.3.1, src/click/_winconsole.py:39-296 (BSD-3-Clause), copied as is, 81% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:58-419
+                     click 8.3.1, src/click/core.py:100-686 (BSD-3-Clause), copied with edits, 88% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:483-665
+                     click 8.3.1, src/click/core.py:843-1150 (BSD-3-Clause), copied with edits, 81% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:678-719
+                     click 8.3.1, src/click/core.py:1173-1227 (BSD-3-Clause), copied as is, 92% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:725-775
+                     click 8.3.1, src/click/core.py:1251-1304 (BSD-3-Clause), copied as is, 69% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:820-857
+                     click 8.3.1, src/click/core.py:2136-2174 (BSD-3-Clause), copied as is, 82% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:864-882
+                     click 8.3.1, src/click/core.py:2223-2240 (BSD-3-Clause), copied as is, 73% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:898-914
+                     click 8.3.1, src/click/core.py:2254-2289 (BSD-3-Clause), copied with edits, 53% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:957-982
+                     click 8.3.1, src/click/core.py:2363-2391 (BSD-3-Clause), copied as is, 87% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:1018-1037
+                     click 8.3.1, src/click/core.py:2503-2522 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/core.py:1082-1103
+                     click 8.3.1, src/click/core.py:2604-2631 (BSD-3-Clause), copied as is, 86% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/exceptions.py:13-236
+                     click 8.3.1, src/click/exceptions.py:19-288 (BSD-3-Clause), copied with edits, 69% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/formatting.py:4-272
+                     click 8.3.1, src/click/formatting.py:7-301 (BSD-3-Clause), copied as is, 94% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/globals.py:28-61
+                     click 8.3.1, src/click/globals.py:36-67 (BSD-3-Clause), copied as is, 97% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/parser.py:48-176
+                     click 8.3.1, src/click/parser.py:53-188 (BSD-3-Clause), copied as is, 82% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/parser.py:195-410
+                     click 8.3.1, src/click/parser.py:208-431 (BSD-3-Clause), copied as is, 85% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/parser.py:422-459
+                     click 8.3.1, src/click/parser.py:462-499 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/shell_completion.py:9-73
+                     click 8.3.1, src/click/shell_completion.py:57-242 (BSD-3-Clause), copied with edits, 59% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/shell_completion.py:95-121
+                     click 8.3.1, src/click/shell_completion.py:271-301 (BSD-3-Clause), copied with edits, 80% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/shell_completion.py:135-306
+                     click 8.3.1, src/click/shell_completion.py:451-667 (BSD-3-Clause), copied with edits, 84% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/termui.py:19-188
+                     click 8.3.1, src/click/termui.py:30-252 (BSD-3-Clause), copied as is, 77% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/termui.py:198-383
+                     click 8.3.1, src/click/termui.py:294-690 (BSD-3-Clause), copied as is, 73% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/termui.py:386-431
+                     click 8.3.1, src/click/termui.py:782-849 (BSD-3-Clause), copied with edits, 97% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:150-167
+                     click 8.3.1, src/click/types.py:213-230 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:198-227
+                     click 8.3.1, src/click/types.py:439-472 (BSD-3-Clause), copied as is, 70% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:238-256
+                     click 8.3.1, src/click/types.py:485-503 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:261-432
+                     click 8.3.1, src/click/types.py:519-712 (BSD-3-Clause), copied with edits, 90% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:440-582
+                     click 8.3.1, src/click/types.py:721-880 (BSD-3-Clause), copied with edits, 68% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/types.py:596-689
+                     click 8.3.1, src/click/types.py:1082-1202 (BSD-3-Clause), copied as is, 85% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/utils.py:44-194
+                     click 8.3.1, src/click/utils.py:32-192 (BSD-3-Clause), copied with edits, 94% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_click/utils.py:201-477
+                     click 8.3.1, src/click/utils.py:224-627 (BSD-3-Clause), copied with edits, 92% match
+                     Credited in typer/_click/LICENSE.txt, kept with the copy. Keep its copyright
+                     line and the BSD-3-Clause licence text with your copy, for example in a
+                     third-party notices file.
+
+ATTRIBUTED           typer/_completion_classes.py:39-55
+                     click 8.3.1, src/click/shell_completion.py:347-360 (BSD-3-Clause), copied with edits, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/_completion_classes.py:58-95
+                     click 8.3.1, src/click/shell_completion.py:298-345 (BSD-3-Clause), copied as is, 80% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/_types.py:24-97
+                     click 8.3.1, src/click/types.py:272-367 (BSD-3-Clause), copied as is, 64% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/_types.py:108-116
+                     click 8.3.1, src/click/types.py:390-398 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:36-42
+                     click 8.3.1, src/click/parser.py:111-117 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:409-425
+                     click 8.3.1, src/click/core.py:3368-3384 (BSD-3-Clause), copied as is, 88% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:464-505
+                     click 8.3.1, src/click/core.py:2713-2745 (BSD-3-Clause), copied as is, 56% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:541-582
+                     click 8.3.1, src/click/core.py:2885-2926 (BSD-3-Clause), copied as is, 98% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:589-625
+                     click 8.3.1, src/click/core.py:2947-2983 (BSD-3-Clause), copied with edits, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:628-671
+                     click 8.3.1, src/click/core.py:3115-3162 (BSD-3-Clause), copied with edits, 64% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:687-703
+                     click 8.3.1, src/click/core.py:3174-3190 (BSD-3-Clause), copied with edits, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:752-779
+                     click 8.3.1, src/click/core.py:2985-3009 (BSD-3-Clause), copied as is, 75% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:865-879
+                     click 8.3.1, src/click/core.py:1163-1171 (BSD-3-Clause), copied with edits, 70% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:910-918
+                     click 8.3.1, src/click/core.py:940-948 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:1047-1119
+                     click 8.3.1, src/click/core.py:1788-1873 (BSD-3-Clause), copied as is, 70% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/core.py:1156-1169
+                     click 8.3.1, src/click/core.py:1911-1932 (BSD-3-Clause), copied as is, 100% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/models.py:652-675
+                     click 8.3.1, src/click/types.py:912-937 (BSD-3-Clause), copied with edits, 72% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/models.py:681-724
+                     click 8.3.1, src/click/types.py:955-996 (BSD-3-Clause), copied as is, 75% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/testing.py:29-75
+                     click 8.3.1, src/click/testing.py:69-128 (BSD-3-Clause), copied with edits, 89% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/testing.py:88-137
+                     click 8.3.1, src/click/testing.py:180-253 (BSD-3-Clause), copied with edits, 96% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/testing.py:151-277
+                     click 8.3.1, src/click/testing.py:272-435 (BSD-3-Clause), copied with edits, 88% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+ATTRIBUTED           typer/testing.py:288-342
+                     click 8.3.1, src/click/testing.py:490-544 (BSD-3-Clause), copied as is, 96% match
+                     Credited in typer/_click/LICENSE.txt. Keep its copyright line and the
+                     BSD-3-Clause licence text with your copy, for example in a third-party notices
+                     file.
+
+61 findings: 61 attributed.

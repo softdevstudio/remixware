@@ -1,0 +1,9 @@
+recorded with remixware 0.2.1
+
+coyim 0.4.1 (licence BSD-3-Clause AND GPL-3.0-only, 668 files, 105928 lines), compared with xmpp-client at 3030ad4:
+  17 copies of xmpp-client code in 14 files: 17 attributed
+  copied lines: 600
+  credited in LICENSE.xmpp-client: 17
+  files: config/connection_policy.go, config/importer/xmpp_client.go, config/raw_logger.go, session/session.go, ui/ui.go, ui/ui_test.go, xmpp/capabilities.go, xmpp/data/discovery.go, xmpp/data/forms.go, xmpp/data/roster.go, xmpp/discovery.go, xmpp/forms.go, xmpp/tls.go, xmpp/xml.go
+
+The components coyim vendors, and their licences, are in test/results/benchmark/corpus.txt.

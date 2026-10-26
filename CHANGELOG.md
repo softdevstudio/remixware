@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.2.1
+
+Running Remixware on real projects for the case studies on remixware.com
+found code credited in ways it didn't read. These are fixed:
+
+- A licence file kept with the code now counts as credit, as projects that
+  vendor a library keep it: typer keeps Click's licence in
+  `typer/_click/LICENSE.txt`, pip keeps each vendored library's in its
+  folder, and coyim keeps xmpp-client's in `LICENSE.xmpp-client` at its
+  top. Remixware reads the licence and notice files anywhere in the project,
+  outside the folders a scan skips such as `vendor/` and `node_modules/`,
+  and a full copyright line or a name in one of them credits the copy, as
+  in a notices file. 0.2.0 read only notice files in the top folder and
+  the copied file's own header, and called these copies
+  `attribution-missing`. Paths `--exclude` and the policy's `ignore` name
+  are left out, and source files named like notices (`attribution.go`)
+  and build files named like them (`ThirdParty.cmake`) aren't read as
+  notices, at the top either. Findings that are credited
+  carry `"credited": true` in the JSON report, and `notice` writes no
+  entry for them.
+- For a source whose licence text names no copyright holder (the Apache and
+  Mozilla texts don't), its own licence text kept whole counts as credit in
+  the nearest folder with a licence file (LICENSE, COPYING), starting with
+  the copy's own and short of the project's top. If the
+  source ships a NOTICE, its NOTICE text has to be there too, and the
+  finding says so when only the licence is.
+- A short licence file that offers others as a choice ("either of the
+  licenses found in LICENSE.APACHE or LICENSE.BSD", as packaging's does) is
+  read as that choice, no longer as an unrecognised licence. The files have
+  to be listed as alternatives in a sentence that offers the choice; other
+  short files that name licence files are read as before.
+- Archives and images whose names start like a licence file
+  (`license.dist-0.1-py2.py3-none-any.whl`) aren't read as licence files.
+- A source release built with setuptools keeps its licence file at the top
+  and its metadata in an `.egg-info` folder. The package indexed from that
+  metadata now takes the release's licence text, copyright lines and
+  NOTICE. An index no longer passes a licence or its texts across a
+  `_vendor` or `vendored` folder, and a project reached through a symbolic
+  link is read like any other with `--from` alone too.
+- A licence given in words in `pyproject.toml` ("ISC License") is read as
+  its SPDX id, and words Remixware can't place no longer become a licence
+  of their own.
+- `scripts/case_studies.py` records the case studies (typer and Click,
+  coyim and xmpp-client, pip's vendored libraries) in
+  `test/results/case-studies`.
+
 ## 0.2.0
 
 - `--scanoss` asks the SCANOSS service directly, so a check covers a large

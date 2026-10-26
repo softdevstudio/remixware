@@ -97,4 +97,8 @@ for name in sorted(os.listdir(d)):
           f"findings={len(j['findings'])} " + " ".join(f"{k}={c[k]}" for k in sorted(c)))
 PY
 cat "$res/gallery.txt"
+
+echo "== case studies"
+# Real projects that took code from others (see test/results/case-studies/README.md).
+python3 "$root/scripts/case_studies.py" "$bin" "$cache" "$res/case-studies"
 echo "recorded in $res"

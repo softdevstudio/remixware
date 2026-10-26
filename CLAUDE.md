@@ -53,6 +53,27 @@ binary. It connects to the network only when asked to, with `--scanoss`.
   on macOS and Windows), 100 licences/copyrights/purls per match, 20,000
   findings per file in a findings file (an amalgamation of 1,100 indexed
   files gives 1,100), 100 copyright lines per imported finding.
+- `nearby.go` finds credit kept with the code (0.2.1, from the case
+  studies): licence and notice files in the copy's folder and the folders
+  above it, then anywhere in the project outside the folders a scan skips
+  (a licence in vendor/ doesn't credit code copied out of it; the shopfront
+  fixture tests that), matched with the same needles as notices (full
+  copyright line, name with version, URL, PURL). A source whose licence
+  names no copyright holder (bare Apache or MPL text) is credited only by
+  its own licence text kept whole in the nearest folder below the root that
+  has a licence file, plus its NOTICE text when it ships one; a licence
+  text at the root could be any other library's (TestLicenceTextIsNotCredit,
+  from the 0.1.1 review). At the root, nearby reads licence files only: the
+  root's notice files are readNotices' job, and a policy's notice_files
+  replaces them. Source and build files named like notices (attribution.go,
+  ThirdParty.cmake) aren't notices, here and in readNotices (noticeText). The walk leaves out --exclude and the policy's
+  ignore (Results.Exclude carries --exclude). Symbolic links aren't
+  followed; the project root is resolved first (NewResults uses realPath,
+  like Scan). Reads stop at two separate 64 MB budgets, one for the folders
+  above copies and one for the walk (20,000 files), so the walk can't use up
+  what a copy's own folder needs; past them, files go unread, each counted
+  once in Skipped["licence-files"], reset on every Evaluate.
+  Credited findings carry `credited: true`, and `notice` skips them.
 - `policy.go` evaluates statuses, notice files and allow rules;
   `notice.go` writes notices with the texts in `licensetexts/` (from the
   SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write
@@ -63,6 +84,11 @@ binary. It connects to the network only when asked to, with `--scanoss`.
 - `scripts/bench` clones real projects (scripts/bench/corpus.json) into a
   cache outside the repo and measures recall, wrong sources, false alarms
   and speed.
+- `scripts/case_studies.py` records the site's case studies in
+  test/results/case-studies: typer 0.12.5 and 0.27.3 against Click, coyim
+  against xmpp-client, and pip 26.2.2's `_vendor` folder against the 18
+  releases its vendor.txt lists, downloaded from PyPI and checked against
+  PyPI's SHA-256. record-results.sh runs it after the gallery.
 
 Site repo: github.com/photozeitgeist/remixware.com (Hugo, Launch template,
 content and config values only; never touch the theme).
@@ -192,6 +218,34 @@ as v0.2.0: five archives plus SHA256SUMS. The downloaded Linux build was
 checked (checksum, fixtures, and the live answer replayed to it through
 `--scanoss`), and remixware.com went up with its gallery recorded from it.
 
+0.2.1 (2026-10-26): the owner asked for case studies on real projects
+(three posts tagged "case studies", a Case Studies menu link). Running
+them showed 0.2.0 reading credit only from notice files at a project's top:
+typer 0.27.3 keeps Click's licence in typer/_click/LICENSE.txt and coyim
+keeps xmpp-client's in LICENSE.xmpp-client, yet both came out "attribution
+missing". The owner chose to fix first. nearby.go reads licence files kept
+with the code; a licence file that points to others (packaging's LICENSE)
+is read as that choice; archives named like licences are skipped; an
+.egg-info package in a PyPI source release takes the release's licence
+text, copyright lines and NOTICE; pyproject licence words ("ISC License")
+map to SPDX ids. Results with 0.2.1: typer 0.12.5 has 5 copies of Click
+without Click's notice; typer 0.27.3 has 61, all credited; coyim's 17
+copies are credited; pip's vendored folder has 226 copies, all credited
+except requests' 17 (pip keeps its LICENSE but not its NOTICE, which the
+requests release ships). The independent review found 9 defects in the new
+code, among them source files named like notices (attribution.go) crediting
+copies, a stray "either" in a short licence file turning AND into OR, texts
+inherited by npm packages and across _vendor, a symlinked root losing
+credit with --from, order-dependent budgets, --exclude ignored by the
+walk, and `notice` writing entries for credited MPL copies; plus 9 wording
+problems in the posts. A focused re-check of those fixes found 8 more:
+build files named like notices (ThirdParty.cmake) crediting copies,
+readSmall allocating its whole limit per file (33 s for 20,000 small
+licence files), NOTICE and licence texts cut differently by an index and a
+findings file (so --index and --from disagreed), unread files counted
+twice, "either way" read as a choice, and wording. All fixed with tests;
+both reviewers' reproductions pass.
+
 ## Gaps and to-do
 
 Known gaps, not planned yet:
@@ -213,6 +267,29 @@ Known gaps, not planned yet:
 - The free SCANOSS service may limit how often it's asked and gives no
   guarantees; a large project means many requests (32 files or 32 KB each,
   4 at a time).
+- "Names changed" matches can pair look-alike blocks against a big index:
+  comparing pip's own code with the 18 releases it vendors paired an
+  import block in pip/_internal/cache.py with one in a setuptools test, and
+  a pytest list of date strings with a list of version specifiers. The
+  benchmark's unrelated projects show none, and the pip case study scans
+  only the vendored folder. Fixing it means judging renamed matches
+  differently (imports, literal lists), then re-running the benchmark.
+- A copy is named by where it was found, which can be a middleman: pip's
+  change_root (from CPython's distutils) matched setuptools' copy of
+  distutils, and pip's _jaraco_text.py matched the jaraco.text that
+  setuptools vendors without its licence, so both read as setuptools' MIT
+  code with attribution missing.
+- A copy that keeps its source's header counts as credited without the
+  source's NOTICE text; nearby.go asks for the NOTICE, keepsNotice doesn't.
+- A source whose licence names no copyright holder is credited by its
+  licence text in the nearest folder with a licence file, so a copy put
+  into another library's folder with the same bare text would count.
+- Licence detection that the 0.2.1 review saw and that 0.2.0 shares: the
+  SPDX OFL-1.1 text is read as MIT-0 (so OFL code would need no notice); a
+  BSD-3 text without "Neither the name of" (go-difflib) is read as BSD-2;
+  licence files named after licences (LICENSE-APACHE and LICENSE-MIT,
+  COPYING.GPL and COPYING.LGPL) are read as a choice even when a short
+  LICENSE says the parts differ.
 - Licence texts outside the eight built in are taken from the component's
   own licence file; when the index doesn't have it, `notice` asks the user
   to finish the entry by hand.
@@ -242,4 +319,4 @@ Known gaps, not planned yet:
 
 ## Next
 
-Nothing is approved after 0.2. Ask the owner before starting anything new.
+Nothing is approved after 0.2.1. Ask the owner before starting anything new.

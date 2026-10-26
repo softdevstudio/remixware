@@ -102,6 +102,18 @@ func mdLine(s string) string {
 	return t
 }
 
+// cutText cuts s to at most max bytes, at a character boundary.
+func cutText(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	i := max
+	for i > 0 && !utf8.RuneStart(s[i]) {
+		i--
+	}
+	return s[:i]
+}
+
 // TerminalText is what a command line prints: line breaks and tabs stay,
 // and each character a terminal acts on shows as U+FFFD. The command line
 // passes everything it prints through it, so text from indexes and results

@@ -1,0 +1,109 @@
+$ remixware scan coyim-0.4.1 --index indexes/xmpp-client.rmx
+
+Scanned 668 files (105,928 lines) in coyim-0.4.1 (3 files skipped: 2 minified, 1 over 2 MB)
+Project licence: BSD-3-Clause AND GPL-3.0-only (from LICENSE, LICENSE.xmpp-client)
+Compared with: indexes/xmpp-client.rmx (1 component, 7 files)
+
+ATTRIBUTED           config/connection_policy.go:208-221
+                     github.com/agl/xmpp-client 3030ad4, ui.go:348-361 (BSD-3-Clause), copied as is, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           config/importer/xmpp_client.go:14-32
+                     github.com/agl/xmpp-client 3030ad4, config.go:24-42 (BSD-3-Clause), copied with edits, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           config/raw_logger.go:13-68
+                     github.com/agl/xmpp-client 3030ad4, ui.go:1429-1477 (BSD-3-Clause), copied as is, 92% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           session/session.go:617-633
+                     github.com/agl/xmpp-client 3030ad4, ui.go:985-1001 (BSD-3-Clause), copied as is, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           session/session.go:678-700
+                     github.com/agl/xmpp-client 3030ad4, ui.go:437-456 (BSD-3-Clause), copied with edits, 80% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           ui/ui.go:114-130
+                     github.com/agl/xmpp-client 3030ad4, ui.go:64-80 (BSD-3-Clause), copied with edits, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           ui/ui.go:173-232
+                     github.com/agl/xmpp-client 3030ad4, ui.go:1198-1257 (BSD-3-Clause), copied as is, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           ui/ui_test.go:7-33
+                     github.com/agl/xmpp-client 3030ad4, ui_test.go:6-25 (BSD-3-Clause), copied with edits, 62% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/capabilities.go:32-54
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:1358-1380 (BSD-3-Clause), copied as is, 52% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/data/discovery.go:7-37
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:960-987 (BSD-3-Clause), copied with names changed, 82% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/data/forms.go:12-139
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:981-1099 (BSD-3-Clause), copied with edits, 95% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/data/roster.go:38-67
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:190-219 (BSD-3-Clause), copied as is, 72% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/discovery.go:211-283
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:1272-1343 (BSD-3-Clause), copied as is, 83% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/forms.go:28-50
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:1125-1147 (BSD-3-Clause), copied as is, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/tls.go:20-34
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:372-386 (BSD-3-Clause), copied as is, 100% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/xml.go:22-50
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:702-721 (BSD-3-Clause), copied with edits, 58% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+ATTRIBUTED           xmpp/xml.go:117-131
+                     github.com/agl/xmpp-client 3030ad4, xmpp/xmpp.go:925-938 (BSD-3-Clause), copied as is, 91% match
+                     Credited in LICENSE.xmpp-client, kept with the copy. Keep its copyright line
+                     and the BSD-3-Clause licence text with your copy, for example in a third-party
+                     notices file.
+
+17 findings: 17 attributed.

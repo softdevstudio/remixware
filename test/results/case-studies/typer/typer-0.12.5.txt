@@ -1,0 +1,32 @@
+$ remixware scan typer-0.12.5 --index indexes/click-8.1.7.rmx
+
+Scanned 575 files (22,161 lines) in typer-0.12.5
+Project licence: MIT (from LICENSE)
+Compared with: indexes/click-8.1.7.rmx (1 component, 71 files)
+
+ATTRIBUTION MISSING  typer/_completion_classes.py:36-47
+                     click 8.1.7, src/click/shell_completion.py:335-346 (BSD-3-Clause), copied as is, 100% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+ATTRIBUTION MISSING  typer/core.py:49-55
+                     click 8.1.7, src/click/parser.py:109-115 (BSD-3-Clause), copied as is, 100% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+ATTRIBUTION MISSING  typer/core.py:476-523
+                     click 8.1.7, src/click/core.py:2734-2778 (BSD-3-Clause), copied as is, 85% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+ATTRIBUTION MISSING  typer/core.py:543-559
+                     click 8.1.7, src/click/core.py:2820-2840 (BSD-3-Clause), copied as is, 83% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+ATTRIBUTION MISSING  typer/core.py:566-580
+                     click 8.1.7, src/click/core.py:1380-1388 (BSD-3-Clause), copied with edits, 70% match
+                     Keep its copyright line and the BSD-3-Clause licence text with your copy, for
+                     example in a third-party notices file.
+
+5 findings: 5 attribution missing.

@@ -9,80 +9,120 @@
 === RUN   TestImportDropped
 --- PASS: TestImportDropped (0.00s)
 === RUN   TestImportPathAliases
---- PASS: TestImportPathAliases (1.52s)
+--- PASS: TestImportPathAliases (1.45s)
 === RUN   TestIndexTextCleaned
---- PASS: TestIndexTextCleaned (0.01s)
+--- PASS: TestIndexTextCleaned (0.02s)
 === RUN   TestNoticeMarkdown
 --- PASS: TestNoticeMarkdown (0.00s)
 === RUN   TestCleanedCopyrightStillMatches
 --- PASS: TestCleanedCopyrightStillMatches (0.00s)
 === RUN   TestIndexReadsComponentsAndLicences
---- PASS: TestIndexReadsComponentsAndLicences (0.18s)
+--- PASS: TestIndexReadsComponentsAndLicences (0.24s)
 === RUN   TestScanShopfront
 --- PASS: TestScanShopfront (0.04s)
 === RUN   TestScanFirmware
 --- PASS: TestScanFirmware (0.02s)
 === RUN   TestScanCleanFindsNothing
---- PASS: TestScanCleanFindsNothing (0.06s)
+--- PASS: TestScanCleanFindsNothing (0.09s)
 === RUN   TestWindowsCheckout
---- PASS: TestWindowsCheckout (0.13s)
+--- PASS: TestWindowsCheckout (0.14s)
 === RUN   TestIncludeDepsScansVendor
---- PASS: TestIncludeDepsScansVendor (0.04s)
+--- PASS: TestIncludeDepsScansVendor (0.05s)
 === RUN   TestIndexedVendorFolder
---- PASS: TestIndexedVendorFolder (0.04s)
+--- PASS: TestIndexedVendorFolder (0.05s)
 === RUN   TestIndexRoundTrip
---- PASS: TestIndexRoundTrip (0.11s)
+--- PASS: TestIndexRoundTrip (0.12s)
 === RUN   TestDamagedIndexIsRefused
 --- PASS: TestDamagedIndexIsRefused (0.06s)
 === RUN   TestCraftedIndexes
---- PASS: TestCraftedIndexes (24.74s)
+--- PASS: TestCraftedIndexes (24.80s)
 === RUN   TestSCANOSSImport
---- PASS: TestSCANOSSImport (0.06s)
+--- PASS: TestSCANOSSImport (0.04s)
 === RUN   TestIndexAndSCANOSSTogether
---- PASS: TestIndexAndSCANOSSTogether (0.03s)
+--- PASS: TestIndexAndSCANOSSTogether (0.06s)
 === RUN   TestFindingsFileRoundTrip
---- PASS: TestFindingsFileRoundTrip (0.08s)
+--- PASS: TestFindingsFileRoundTrip (0.10s)
 === RUN   TestPolicyRules
---- PASS: TestPolicyRules (0.04s)
+--- PASS: TestPolicyRules (0.10s)
 === RUN   TestPolicyLicenseAndNoticeFiles
---- PASS: TestPolicyLicenseAndNoticeFiles (0.01s)
+--- PASS: TestPolicyLicenseAndNoticeFiles (0.07s)
 === RUN   TestPolicyErrors
---- PASS: TestPolicyErrors (0.00s)
+--- PASS: TestPolicyErrors (0.01s)
 === RUN   TestNoticesFixAttribution
---- PASS: TestNoticesFixAttribution (0.13s)
+--- PASS: TestNoticesFixAttribution (0.45s)
 === RUN   TestLicenceTextIsNotCredit
---- PASS: TestLicenceTextIsNotCredit (0.04s)
+--- PASS: TestLicenceTextIsNotCredit (0.09s)
 === RUN   TestCopyWithHeaderIsAttributed
---- PASS: TestCopyWithHeaderIsAttributed (0.01s)
+--- PASS: TestCopyWithHeaderIsAttributed (0.02s)
 === RUN   TestUnreadableFilesAreErrors
     fixtures_test.go:898: file permissions don't stop this user
 --- SKIP: TestUnreadableFilesAreErrors (0.00s)
 === RUN   TestMatchesLineUpWithTheirSource
---- PASS: TestMatchesLineUpWithTheirSource (0.02s)
+--- PASS: TestMatchesLineUpWithTheirSource (0.04s)
 === RUN   TestFindingIDsAreUnique
---- PASS: TestFindingIDsAreUnique (0.01s)
+--- PASS: TestFindingIDsAreUnique (0.03s)
 === RUN   TestManyNearIdenticalFilesStayBounded
---- PASS: TestManyNearIdenticalFilesStayBounded (0.04s)
+--- PASS: TestManyNearIdenticalFilesStayBounded (0.09s)
 === RUN   TestHeaderCantHideCopyleft
---- PASS: TestHeaderCantHideCopyleft (0.00s)
+--- PASS: TestHeaderCantHideCopyleft (0.01s)
 === RUN   TestConstantTablesDontMatch
---- PASS: TestConstantTablesDontMatch (0.00s)
+--- PASS: TestConstantTablesDontMatch (0.01s)
 === RUN   TestReports
---- PASS: TestReports (0.12s)
+--- PASS: TestReports (0.34s)
 === RUN   TestScanErrors
 --- PASS: TestScanErrors (0.00s)
 === RUN   TestResultsFilesCantReadOutsideTheProject
---- PASS: TestResultsFilesCantReadOutsideTheProject (0.06s)
+--- PASS: TestResultsFilesCantReadOutsideTheProject (0.10s)
 === RUN   TestIndexThatHoldsTheProject
---- PASS: TestIndexThatHoldsTheProject (0.13s)
+--- PASS: TestIndexThatHoldsTheProject (0.17s)
 === RUN   TestSymlinksAreCounted
 --- PASS: TestSymlinksAreCounted (0.00s)
 === RUN   TestReviewStillNeedsItsNotice
---- PASS: TestReviewStillNeedsItsNotice (0.01s)
+--- PASS: TestReviewStillNeedsItsNotice (0.00s)
 === RUN   TestNoticeLeavesNoTextOut
---- PASS: TestNoticeLeavesNoTextOut (0.08s)
+--- PASS: TestNoticeLeavesNoTextOut (0.07s)
 === RUN   TestCopyWithDualHeaderIsAttributed
---- PASS: TestCopyWithDualHeaderIsAttributed (0.03s)
+--- PASS: TestCopyWithDualHeaderIsAttributed (0.02s)
+=== RUN   TestCreditKeptWithTheCopy
+--- PASS: TestCreditKeptWithTheCopy (0.01s)
+=== RUN   TestCreditInASecondRootLicenceFile
+--- PASS: TestCreditInASecondRootLicenceFile (0.01s)
+=== RUN   TestCreditElsewhereInTheProject
+--- PASS: TestCreditElsewhereInTheProject (0.01s)
+=== RUN   TestCreditNotFromDependencyFoldersOrLinks
+--- PASS: TestCreditNotFromDependencyFoldersOrLinks (0.01s)
+=== RUN   TestBareLicenceTextKeptWithTheCopy
+--- PASS: TestBareLicenceTextKeptWithTheCopy (0.32s)
+=== RUN   TestNoticeTextKeptWithTheCopy
+--- PASS: TestNoticeTextKeptWithTheCopy (0.15s)
+=== RUN   TestUnfinishedEntryKeptWithTheCopy
+--- PASS: TestUnfinishedEntryKeptWithTheCopy (0.04s)
+=== RUN   TestBinaryFilesAreNotLicences
+--- PASS: TestBinaryFilesAreNotLicences (0.00s)
+=== RUN   TestLicenceFileThatPointsToOthers
+--- PASS: TestLicenceFileThatPointsToOthers (0.19s)
+=== RUN   TestCodeNamedLikeANoticeIsNoCredit
+--- PASS: TestCodeNamedLikeANoticeIsNoCredit (0.04s)
+=== RUN   TestCreditNotFromIgnoredPaths
+--- PASS: TestCreditNotFromIgnoredPaths (0.02s)
+=== RUN   TestNearbyBudgets
+--- PASS: TestNearbyBudgets (0.01s)
+=== RUN   TestSymlinkedProjectRoot
+--- PASS: TestSymlinkedProjectRoot (0.00s)
+=== RUN   TestNoticeSkipsCreditedCopies
+--- PASS: TestNoticeSkipsCreditedCopies (0.08s)
+=== RUN   TestOnlyReleaseMetadataTakesTexts
+--- PASS: TestOnlyReleaseMetadataTakesTexts (0.01s)
+=== RUN   TestImportedTextsCapped
+--- PASS: TestImportedTextsCapped (0.10s)
+=== RUN   TestReleaseMetadataTakesTheReleaseTexts
+--- PASS: TestReleaseMetadataTakesTheReleaseTexts (0.01s)
+=== RUN   TestPyprojectLicenceNames
+--- PASS: TestPyprojectLicenceNames (0.00s)
+=== RUN   TestTextCapsMatchOnImport
+--- PASS: TestTextCapsMatchOnImport (0.29s)
+=== RUN   TestUnreadCountedOnce
+--- PASS: TestUnreadCountedOnce (0.00s)
 === RUN   TestWFPMatchesScanossPy
 --- PASS: TestWFPMatchesScanossPy (0.00s)
 === RUN   TestPySuffix
@@ -90,15 +130,15 @@
 === RUN   TestSCANOSSURL
 --- PASS: TestSCANOSSURL (0.00s)
 === RUN   TestSCANOSSService
---- PASS: TestSCANOSSService (0.02s)
+--- PASS: TestSCANOSSService (0.03s)
 === RUN   TestSCANOSSKey
 --- PASS: TestSCANOSSKey (0.01s)
 === RUN   TestSCANOSSWhatIsSent
 --- PASS: TestSCANOSSWhatIsSent (0.11s)
 === RUN   TestSCANOSSWaitsAndTriesAgain
---- PASS: TestSCANOSSWaitsAndTriesAgain (0.01s)
+--- PASS: TestSCANOSSWaitsAndTriesAgain (0.02s)
 === RUN   TestSCANOSSRealAnswers
---- PASS: TestSCANOSSRealAnswers (0.08s)
+--- PASS: TestSCANOSSRealAnswers (0.06s)
 === RUN   TestSCANOSSServiceQuirks
 --- PASS: TestSCANOSSServiceQuirks (0.00s)
 === RUN   TestSCANOSSAsksToWait
@@ -106,7 +146,7 @@
 === RUN   TestServiceWait
 --- PASS: TestServiceWait (0.00s)
 === RUN   TestSCANOSSErrors
---- PASS: TestSCANOSSErrors (1.14s)
+--- PASS: TestSCANOSSErrors (1.12s)
 === RUN   TestSCANOSSIncompleteAnswers
 --- PASS: TestSCANOSSIncompleteAnswers (0.06s)
 === RUN   TestSCANOSSRedirect
@@ -120,9 +160,9 @@
 === RUN   TestSCANOSSAnswerText
 --- PASS: TestSCANOSSAnswerText (0.00s)
 === RUN   TestSCANOSSTooManyMatches
---- PASS: TestSCANOSSTooManyMatches (0.00s)
+--- PASS: TestSCANOSSTooManyMatches (0.01s)
 === RUN   TestSCANOSSOddFileNames
---- PASS: TestSCANOSSOddFileNames (0.04s)
+--- PASS: TestSCANOSSOddFileNames (0.00s)
 === RUN   TestSCANOSSSymlinks
 --- PASS: TestSCANOSSSymlinks (0.00s)
 === RUN   TestImportedFindingsText
@@ -132,17 +172,17 @@
 === RUN   TestTokenizeLanguages
 --- PASS: TestTokenizeLanguages (0.00s)
 === RUN   TestTokenizeNeverHangsOrPanics
---- PASS: TestTokenizeNeverHangsOrPanics (0.27s)
+--- PASS: TestTokenizeNeverHangsOrPanics (0.28s)
 === RUN   TestNamesAreNumberedNotErased
 --- PASS: TestNamesAreNumberedNotErased (0.00s)
 === RUN   TestWinnowingGuarantee
---- PASS: TestWinnowingGuarantee (0.13s)
+--- PASS: TestWinnowingGuarantee (0.15s)
 === RUN   TestRepetitiveCodeIsNotFingerprinted
 --- PASS: TestRepetitiveCodeIsNotFingerprinted (0.00s)
 === RUN   TestSortInterfaceIdiomIsIgnored
 --- PASS: TestSortInterfaceIdiomIsIgnored (0.00s)
 === RUN   TestDetectLicense
---- PASS: TestDetectLicense (0.12s)
+--- PASS: TestDetectLicense (0.11s)
 === RUN   TestCanonicalLicences
 --- PASS: TestCanonicalLicences (0.00s)
 === RUN   TestLicenseExpressions
@@ -152,7 +192,7 @@
 === RUN   TestCopyrightLines
 --- PASS: TestCopyrightLines (0.02s)
 === RUN   TestFileHeaderLicences
---- PASS: TestFileHeaderLicences (0.07s)
+--- PASS: TestFileHeaderLicences (0.06s)
 === RUN   TestManifests
 --- PASS: TestManifests (0.01s)
 === RUN   TestGlobMatch
@@ -166,11 +206,11 @@
 === RUN   TestCargoWorkspaceLicence
 --- PASS: TestCargoWorkspaceLicence (0.01s)
 === RUN   TestPythonNamespacePackages
---- PASS: TestPythonNamespacePackages (0.02s)
+--- PASS: TestPythonNamespacePackages (0.00s)
 === RUN   TestSymlinkedLicenceFilesAreNotRead
 --- PASS: TestSymlinkedLicenceFilesAreNotRead (0.00s)
 === RUN   TestComponentNames
---- PASS: TestComponentNames (0.03s)
+--- PASS: TestComponentNames (0.04s)
 === RUN   TestWindowsLineEndings
 --- PASS: TestWindowsLineEndings (0.00s)
 === RUN   TestCredit
@@ -182,9 +222,9 @@
 === RUN   TestFingerprintsMatchNormVersion
 --- PASS: TestFingerprintsMatchNormVersion (0.01s)
 === RUN   TestHeaderChoices
---- PASS: TestHeaderChoices (0.07s)
+--- PASS: TestHeaderChoices (0.06s)
 === RUN   TestOriginSentences
---- PASS: TestOriginSentences (0.04s)
+--- PASS: TestOriginSentences (0.00s)
 === RUN   FuzzTokenize
 === RUN   FuzzTokenize/seed#0
 === RUN   FuzzTokenize/seed#1
@@ -192,31 +232,31 @@
     --- PASS: FuzzTokenize/seed#0 (0.00s)
     --- PASS: FuzzTokenize/seed#1 (0.00s)
 PASS
-ok  	github.com/softdevstudio/remixware	31.408s
+ok  	github.com/softdevstudio/remixware	33.657s
 === RUN   TestUsageAndVersion
 --- PASS: TestUsageAndVersion (0.00s)
 === RUN   TestIndexCommand
---- PASS: TestIndexCommand (0.22s)
+--- PASS: TestIndexCommand (0.21s)
 === RUN   TestScanCommand
---- PASS: TestScanCommand (0.15s)
+--- PASS: TestScanCommand (0.16s)
 === RUN   TestScanFromSCANOSS
---- PASS: TestScanFromSCANOSS (0.09s)
+--- PASS: TestScanFromSCANOSS (0.06s)
 === RUN   TestCheckCommand
 --- PASS: TestCheckCommand (0.25s)
 === RUN   TestCheckThatScansNothingFails
---- PASS: TestCheckThatScansNothingFails (0.46s)
+--- PASS: TestCheckThatScansNothingFails (0.50s)
 === RUN   TestPolicyFile
---- PASS: TestPolicyFile (0.15s)
+--- PASS: TestPolicyFile (0.13s)
 === RUN   TestNoticeLoop
---- PASS: TestNoticeLoop (0.56s)
+--- PASS: TestNoticeLoop (0.57s)
 === RUN   TestSCANOSSFlags
---- PASS: TestSCANOSSFlags (0.20s)
+--- PASS: TestSCANOSSFlags (0.30s)
 === RUN   TestTerminalFilter
---- PASS: TestTerminalFilter (0.02s)
+--- PASS: TestTerminalFilter (0.06s)
 === RUN   TestSCANOSSOnlyRun
 --- PASS: TestSCANOSSOnlyRun (0.01s)
 === RUN   TestDroppedEntries
---- PASS: TestDroppedEntries (0.03s)
+--- PASS: TestDroppedEntries (0.00s)
 PASS
-ok  	github.com/softdevstudio/remixware/cmd/remixware	3.180s
+ok  	github.com/softdevstudio/remixware/cmd/remixware	3.275s
 ?   	github.com/softdevstudio/remixware/scripts/bench	[no test files]
