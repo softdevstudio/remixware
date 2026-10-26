@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "shopfront copied code",
-  "documentNamespace": "https://remixware.com/spdx/shopfront-2dca05e8d724c288",
+  "documentNamespace": "https://remixware.com/spdx/shopfront-019829f5acd8add9",
   "creationInfo": {
-    "created": "2026-10-26T09:11:46Z",
+    "created": "2026-10-26T09:49:54Z",
     "creators": [
       "Tool: remixware-0.1.0"
     ]

@@ -1,3 +1,3 @@
-Indexed 10 files (539 lines) in 10 components into upstream.rmx (22 KB) in 27ms.
+Indexed 10 files (539 lines) in 10 components into upstream.rmx (22 KB) in 21ms.
 Licences: MIT 2, AGPL-3.0-or-later 1, Apache-2.0 1, BSD-3-Clause 1, GPL-3.0-or-later 1, ISC 1, MPL-2.0 1, NONE 1, Zlib 1
 1 component has no licence: copies of its code will be reported as no-license.
