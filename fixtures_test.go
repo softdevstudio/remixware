@@ -449,7 +449,7 @@ func TestCraftedIndexes(t *testing.T) {
 	secretPy := writeTemp(t, dir, "secret/settings.py", "DATABASES = {'default': {'PASSWORD': 'hunter2-db-password'}}\n")
 	data, _ := os.ReadFile(secretPy)
 	ix := fresh()
-	ix.Roots = []string{"/"}
+	ix.Roots = []string{filepath.VolumeName(secretPy) + string(filepath.Separator)}
 	for _, f := range ix.Files {
 		f.Abs, f.Tokens = secretPy, len(tokenize(data, languageFor(secretPy)))
 	}
