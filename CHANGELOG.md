@@ -21,7 +21,8 @@
 - A rate limit, a server error or an incomplete answer is tried again,
   after as long as the service asks, a minute at a time, with a line saying
   so. When the service asks for a longer wait than the tries left could
-  cover, Remixware stops at once and says how long and until when. A refused
+  cover, Remixware stops at once and says how long, and for a long wait
+  until when. A refused
   key, an answer that isn't SCANOSS results or a service that doesn't
   answer ends the command with exit code 2.
 - The minified files a scan skips (`.min.js`, `.min.css` and source files

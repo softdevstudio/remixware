@@ -5,8 +5,15 @@ runners for the rest of the month: HTTP 503, "Rate limit exceeded", with a
 wait until 2026-11-01 00:00 UTC. It gave `remixware scan --scanoss` that
 answer on Linux, macOS and Windows runners. SCANOSS's own scanner, run next
 to it, got the same answer on macOS and none at all on Linux and Windows. So
-the live check workflow couldn't get a result. This check was made from
-another connection instead, with `scripts/scanoss_live.py`:
+the live check workflow couldn't get a result. On Linux (live check run
+40318954121) Remixware said:
+
+```text
+remixware: SCANOSS: api.osskb.org asks Remixware to wait 5.5 days, until 2026-11-01 00:00 UTC (HTTP 503): {"error":"Rate limit exceeded","retry_after":475287.876556037}. Try again then, or use a SCANOSS API key (--scanoss-key)
+```
+
+This check was made from another connection instead, with
+`scripts/scanoss_live.py`:
 
 1. `request` built the test project, the same one the workflow uses:
    logrus v1.9.3's `text_formatter.go` copied whole as

@@ -163,10 +163,14 @@ which SCANOSS can name as a whole. It makes its fingerprints the way
 SCANOSS's scanner does and sends them to the free service at
 `https://api.osskb.org`, which the Software Transparency Foundation runs.
 For each file it sends a number with the file's extension, the file's MD5
-and size, and the hashes of its text: no code and no file names. (One
-difference from SCANOSS's scanner: that scanner takes a few text files for
-binary by their first bytes, such as a source file starting with "BM", and
-sends no hashes for them; Remixware hashes them.) The answers are matched
+and size, a second MD5 taken with the other kind of line endings, and the
+hashes of its text: no code and no file names. Each request also carries
+`remixware/VERSION` as its user agent, a random request ID and, when you
+set one, your API key. Two differences from SCANOSS's scanner: it sends
+each file's path in place of the number unless you run it with
+`--obfuscate`, and it takes a few text files for binary by their first
+bytes, such as a source file starting with "BM", and sends no hashes for
+them, where Remixware hashes them. The answers are matched
 back to your files by those numbers, and they have to cover every file
 sent: an answer that leaves files out is asked for again, and then ends
 the command with exit code 2. The service's
@@ -174,8 +178,8 @@ the command with exit code 2. The service's
 comes with no guarantees, it limits how much you ask, and it may log usage.
 Remixware waits and tries again when the service asks it to slow down for a
 moment. When the service asks for a longer wait, as it does once a limit is
-used up (sometimes until the next month), Remixware stops and says until
-when, and a check exits with 2. Hosted CI runners are shared by many
+used up (sometimes until the next month), Remixware stops and says how
+long, and for a long wait until when, and a check exits with 2. Hosted CI runners are shared by many
 projects, so there the free service's limits may already be used up; an API
 key avoids that.
 
@@ -280,7 +284,7 @@ quietly switch a rule off.
   (`*` works as a wildcard), a `file` pattern, a `license`, or several of
   them, and must give a `reason`. The finding is then `allowed`, and the
   report shows the reason.
-- `min_tokens`, `min_lines`: the smallest match to report.
+- `min_tokens`, `min_lines`: the smallest match from an index to report.
 
 ## Commands
 
@@ -313,8 +317,9 @@ answer or refused.
 
 ## Reports
 
-- `--html FILE`: one self-contained page with every finding, your code and
-  the matching source side by side, and the reason for each status. It
+- `--html FILE`: one self-contained page with every finding and the reason
+  for each status, with your code and the matching source side by side for
+  matches from an index, and a link to the source for SCANOSS matches. It
   works offline and in dark mode.
 - `--json FILE`: the findings for other tools. The fields are `findings`
   (each with `id`, `file`, `lines`, `status`, `reason`, `source` and
