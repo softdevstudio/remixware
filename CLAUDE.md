@@ -117,6 +117,9 @@ found the first version of this too eager ("Holder Technologies Inc.",
 "<https://...>"); those cases are tests now. Checked against all 826 SPDX
 licence texts and about 19,000 real licence files and source headers. The
 fixtures link to example domains (one linked an unrelated npm package).
+Released as v0.1.1 the same day; the downloaded Linux build was checked
+(checksum, fixtures, the MPL credit case), and remixware.com went up with
+its gallery recorded from it.
 
 ## Gaps and to-do
 
