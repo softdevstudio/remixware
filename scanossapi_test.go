@@ -345,7 +345,7 @@ func TestSCANOSSWaitsAndTriesAgain(t *testing.T) {
 		case 2:
 			return http.StatusTooManyRequests, nil, `{"retry_after": 3}`
 		case 3:
-			return http.StatusTooManyRequests, http.Header{"Retry-After": {"3600"}}, ""
+			return http.StatusTooManyRequests, http.Header{"Retry-After": {"90"}}, ""
 		case 4:
 			return http.StatusBadGateway, nil, "bad gateway"
 		}
@@ -363,6 +363,115 @@ func TestSCANOSSWaitsAndTriesAgain(t *testing.T) {
 	}
 	if r.Files == 0 || len(r.Results) != r.Files {
 		t.Errorf("results %d for %d files", len(r.Results), r.Files)
+	}
+}
+
+// A service that asks for a longer wait than the tries left could cover
+// gets no more requests, and the error says how long and until when. The
+// free service answers a used-up monthly limit this way.
+func TestSCANOSSAsksToWait(t *testing.T) {
+	now := time.Date(2026, 10, 26, 11, 50, 22, 300e6, time.UTC)
+	clock := func() time.Time { return now }
+	cases := []struct {
+		name    string
+		status  int
+		header  http.Header
+		body    string
+		key     string
+		retries int
+		want    []string
+		not     string
+	}{
+		{"monthly limit", 503, nil, `{"error":"Rate limit exceeded","retry_after":475777.699103489}`, "", 0,
+			[]string{"asks Remixware to wait 5.5 days, until 2026-11-01 00:00 UTC (HTTP 503): " +
+				`{"error":"Rate limit exceeded","retry_after":475777.699103489}. Try again then, or use a SCANOSS API key (--scanoss-key)`}, ""},
+		{"with a key", 429, http.Header{"Retry-After": {"86400"}}, "", "k", 0,
+			[]string{"asks Remixware to wait 24 hours, until 2026-10-27 11:50 UTC (HTTP 429). Try again then"}, "--scanoss-key"},
+		{"a date", 503, http.Header{"Retry-After": {now.Add(3 * time.Hour).Format(http.TimeFormat)}}, "", "", 0,
+			[]string{"asks Remixware to wait 3 hours, until 2026-10-26 14:50 UTC (HTTP 503). Try"}, ""},
+		{"last try", 429, http.Header{"Retry-After": {"2"}}, "", "", -1,
+			[]string{"asks Remixware to wait 2 seconds (HTTP 429). Try again then"}, ""},
+	}
+	for _, c := range cases {
+		var waits []time.Duration
+		fake := &fakeSCANOSS{t: t, status: func(int) (int, http.Header, string) { return c.status, c.header, c.body }}
+		srv := httptest.NewServer(fake)
+		_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, APIKey: c.key, Retries: c.retries, Workers: 1, now: clock,
+			sleep: func(_ context.Context, d time.Duration) error { waits = append(waits, d); return nil }})
+		srv.Close()
+		for _, w := range c.want {
+			if err == nil || !strings.Contains(err.Error(), w) {
+				t.Errorf("%s: error %v, want %q", c.name, err, w)
+			}
+		}
+		if c.not != "" && strings.Contains(fmt.Sprint(err), c.not) {
+			t.Errorf("%s: error %v mentions %q", c.name, err, c.not)
+		}
+		if len(fake.reqs) != 1 || len(waits) != 0 {
+			t.Errorf("%s: %d requests and waits %v, want one request and no wait", c.name, len(fake.reqs), waits)
+		}
+	}
+
+	// A wait the tries left can cover is waited, a minute at a time.
+	var waits []time.Duration
+	fake := &fakeSCANOSS{t: t, status: func(n int) (int, http.Header, string) {
+		if n == 1 {
+			return 429, http.Header{"Retry-After": {"150"}}, ""
+		}
+		return 0, nil, ""
+	}}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	if _, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, Retries: 3, Workers: 1, now: clock,
+		sleep: func(_ context.Context, d time.Duration) error { waits = append(waits, d); return nil }}); err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprint(waits) != fmt.Sprint([]time.Duration{time.Minute}) {
+		t.Errorf("waited %v, want 1m", waits)
+	}
+}
+
+func TestServiceWait(t *testing.T) {
+	now := time.Date(2026, 10, 26, 12, 0, 0, 0, time.UTC)
+	cases := []struct {
+		header, body string
+		want         time.Duration
+		ok           bool
+	}{
+		{"7", "", 7 * time.Second, true},
+		{" 1.5 ", "", 1500 * time.Millisecond, true},
+		{"-3", `{"retry_after": 4}`, 4 * time.Second, true},
+		{"", `{"retry_after": 0.25}`, 250 * time.Millisecond, true},
+		{"Inf", "", 365 * 24 * time.Hour, true},
+		{"1e300", "", 365 * 24 * time.Hour, true},
+		{"NaN", "", 0, false},
+		{"soon", `{"retry_after": "4"}`, 0, false},
+		{"", `{"retry_after": -1}`, 0, false},
+		{"", "not json", 0, false},
+		{now.Add(-time.Hour).Format(http.TimeFormat), "", 0, true},
+		{now.Add(90 * time.Second).Format(http.TimeFormat), "", 90 * time.Second, true},
+	}
+	for _, c := range cases {
+		got, ok := serviceWait(c.header, []byte(c.body), now)
+		if got != c.want || ok != c.ok {
+			t.Errorf("serviceWait(%q, %q) = %v %v, want %v %v", c.header, c.body, got, ok, c.want, c.ok)
+		}
+	}
+	texts := map[time.Duration]string{
+		time.Second:             "1 second",
+		1400 * time.Millisecond: "1 second",
+		89 * time.Second:        "89 seconds",
+		90 * time.Second:        "2 minutes",
+		time.Minute * 61:        "61 minutes",
+		90 * time.Minute:        "1.5 hours, until 2026-10-26 13:30 UTC",
+		47 * time.Hour:          "47 hours, until 2026-10-28 11:00 UTC",
+		48 * time.Hour:          "2 days, until 2026-10-28 12:00 UTC",
+		24 * 365 * time.Hour:    "365 days, until 2027-10-26 12:00 UTC",
+	}
+	for d, want := range texts {
+		if got := waitText(d, now); got != want {
+			t.Errorf("waitText(%v) = %q, want %q", d, got, want)
+		}
 	}
 }
 

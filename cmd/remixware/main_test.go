@@ -336,6 +336,15 @@ func TestSCANOSSFlags(t *testing.T) {
 	expect(t, cli("scan", shop, "--index", upstreamIndex(t), "--scanoss-key", "k"), exitUsage, "go with --scanoss")
 	bad, _ := fakeService(t, "", http.StatusUnauthorized)
 	expect(t, cli("check", shop, "--scanoss", "--scanoss-url", bad.URL), exitUsage, "Check the API key")
+	// A used-up limit: the service asks for a wait no retry could cover, and
+	// the check stops at once with the wait and what to do.
+	limited := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		io.WriteString(w, `{"error":"Rate limit exceeded","retry_after":475777.7}`)
+	}))
+	t.Cleanup(limited.Close)
+	expect(t, cli("check", shop, "--scanoss", "--scanoss-url", limited.URL), exitUsage, "asks Remixware to wait 5.5 days")
+	expect(t, cli("check", shop, "--scanoss", "--scanoss-url", limited.URL), exitUsage, "use a SCANOSS API key (--scanoss-key)")
 	expect(t, cli("check", t.TempDir(), "--scanoss", "--scanoss-url", srv.URL), exitUsage, "no source files to send to SCANOSS")
 	expect(t, cli("check", shop), exitUsage, "--scanoss (the SCANOSS service)")
 }

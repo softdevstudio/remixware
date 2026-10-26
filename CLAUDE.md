@@ -3,7 +3,7 @@
 Remixware finds code a project copied from open source, names the licence
 it came with, and says what that licence asks (conflict, no licence,
 review, attribution missing, attributed). Go, standard library only, one
-binary, no network code.
+binary. It connects to the network only when asked to, with `--scanoss`.
 
 - `tokenize.go` + `lang.go` read source as tokens (comments and layout
   dropped, names kept with a hash). `fingerprint.go` numbers names inside
@@ -18,6 +18,14 @@ binary, no network code.
   (fingerprints plus identical continuation), extends by shape and trims
   the edges back to whole copied lines (`trimEdges`). `findings.go` merges
   and joins findings. `scanoss.go` imports SCANOSS and Remixware JSON.
+- `wfp.go` makes SCANOSS's own fingerprints (WFP: CRC32C winnowing of
+  letters and digits, gram 30, window 64), ported from scanoss.py's MIT
+  `winnowing.py` and checked byte for byte against it
+  (`testdata/scanoss/wfp/expected.wfp`, made by `scripts/wfp-golden.py`).
+  `scanossapi.go` sends them to the service (`--scanoss`) in batches of 32
+  files or 32 KB, file names replaced by numbers, and reads the answers with
+  the code that reads results files. The answers are untrusted input: only
+  names that were sent count, and a response is read up to 64 MB.
 - `policy.go` evaluates statuses, notice files and allow rules;
   `notice.go` writes notices with the texts in `licensetexts/` (from the
   SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write
@@ -49,6 +57,11 @@ content and config values only; never touch the theme).
   `test/results/gallery`.
 - An independent review agent looks at code and site before a release is
   called done.
+- CI never touches the network. `.github/workflows/scanoss-live.yml` (run by
+  hand: `gh api -X POST repos/softdevstudio/remixware/actions/workflows/scanoss-live.yml/dispatches -f ref=main`)
+  asks the real SCANOSS service about copies of logrus and reports what it
+  found as annotations. Run it after any change to `wfp.go` or
+  `scanossapi.go`; these sessions can't reach the service themselves.
 - main is the default branch. No side branches.
 - GitHub job logs can't be downloaded from these sessions, but annotations
   can. Workflows print `::error::` lines for that reason. Read the real
@@ -129,7 +142,12 @@ Known gaps, not planned yet:
   copies of 50 to 99 tokens are found about half the time (see
   test/results/benchmark/recall.txt).
 - Python functions are often short, so Python recall is the lowest.
-- No built-in network lookup: wide coverage needs a SCANOSS results file.
+- `--scanoss` findings are what SCANOSS says: Remixware doesn't hold the
+  matched source, so the HTML report shows only the project's side of
+  them, and a SCANOSS answer it can't map to a licence reads as review.
+- The free SCANOSS service may limit how often it's asked and gives no
+  guarantees; a large project means many requests (32 files or 32 KB each,
+  4 at a time).
 - Licence texts outside the eight built in are taken from the component's
   own licence file; when the index doesn't have it, `notice` asks the user
   to finish the entry by hand.

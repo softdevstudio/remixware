@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0
+
+- `--scanoss` asks the SCANOSS service directly, so a check covers a large
+  share of public open source without running SCANOSS's scanner first.
+  Remixware makes the same fingerprints as that scanner and sends them with
+  numbers in place of file names: no code and no file names leave the
+  machine. It works with `scan`, `check` and `notice`, alone or together
+  with `--index` and `--from`.
+- `--scanoss-key` (or `SCANOSS_API_KEY`) uses a SCANOSS API key and the
+  service for key holders, `--scanoss-url` (or `SCANOSS_SCAN_URL`) another
+  SCANOSS server, and `--scanoss-out` saves the answers as a SCANOSS results
+  file for `--from`.
+- A rate limit or a server error is tried again, after as long as the
+  service asks, a minute at a time. When the service asks for a longer wait
+  than the tries left could cover, Remixware stops at once and says how long
+  and until when. A refused key, an answer that isn't SCANOSS results or a
+  service that doesn't answer ends the command with exit code 2.
+- Minified `.min.js` and `.min.css` files go to SCANOSS too, since it can
+  name a whole minified library. Remixware's own scan still skips them.
+- JSON reports list the service as an input of kind `scanoss-api`.
+
 ## 0.1.1
 
 - Copyright lines no longer come from inside a licence's own text. Item

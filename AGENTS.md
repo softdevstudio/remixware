@@ -17,6 +17,9 @@ The rules that matter most:
   rename one.
 - A change to tokenizing or fingerprinting bumps `normVersion`; the test
   `TestFingerprintsMatchNormVersion` says so when you forget.
-- Remixware has no network code, and adding any needs the owner's approval.
+- Remixware connects to the network only for `--scanoss`, in
+  scanossapi.go. Any other network code needs the owner's approval. After
+  a change to wfp.go or scanossapi.go, run the SCANOSS live check workflow
+  (see CLAUDE.md): CI itself never touches the network.
 - When you finish, update the State and Gaps sections of CLAUDE.md with
   what you did and what is still open.

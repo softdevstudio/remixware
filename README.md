@@ -15,8 +15,9 @@ CONFLICT             internal/files/order.go:7-46
                      released under GPL-3.0-or-later. Remove it, rewrite it, or relicense.
 ```
 
-Remixware is one program with no network access of its own. It's free and
-open source under the Apache License 2.0. Site:
+Remixware is one program. It connects to nothing unless you ask it to
+with `--scanoss`, and then it sends fingerprints of your files, never the
+code. It's free and open source under the Apache License 2.0. Site:
 [remixware.com](https://remixware.com).
 
 Remixware flags licensing questions. It isn't legal advice: when a finding
@@ -146,8 +147,39 @@ size or lists more files than it could hold, is refused as damaged.
 ## With SCANOSS
 
 An index only knows the code you put in it. For a check against a large
-share of all public open source, Remixware reads the results of the free
-[SCANOSS](https://www.scanoss.com) scanner:
+share of all public open source, Remixware can ask the
+[SCANOSS](https://www.scanoss.com) service, directly or through a results
+file from SCANOSS's own scanner.
+
+Directly:
+
+```sh
+remixware check . --scanoss
+```
+
+`--scanoss` fingerprints the files a scan reads, plus minified `.min.js`
+and `.min.css` files, which SCANOSS can name as a whole. It makes the same
+fingerprints as SCANOSS's scanner and sends them to the free service at
+`https://api.osskb.org`, which the Software Transparency Foundation runs.
+For each file it sends a number with the file's extension, the file's MD5
+and size, and the hashes of its text: no code and no file names. The
+answers are matched back to your files by those numbers. The service's
+[terms](https://www.softwaretransparency.org/terms) apply: it's free and
+comes with no guarantees, it limits how much you ask, and it logs usage.
+Remixware waits and tries again when the service asks it to slow down for a
+moment. When the service asks for a longer wait, as it does once a limit is
+used up (sometimes until the next month), Remixware stops and says until
+when, and a check exits with 2. Hosted CI runners are shared by many
+projects, so there the free service's limits may already be used up; an API
+key avoids that.
+
+With a SCANOSS API key, set `SCANOSS_API_KEY` (or pass `--scanoss-key`)
+and Remixware asks `https://api.scanoss.com` instead. `--scanoss-url` (or
+`SCANOSS_SCAN_URL`) points it at another SCANOSS server, such as one you
+run. `--scanoss-out FILE` saves the answers as a SCANOSS results file,
+which `--from` reads later without asking again.
+
+Through SCANOSS's scanner:
 
 ```sh
 pip3 install scanoss
@@ -155,11 +187,8 @@ scanoss-py scan -o scanoss.json .
 remixware check . --from scanoss.json
 ```
 
-`--from` and `--index` work together; a copy both find is reported once.
-SCANOSS's scanner talks to the SCANOSS service. According to SCANOSS it
-sends fingerprints of your files, with their paths and checksums, instead
-of the source code; check their documentation if that matters for your
-project. Remixware itself never connects to anything.
+`--index`, `--from` and `--scanoss` work together; a copy that more than
+one of them finds is reported once.
 
 `--from` also reads a findings file written by `remixware scan --json`,
 so a scan made on one machine can be checked on another.
@@ -245,15 +274,17 @@ quietly switch a rule off.
 ```text
 remixware index <folder>... [--out FILE] [--name N] [--version V] [--license EXPR] [--exclude PATTERN]
                             [--max-common N] [--quiet]
-remixware scan [project] (--index FILE | --from FILE)... [--html F] [--json F] [--spdx F]
-remixware check [project] (--index FILE | --from FILE)... [--fail-on LIST] [--html F] [--json F]
-remixware notice [project] (--index FILE | --from FILE)... [--out FILE] [--all]
+remixware scan [project] (--index FILE | --from FILE | --scanoss)... [--html F] [--json F] [--spdx F]
+remixware check [project] (--index FILE | --from FILE | --scanoss)... [--fail-on LIST] [--html F] [--json F]
+remixware notice [project] (--index FILE | --from FILE | --scanoss)... [--out FILE] [--all]
 remixware licenses
 remixware version
 ```
 
 `scan`, `check` and `notice` also take `--license`, `--policy`,
-`--exclude`, `--include-deps`, `--min-tokens`, `--min-lines` and `--quiet`.
+`--exclude`, `--include-deps`, `--min-tokens`, `--min-lines` and `--quiet`,
+and with `--scanoss`, `--scanoss-url`, `--scanoss-key` and `--scanoss-out`
+(see [With SCANOSS](#with-scanoss)).
 For `index`, `--max-common N` drops fingerprints found in more than N
 components (0, the default, picks a value; -1 keeps them all), and
 `--quiet` prints nothing but errors.
@@ -262,8 +293,10 @@ after the project folder.
 
 Exit codes: 0 when all went well, 1 when `check` found findings that break
 the policy, 2 for bad arguments, unreadable files and other errors. A
-`check` that found no source files to scan also exits with 2, so a wrong
-folder or an `--exclude` that covers everything can't pass.
+`check` that found no source files to scan, or none to send to SCANOSS,
+also exits with 2, so a wrong folder or an `--exclude` that covers
+everything can't pass. So does a `--scanoss` check that the service didn't
+answer or refused.
 
 ## Reports
 
@@ -272,7 +305,10 @@ folder or an `--exclude` that covers everything can't pass.
   works offline and in dark mode.
 - `--json FILE`: the findings for other tools. The fields are `findings`
   (each with `id`, `file`, `lines`, `status`, `reason`, `source` and
-  `match`), `counts` per status, and what was scanned.
+  `match`), `counts` per status, and what was scanned. `inputs` lists what
+  the project was compared with, each with a `kind`: `index`, `scanoss`
+  (a results file), `remixware` (a findings file) or `scanoss-api` (the
+  SCANOSS service, with its URL as `path` and the number of `files` sent).
 - `--spdx FILE`: an SPDX 2.3 document (JSON) with each copied snippet (its
   byte and line ranges), its source, its licence and its copyright lines,
   for software bills of materials.

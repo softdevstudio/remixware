@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -55,6 +56,7 @@ type SCANOSSOptions struct {
 	Progress    func(format string, args ...any)
 
 	sleep func(context.Context, time.Duration) error // waiting between tries, for the tests
+	now   func() time.Time                           // the clock, for the tests
 }
 
 // SCANOSSResult is what the SCANOSS service said about a project.
@@ -122,6 +124,9 @@ func ScanSCANOSS(project string, opt SCANOSSOptions) (*SCANOSSResult, error) {
 	}
 	if opt.sleep == nil {
 		opt.sleep = sleepCtx
+	}
+	if opt.now == nil {
+		opt.now = time.Now
 	}
 	progress := opt.Progress
 	if progress == nil {
@@ -287,6 +292,28 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 			return scanossAnswer(data, host, b)
 		case resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500:
 			// A cut-off answer, a rate limit or a server error may pass.
+			wait, asked := 5*time.Second, false
+			if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
+				if d, ok := serviceWait(resp.Header.Get("Retry-After"), data, opt.now()); ok {
+					wait, asked = d, true
+				}
+			}
+			// A service that asks for a longer wait than the tries left
+			// could cover won't answer this scan: say so instead of asking
+			// again (the free service answers a used-up monthly limit with a
+			// wait until the next month).
+			if asked && wait > 0 && (last || wait > time.Duration(opt.Retries-try)*scanossMaxBackoff) {
+				tries := ""
+				if try > 0 {
+					tries = fmt.Sprintf(", after %d tries", try+1)
+				}
+				hint := ""
+				if opt.APIKey == "" {
+					hint = ", or use a SCANOSS API key (--scanoss-key)"
+				}
+				return nil, fmt.Errorf("SCANOSS: %s asks Remixware to wait %s (HTTP %d%s)%s. Try again then%s",
+					host, waitText(wait, opt.now()), resp.StatusCode, tries, bodyNote(data), hint)
+			}
 			if last {
 				what := "the service is unavailable"
 				switch {
@@ -297,11 +324,7 @@ func scanossPost(ctx context.Context, endpoint, host string, b scanossBatch, opt
 				}
 				return nil, fmt.Errorf("SCANOSS: %s (HTTP %d from %s after %d tries)%s", what, resp.StatusCode, host, try+1, bodyNote(data))
 			}
-			wait := 5 * time.Second
-			if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
-				wait = retryAfter(resp.Header.Get("Retry-After"), data)
-			}
-			if err := opt.sleep(ctx, wait); err != nil {
+			if err := opt.sleep(ctx, min(wait, scanossMaxBackoff)); err != nil {
 				return nil, err
 			}
 		case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
@@ -334,25 +357,62 @@ func scanossAnswer(data []byte, host string, b scanossBatch) (map[string]json.Ra
 	return out, nil
 }
 
-// retryAfter reads how long a rate-limited service asks to wait: the
-// Retry-After header in seconds, or a retry_after field in the answer, at
-// most a minute, 5 seconds when it doesn't say.
-func retryAfter(header string, body []byte) time.Duration {
-	secs := -1.0
-	if v, err := strconv.ParseFloat(strings.TrimSpace(header), 64); err == nil {
-		secs = v
-	} else {
-		var b struct {
-			RetryAfter *float64 `json:"retry_after"`
+// serviceWait reads how long a service that turned a request away asks to
+// wait: the Retry-After header, in seconds or as a date, or else a
+// retry_after field in the answer. It reports false when the service
+// doesn't say.
+func serviceWait(header string, body []byte, now time.Time) (time.Duration, bool) {
+	header = strings.TrimSpace(header)
+	if v, err := strconv.ParseFloat(header, 64); err == nil {
+		if d, ok := waitSeconds(v); ok {
+			return d, true
 		}
-		if json.Unmarshal(body, &b) == nil && b.RetryAfter != nil {
-			secs = *b.RetryAfter
+	} else if t, err := http.ParseTime(header); err == nil {
+		return max(t.Sub(now), 0), true
+	}
+	var b struct {
+		RetryAfter *float64 `json:"retry_after"`
+	}
+	if json.Unmarshal(body, &b) == nil && b.RetryAfter != nil {
+		return waitSeconds(*b.RetryAfter)
+	}
+	return 0, false
+}
+
+// waitSeconds turns a number of seconds from a service into a wait of at
+// most a year. It reports false for numbers that can't be a wait.
+func waitSeconds(v float64) (time.Duration, bool) {
+	const year = 365 * 24 * time.Hour
+	switch {
+	case math.IsNaN(v) || v < 0:
+		return 0, false
+	case v >= year.Seconds():
+		return year, true
+	}
+	return time.Duration(v * float64(time.Second)), true
+}
+
+// waitText says how long a wait is, and for an hour or more until when.
+func waitText(d time.Duration, now time.Time) string {
+	n := func(v float64, one, many string) string {
+		s := strconv.FormatFloat(v, 'f', 1, 64)
+		s = strings.TrimSuffix(s, ".0")
+		if s == "1" {
+			return "1 " + one
 		}
+		return s + " " + many
 	}
-	if secs < 0 {
-		return 5 * time.Second
+	switch {
+	case d < 90*time.Second:
+		return n(math.Round(d.Seconds()), "second", "seconds")
+	case d < 90*time.Minute:
+		return n(math.Round(d.Minutes()), "minute", "minutes")
 	}
-	return min(time.Duration(secs*float64(time.Second)), scanossMaxBackoff)
+	until := ", until " + now.Add(d).UTC().Round(time.Minute).Format("2006-01-02 15:04 UTC")
+	if d < 48*time.Hour {
+		return n(d.Hours(), "hour", "hours") + until
+	}
+	return n(d.Hours()/24, "day", "days") + until
 }
 
 // bodyNote quotes the start of an error answer, printable characters only,

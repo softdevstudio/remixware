@@ -5,6 +5,12 @@ name: SCANOSS live check
 # --scanoss, and reports what it found as annotations. It isn't part of CI,
 # so the free service's limits and availability never hold up a build or a
 # release.
+#
+# Each system asks from its own runner, so from its own address: the free
+# service keeps a monthly limit and turns a used-up one away with a wait
+# until the next month. SCANOSS's own scanner asks the same question from
+# the same runner, which tells a refusal of the runner apart from a refusal
+# of Remixware, and its answers are compared with Remixware's.
 on:
   workflow_dispatch:
 
@@ -13,49 +19,113 @@ permissions:
 
 jobs:
   live:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
           cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Build
-        run: go build -o remixware ./cmd/remixware
-      - name: Ask SCANOSS about copies of logrus
+        run: go build -o remixware.exe ./cmd/remixware
+      - name: Make a project with copies of logrus
         run: |
-          set -u
-          git clone -q --depth 1 --branch v1.9.3 https://github.com/sirupsen/logrus.git /tmp/logrus
-          mkdir -p /tmp/proj/internal/logging /tmp/proj/internal/fields
+          set -eu
+          # Relative paths, which every system's tools read the same way.
+          git clone -q --depth 1 --branch v1.9.3 https://github.com/sirupsen/logrus.git _live/logrus
+          p=_live/proj
+          mkdir -p "$p/internal/logging" "$p/internal/fields"
           # A whole file, and part of another inside code of our own.
-          cp /tmp/logrus/text_formatter.go /tmp/proj/internal/logging/format.go
+          cp _live/logrus/text_formatter.go "$p/internal/logging/format.go"
           {
             echo 'package fields'
             echo
             echo '// Count reports how many fields a map holds.'
             echo 'func Count(m map[string]interface{}) int { return len(m) }'
             echo
-            sed -n '/^func (entry \*Entry) WithFields/,/^}/p' /tmp/logrus/entry.go
-          } > /tmp/proj/internal/fields/fields.go
-          printf 'Copyright 2026 Example\n\nLicensed under the Apache License, Version 2.0.\n' > /tmp/proj/LICENSE
-          if ! ./remixware scan /tmp/proj --scanoss --license Apache-2.0 --json findings.json --scanoss-out scanoss.json > scan.txt 2> scan.err; then
-            echo "::error::remixware scan --scanoss failed: $(tr '\n' ' ' < scan.err | cut -c1-900)"
-            exit 1
+            sed -n '/^func (entry \*Entry) WithFields/,/^}/p' _live/logrus/entry.go
+          } > "$p/internal/fields/fields.go"
+          printf 'Copyright 2026 Example\n\nLicensed under the Apache License, Version 2.0.\n' > "$p/LICENSE"
+      - name: Ask SCANOSS with Remixware
+        run: |
+          set -u
+          start=$(date +%s)
+          if ./remixware.exe scan _live/proj --scanoss --license Apache-2.0 --json findings.json \
+              --scanoss-out scanoss.json > scan.txt 2> scan.err; then
+            echo ok > rmx.status
+          else
+            echo "refused: $(tr '\n' ' ' < scan.err | cut -c1-700)" > rmx.status
           fi
-          cat scan.err scan.txt
-          python3 - <<'PY'
-          import json, sys
+          echo "::notice::${{ runner.os }}: Remixware took $(( $(date +%s) - start ))s: $(cut -c1-700 rmx.status)"
+      - name: Ask SCANOSS with its own scanner
+        run: |
+          set -u
+          python -m pip install -q scanoss > pip.txt 2>&1 || { echo "::warning::${{ runner.os }}: pip install scanoss failed"; exit 0; }
+          start=$(date +%s)
+          cd _live/proj
+          if scanoss-py scan --retry 1 --timeout 120 -o ../../py.json . > ../../py.txt 2> ../../py.err; then
+            echo ok > ../../py.status
+          else
+            echo "refused: $(grep -iE 'error|warning' ../../py.err | tail -3 | tr '\n' ' ' | cut -c1-700)" > ../../py.status
+          fi
+          cd ../..
+          echo "::notice::${{ runner.os }}: scanoss-py $(scanoss-py --version 2>&1 | tail -1) took $(( $(date +%s) - start ))s: $(cut -c1-700 py.status)"
+      - name: Compare
+        run: |
+          python - "${{ runner.os }}" <<'PY'
+          import json, os, sys
+          osname = sys.argv[1]
+          rmx = open("rmx.status").read().strip()
+          py = open("py.status").read().strip() if os.path.exists("py.status") else "not run"
+          want = ["internal/fields/fields.go", "internal/logging/format.go"]
+
+          def named(results):
+              # The components SCANOSS named for each file, from a results file.
+              out = {}
+              for path, matches in results.items():
+                  path = path.replace("\\", "/").lstrip("./")
+                  for m in matches:
+                      if m.get("id") in ("file", "snippet"):
+                          out.setdefault(path, set()).add(f"{m['id']}:{(m.get('purl') or [m.get('component', '?')])[0]}@{m.get('version', '')}")
+              return out
+
+          if rmx != "ok":
+              if py == "ok":
+                  print(f"::error::{osname}: SCANOSS answered scanoss-py but not Remixware: {rmx}")
+              else:
+                  print(f"::error::{osname}: inconclusive, SCANOSS turned this runner away. Remixware: {rmx} | scanoss-py: {py}")
+              sys.exit(1)
           r = json.load(open("findings.json"))
           ins = [i for i in r["inputs"] if i["kind"] == "scanoss-api"]
-          print(f"::notice::SCANOSS: {ins[0]['files']} files sent, {ins[0]['matches']} matches")
-          ok = {"internal/logging/format.go": False, "internal/fields/fields.go": False}
+          print(f"::notice::{osname}: Remixware sent {ins[0]['files']} files and got {ins[0]['matches']} matches")
+          traced = set()
           for f in r["findings"][:8]:
               s = f["source"]
-              print(f"::notice::{f['file']}:{f['lines'][0]}-{f['lines'][1]} {f['match']['kind']} of {s.get('component')} {s.get('version', '')} ({s.get('license')}) {s.get('file', '')} -> {f['status']}")
-              if f["file"] in ok and "logrus" in (s.get("component", "") + s.get("purl", "")).lower():
-                  ok[f["file"]] = True
-          for path, found in ok.items():
-              if not found:
-                  print(f"::error::SCANOSS didn't trace {path} to logrus")
-          sys.exit(0 if all(ok.values()) else 1)
+              print(f"::notice::{osname}: {f['file']}:{f['lines'][0]}-{f['lines'][1]} {f['match']['kind']} of "
+                    f"{s.get('purl') or s.get('component')} {s.get('version', '')} ({s.get('license')}) {s.get('file', '')} -> {f['status']}")
+              if "logrus" in (s.get("component", "") + s.get("purl", "")).lower():
+                  traced.add(f["file"])
+          missing = [w for w in want if w not in traced]
+          for w in missing:
+              print(f"::error::{osname}: SCANOSS didn't trace {w} to logrus for Remixware")
+          if py == "ok":
+              a, b = named(json.load(open("scanoss.json"))), named(json.load(open("py.json")))
+              if a == b:
+                  print(f"::notice::{osname}: Remixware and scanoss-py got the same matches: {sorted((k, sorted(v)) for k, v in a.items())}")
+              else:
+                  print(f"::warning::{osname}: the answers differ. Remixware: {sorted((k, sorted(v)) for k, v in a.items())} | scanoss-py: {sorted((k, sorted(v)) for k, v in b.items())}")
+          else:
+              print(f"::warning::{osname}: no scanoss-py answer to compare with: {py}")
+          sys.exit(1 if missing else 0)
           PY
