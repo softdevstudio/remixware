@@ -1,1 +1,3 @@
 * text=auto eol=lf
+# Fingerprint test files keep their bytes: line endings are what they test.
+testdata/scanoss/wfp/** -text
