@@ -18,7 +18,7 @@ another connection instead, with `scripts/scanoss_live.py`:
 2. That request went to `https://api.osskb.org/scan/direct` from a browser
    on the owner's connection, in the same multipart form.
 3. `record` replayed the service's answer to remixware through a stand-in
-   server. `check.txt` and `findings.json` are what remixware reported.
+   server. `check.txt` is what remixware reported.
 
 SCANOSS traced both files to logrus, under the name of a fork that has the
 same files (`github.com/copejon/logrus`): `format.go` as a whole-file match

@@ -154,7 +154,7 @@ type Results struct {
 
 // Input is one index or result file the project was compared with.
 type Input struct {
-	Kind       string `json:"kind"` // index, scanoss, remixware
+	Kind       string `json:"kind"` // index, scanoss (a results file), remixware (a findings file), scanoss-api (the service)
 	Path       string `json:"path"`
 	Components int    `json:"components,omitempty"`
 	Files      int    `json:"files,omitempty"`

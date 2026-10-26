@@ -1,7 +1,6 @@
 $ remixware 0.1.1: remixware scan proj --scanoss --license Apache-2.0 (answer replayed)
 
 SCANOSS: sending the fingerprints of 2 files to 127.0.0.1:PORT in 1 request
-wrote WORKDIR/findings.json
 Project proj
 Project licence: Apache-2.0 (from --license)
 Compared with: the SCANOSS service at 127.0.0.1:PORT (2 files sent, 2 matches)

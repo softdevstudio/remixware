@@ -14,9 +14,9 @@ away GitHub's runners once their monthly limit is used up).
 
     python3 scripts/scanoss_live.py record WORKDIR
         Replays answer.json to remixware through a stand-in server and
-        writes what remixware reports to test/results/live. The answer
-        itself isn't kept: the service's terms allow its information to be
-        used for software identification only.
+        writes what remixware reports to test/results/live/check.txt. The
+        answer itself isn't kept: the service's terms allow its information
+        to be used for software identification only.
 
 Needs git (for logrus), Go and network access for the first step.
 """
@@ -98,7 +98,10 @@ def request(work):
                 got["wfp"] = part.get_payload(decode=True).decode()
             else:
                 got[part.get_param("name", header="content-disposition")] = part.get_content().strip()
-        return b"{}"
+        # An answer about every file sent, as the service gives: remixware
+        # refuses one that leaves files out.
+        names = re.findall(r"(?m)^file=[0-9a-f]{32},\d+,(.*)$", got.get("wfp", ""))
+        return json.dumps({n: [{"id": "none"}] for n in names}).encode()
 
     srv, url = serve(capture)
     r = scan(binary, work, url)
@@ -133,8 +136,7 @@ def record(work):
         return answer
 
     srv, url = serve(replay)
-    findings = os.path.join(work, "findings.json")
-    r = scan(binary, work, url, "--json", findings)
+    r = scan(binary, work, url)
     srv.shutdown()
     if r.returncode != 0:
         sys.exit(f"the replay failed: {r.stderr}")
@@ -149,8 +151,6 @@ def record(work):
     with open(os.path.join(OUT, "check.txt"), "w") as f:
         f.write(f"$ {version}: remixware scan proj --scanoss --license Apache-2.0 (answer replayed)\n\n")
         f.write(clean(r.stderr + r.stdout))
-    with open(os.path.join(OUT, "findings.json"), "w") as f:
-        f.write(clean(open(findings).read()))
     shutil.copy(os.path.join(work, "request.wfp"), os.path.join(OUT, "request.wfp"))
     print(clean(r.stdout))
     print(f"recorded in {OUT}")

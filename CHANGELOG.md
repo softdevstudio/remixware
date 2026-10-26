@@ -4,22 +4,36 @@
 
 - `--scanoss` asks the SCANOSS service directly, so a check covers a large
   share of public open source without running SCANOSS's scanner first.
-  Remixware makes the same fingerprints as that scanner and sends them with
-  numbers in place of file names: no code and no file names leave the
-  machine. It works with `scan`, `check` and `notice`, alone or together
-  with `--index` and `--from`.
+  Remixware makes its fingerprints the way that scanner does and sends
+  them with numbers in place of file names: no code and no file names
+  leave the machine. It works with `scan`, `check` and `notice`, alone or
+  together with `--index` and `--from`.
 - `--scanoss-key` (or `SCANOSS_API_KEY`) uses a SCANOSS API key and the
   service for key holders, `--scanoss-url` (or `SCANOSS_SCAN_URL`) another
   SCANOSS server, and `--scanoss-out` saves the answers as a SCANOSS results
-  file for `--from`.
-- A rate limit or a server error is tried again, after as long as the
-  service asks, a minute at a time. When the service asks for a longer wait
-  than the tries left could cover, Remixware stops at once and says how long
-  and until when. A refused key, an answer that isn't SCANOSS results or a
-  service that doesn't answer ends the command with exit code 2.
-- Minified `.min.js` and `.min.css` files go to SCANOSS too, since it can
-  name a whole minified library. Remixware's own scan still skips them.
-- JSON reports list the service as an input of kind `scanoss-api`.
+  file for `--from`. As with SCANOSS's scanner, the URL's host is asked at
+  `/scan/direct`. Redirects aren't followed, and a user name, password or
+  query in the URL never shows up in output or reports.
+- An answer has to cover every file sent. One that leaves files out, as
+  the service does when part of its work fails, is asked for again and then
+  ends the command with exit code 2, so a check can't pass on files
+  SCANOSS didn't look at.
+- A rate limit, a server error or an incomplete answer is tried again,
+  after as long as the service asks, a minute at a time, with a line saying
+  so. When the service asks for a longer wait than the tries left could
+  cover, Remixware stops at once and says how long and until when. A refused
+  key, an answer that isn't SCANOSS results or a service that doesn't
+  answer ends the command with exit code 2.
+- The minified files a scan skips (`.min.js`, `.min.css` and source files
+  with very long lines) go to SCANOSS too, since it can name a whole
+  minified library.
+- JSON reports list the service as an input of kind `scanoss-api`, with
+  its address.
+- Text from SCANOSS answers and from files read with `--from` is kept to
+  printable characters on one line, so it can't move the cursor, clear the
+  screen or add lines to a notices file; licence texts keep their line
+  breaks. Paths in those files with characters that aren't printable are
+  left out.
 - SCANOSS answers write a missing vendor as "None". Remixware no longer
   puts "None/" in front of such a component's name, in results files read
   with `--from` too.

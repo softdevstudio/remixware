@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -58,22 +60,33 @@ func TestPySuffix(t *testing.T) {
 }
 
 func TestSCANOSSURL(t *testing.T) {
-	cases := []struct{ url, key, want string }{
-		{"", "", "https://api.osskb.org/scan/direct"},
-		{"", "k", "https://api.scanoss.com/scan/direct"},
-		{"https://scan.example", "", "https://scan.example/scan/direct"},
-		{"https://scan.example/", "k", "https://scan.example/scan/direct"},
-		{"http://localhost:8080/custom/scan", "", "http://localhost:8080/custom/scan"},
+	cases := []struct{ url, key, want, dropped string }{
+		{"", "", "https://api.osskb.org/scan/direct", ""},
+		{"", "k", "https://api.scanoss.com/scan/direct", ""},
+		{"https://scan.example", "", "https://scan.example/scan/direct", ""},
+		{" https://scan.example/ ", "k", "https://scan.example/scan/direct", ""},
+		{"https://scan.example/scan/direct", "", "https://scan.example/scan/direct", ""},
+		// As SCANOSS's scanner does, which reads the same SCANOSS_SCAN_URL:
+		// the host, then /scan/direct.
+		{"http://localhost:8080/custom/scan", "", "http://localhost:8080/scan/direct", "/custom/scan"},
+		{"https://bot:pw@scan.example/scan/direct?token=t#x", "", "https://bot:pw@scan.example/scan/direct", ""},
 	}
 	for _, c := range cases {
-		if got, err := scanossURL(c.url, c.key); err != nil || got != c.want {
-			t.Errorf("scanossURL(%q, %q) = %q, %v; want %q", c.url, c.key, got, err, c.want)
+		got, dropped, err := scanossURL(c.url, c.key)
+		if err != nil || got != c.want || dropped != c.dropped {
+			t.Errorf("scanossURL(%q, %q) = %q, %q, %v; want %q, %q", c.url, c.key, got, dropped, err, c.want, c.dropped)
 		}
 	}
-	for _, bad := range []string{"ftp://scan.example", "scan.example/scan", "https://"} {
-		if _, err := scanossURL(bad, ""); err == nil {
-			t.Errorf("scanossURL(%q) gave no error", bad)
+	for _, bad := range []string{"ftp://scan.example", "scan.example/scan", "https://", "https://bot:secret@/x"} {
+		if _, _, err := scanossURL(bad, ""); err == nil || strings.Contains(err.Error(), "secret") {
+			t.Errorf("scanossURL(%q) = %v", bad, err)
 		}
+	}
+	if got := printable("a\x1b]0;x\x07\nb\u202e c\t\td", 100); got != "a ]0;x b c d" {
+		t.Errorf("printable = %q", got)
+	}
+	if got := printable(strings.Repeat("é", 10), 4); got != "éééé..." {
+		t.Errorf("printable cut = %q", got)
 	}
 }
 
@@ -87,6 +100,7 @@ type fakeSCANOSS struct {
 	answer func(name, md5 string) string
 	extra  map[string]string // answers about names that weren't sent
 	status func(n int) (int, http.Header, string)
+	drop   func(n int, name string) bool // leave a name out of answer n
 	delay  time.Duration
 }
 
@@ -126,9 +140,15 @@ func (f *fakeSCANOSS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	req := fakeRequest{wfp: sb.String(), format: r.FormValue("format"), header: r.Header.Clone()}
+	f.mu.Lock()
+	n := len(f.reqs) + 1
+	f.mu.Unlock()
 	answer := map[string]json.RawMessage{}
 	for _, m := range wfpFileLine.FindAllStringSubmatch(req.wfp, -1) {
 		req.names = append(req.names, m[3])
+		if f.drop != nil && f.drop(n, m[3]) {
+			continue
+		}
 		a := `[{"id": "none"}]`
 		if f.answer != nil {
 			if s := f.answer(m[3], m[1]); s != "" {
@@ -142,7 +162,6 @@ func (f *fakeSCANOSS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	f.mu.Lock()
 	f.reqs = append(f.reqs, req)
-	n := len(f.reqs)
 	f.mu.Unlock()
 	if f.status != nil {
 		if code, h, body := f.status(n); code != 0 {
@@ -448,7 +467,7 @@ func TestSCANOSSServiceQuirks(t *testing.T) {
   "url_hash": "00000000000000000000000000000004","licenses": [{"name": "MIT","patent_hints": "no", "copyleft": "no",
   "checklist_url": "https://example.com/MIT.txt","osadl_updated": "2026-02-12T16:31:00+0000","source": "component_declared",
   "url": "https://spdx.org/licenses/MIT.html"}],"server": {"version": "5.4.27","kb_version": {"monthly":"26.10", "daily":"26.10.19"}}}]`
-	found, err := scanossFindings(map[string]json.RawMessage{"web/fmt.js": json.RawMessage(answer)}, "quirks", t.TempDir())
+	found, err := scanossFindings(map[string]json.RawMessage{"web/fmt.js": json.RawMessage(answer)}, "quirks", t.TempDir(), false)
 	if err != nil || len(found) != 1 {
 		t.Fatalf("%v, %d findings", err, len(found))
 	}
@@ -630,5 +649,264 @@ func TestSCANOSSErrors(t *testing.T) {
 	if _, err := ScanSCANOSS(clean, SCANOSSOptions{URL: srv.URL, Timeout: 50 * time.Millisecond, Retries: 1, sleep: noSleep}); err == nil ||
 		!strings.Contains(err.Error(), "no answer") || time.Since(start) > 900*time.Millisecond {
 		t.Errorf("slow server: %v after %v", err, time.Since(start))
+	}
+}
+
+// An answer that leaves out files that were sent is asked again, and a
+// scan never passes on files the service didn't answer about: the service
+// drops the files of any part of its work that fails and still answers 200.
+func TestSCANOSSIncompleteAnswers(t *testing.T) {
+	clean := project("clean")
+	cases := []struct {
+		name string
+		fake *fakeSCANOSS
+	}{
+		{"empty object", &fakeSCANOSS{status: func(int) (int, http.Header, string) { return 200, nil, "{}" }}},
+		{"null", &fakeSCANOSS{status: func(int) (int, http.Header, string) { return 200, nil, "null" }}},
+		{"another object", &fakeSCANOSS{status: func(int) (int, http.Header, string) { return 200, nil, `{"status":"ok","version":"1.0"}` }}},
+		{"one file left out", &fakeSCANOSS{drop: func(_ int, name string) bool { return name == "1.go" }}},
+		{"null entries", &fakeSCANOSS{answer: func(string, string) string { return "null" }}},
+		{"empty lists", &fakeSCANOSS{answer: func(string, string) string { return "[]" }}},
+	}
+	for _, c := range cases {
+		c.fake.t = t
+		srv := httptest.NewServer(c.fake)
+		var said []string
+		_, err := ScanSCANOSS(clean, SCANOSSOptions{URL: srv.URL, Retries: 1, Workers: 1, sleep: noSleep,
+			Progress: func(f string, a ...any) { said = append(said, fmt.Sprintf(f, a...)) }})
+		srv.Close()
+		if err == nil || !strings.Contains(err.Error(), "files sent, after 2 tries") || !strings.Contains(err.Error(), "covers") {
+			t.Errorf("%s: error %v", c.name, err)
+		}
+		if len(c.fake.reqs) != 2 || len(said) < 2 || !strings.Contains(said[len(said)-1], "asking again in 5 seconds (try 2 of 2)") {
+			t.Errorf("%s: %d requests, said %q", c.name, len(c.fake.reqs), said)
+		}
+	}
+
+	// A file left out of the first answer and answered on the second try.
+	fake := &fakeSCANOSS{t: t, drop: func(n int, name string) bool { return n == 1 && strings.HasPrefix(name, "2.") }}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	r, err := ScanSCANOSS(clean, SCANOSSOptions{URL: srv.URL, Workers: 1, sleep: noSleep})
+	if err != nil || len(r.Results) != r.Files || len(fake.reqs) != 2 {
+		t.Errorf("second try: %v, %d answers for %d files, %d requests", err, len(r.Results), r.Files, len(fake.reqs))
+	}
+}
+
+// A redirect isn't followed: it could take the key and the fingerprints to
+// any host, over plain http too.
+func TestSCANOSSRedirect(t *testing.T) {
+	var got []string
+	var mu sync.Mutex
+	collect := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		got = append(got, r.Header.Get("x-api-key"))
+		mu.Unlock()
+	}))
+	defer collect.Close()
+	for _, code := range []int{301, 302, 307, 308} {
+		srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "http://bot:pw@"+collect.Listener.Addr().String()+"/collect?token=T", code)
+		}))
+		client := srv.Client()
+		client.CheckRedirect = nil
+		// The test server's client trusts its certificate; Remixware's own
+		// client settings are what's under test, so only its transport is
+		// borrowed.
+		_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, APIKey: "SECRET", Retries: -1, sleep: noSleep,
+			Client: noRedirects(client)})
+		srv.Close()
+		want := "answered with a redirect to http://" + collect.Listener.Addr().String() + "/collect (HTTP "
+		if err == nil || !strings.Contains(err.Error(), want) || strings.Contains(err.Error(), "pw") || strings.Contains(err.Error(), "token") {
+			t.Errorf("HTTP %d: error %v", code, err)
+		}
+	}
+	if len(got) != 0 {
+		t.Errorf("the redirect target got %d requests, keys %q", len(got), got)
+	}
+}
+
+// noRedirects is the client ScanSCANOSS makes when it's given none, with
+// another client's transport.
+func noRedirects(c *http.Client) *http.Client {
+	return &http.Client{Transport: c.Transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+}
+
+// The default client doesn't follow redirects either.
+func TestSCANOSSDefaultClientNoRedirects(t *testing.T) {
+	hits := 0
+	target := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits++ }))
+	defer target.Close()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target.URL+"/scan/direct", http.StatusTemporaryRedirect)
+	}))
+	defer srv.Close()
+	_, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: srv.URL, APIKey: "SECRET", Retries: -1, sleep: noSleep})
+	if err == nil || !strings.Contains(err.Error(), "--scanoss-url") || hits != 0 {
+		t.Errorf("error %v, %d requests at the redirect's target", err, hits)
+	}
+}
+
+// A user name, password or query in the URL is used for the request but
+// never shown or recorded.
+func TestSCANOSSURLSecrets(t *testing.T) {
+	fake := &fakeSCANOSS{t: t}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	u := strings.Replace(srv.URL, "http://", "http://bot:s3cret@", 1) + "/scan/direct?token=TOKEN"
+	r, err := ScanSCANOSS(project("clean"), SCANOSSOptions{URL: u, sleep: noSleep})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.URL != srv.URL+"/scan/direct" {
+		t.Errorf("recorded URL %q", r.URL)
+	}
+	if user, pw, ok := (&http.Request{Header: fake.reqs[0].header}).BasicAuth(); !ok || user != "bot" || pw != "s3cret" {
+		t.Errorf("the request didn't carry the URL's user name and password")
+	}
+	_, in, err := r.Findings(project("clean"))
+	if err != nil || strings.Contains(in.Path, "s3cret") || strings.Contains(in.Path, "TOKEN") {
+		t.Errorf("input %+v, %v", in, err)
+	}
+	// No answer: the error names the host only.
+	srv.Close()
+	_, err = ScanSCANOSS(project("clean"), SCANOSSOptions{URL: u, Retries: -1, sleep: noSleep})
+	if err == nil || strings.Contains(err.Error(), "s3cret") || strings.Contains(err.Error(), "TOKEN") || strings.Contains(err.Error(), "bot") {
+		t.Errorf("closed server: %v", err)
+	}
+}
+
+// Text in an answer reaches terminals, reports and notice files: control
+// characters and line breaks don't get through.
+func TestSCANOSSAnswerText(t *testing.T) {
+	evil := "\x1b]0;owned\x07\x1b[2J\x1b[1;1HPASS: all clear\x1b[8m"
+	answer, _ := json.Marshal([]map[string]any{{
+		"id": "file", "lines": "all", "matched": "100%", "component": "lib" + evil, "vendor": "v‮", "version": "1.0" + evil,
+		"file": "a.go\n\n## Injected heading", "url": "https://example.com/" + evil, "purl": []string{"pkg:github/x/lib" + evil},
+		"licenses":   []map[string]string{{"name": "MIT" + evil, "source": "license_file"}},
+		"copyrights": []map[string]string{{"name": "Copyright (c) 2020 X\n\n## Injected heading\n"}},
+	}})
+	found, err := scanossFindings(map[string]json.RawMessage{"a.go": answer}, "evil", t.TempDir(), false)
+	if err != nil || len(found) != 1 {
+		t.Fatalf("%v, %d findings", err, len(found))
+	}
+	text := fmt.Sprintf("%+v", found[0])
+	for _, bad := range []string{"\x1b", "\x07", "\n", "‮"} {
+		if strings.Contains(text, bad) {
+			t.Errorf("finding carries %q: %s", bad, text)
+		}
+	}
+	if c := found[0].Source.Copyrights; len(c) != 1 || c[0] != "Copyright (c) 2020 X ## Injected heading" {
+		t.Errorf("copyrights %q", c)
+	}
+}
+
+// A file entry with more matches than SCANOSS gives is refused, and the
+// project file behind "lines": "all" matches is read once.
+func TestSCANOSSTooManyMatches(t *testing.T) {
+	one := `{"id": "file", "lines": "all", "matched": "100%", "component": "c", "file": "f"}`
+	many := "[" + strings.TrimSuffix(strings.Repeat(one+",", scanossMaxMatches+1), ",") + "]"
+	if _, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(many)}, "big", t.TempDir(), false); err == nil ||
+		!strings.Contains(err.Error(), "more than 100 matches") {
+		t.Errorf("error %v", err)
+	}
+	ok := "[" + strings.TrimSuffix(strings.Repeat(one+",", scanossMaxMatches), ",") + "]"
+	found, err := scanossFindings(map[string]json.RawMessage{"a.go": json.RawMessage(ok)}, "ok", t.TempDir(), false)
+	if err != nil || len(found) != scanossMaxMatches {
+		t.Errorf("%v, %d findings", err, len(found))
+	}
+}
+
+// Remixware's own paths are used as they are: on systems where a file name
+// can hold a backslash or start like a drive, its finding isn't dropped.
+func TestSCANOSSOddFileNames(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("file names can't hold a backslash on Windows")
+	}
+	dir := t.TempDir()
+	names := []string{"ok.go", `..\gpl.go`, "c:gpl2.go", `a\..\..\gpl3.go`}
+	for i, n := range names {
+		body := fmt.Sprintf("package p\n\n// File %d.\nfunc F%d() int { return %d }\n", i, i, i)
+		if err := os.WriteFile(filepath.Join(dir, n), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	gpl := `[{"id": "file", "lines": "all", "matched": "100%", "component": "gplthing", "file": "x.go",
+  "licenses": [{"name": "GPL-3.0-only", "source": "license_file"}]}]`
+	fake := &fakeSCANOSS{t: t, answer: func(string, string) string { return gpl }}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	r, err := ScanSCANOSS(dir, SCANOSSOptions{URL: srv.URL, sleep: noSleep})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found, _, err := r.Findings(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var files []string
+	for _, f := range found {
+		files = append(files, f.File)
+	}
+	sort.Strings(files)
+	want := append([]string{}, names...)
+	sort.Strings(want)
+	if fmt.Sprint(files) != fmt.Sprint(want) {
+		t.Errorf("findings for %q, want %q", files, want)
+	}
+}
+
+// Symbolic links are passed over and counted, as a scan does.
+func TestSCANOSSSymlinks(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.go"), []byte("package a\n\nfunc A() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(dir, "a.go"), filepath.Join(dir, "b.go")); err != nil {
+		t.Skip("no symbolic links here:", err)
+	}
+	fake := &fakeSCANOSS{t: t}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	r, err := ScanSCANOSS(dir, SCANOSSOptions{URL: srv.URL, sleep: noSleep})
+	if err != nil || r.Files != 1 || r.Symlinks != 1 {
+		t.Errorf("%v: %d files sent, %d symlinks", err, r.Files, r.Symlinks)
+	}
+}
+
+// A findings file from elsewhere is cleaned the same way: one-line
+// printable text, licence texts with their line breaks, and no file whose
+// name a terminal could take for commands.
+func TestImportedFindingsText(t *testing.T) {
+	dir := t.TempDir()
+	esc := "\x1b[2J\x1b[1;1HPASS"
+	file := map[string]any{
+		"tool": "remixware 0.2.0",
+		"findings": []map[string]any{
+			{"file": "a.go", "lines": []int{1, 9}, "status": "conflict", "match": map[string]any{"kind": "verbatim" + esc},
+				"source": map[string]any{"key": "k" + esc, "component": "lib" + esc, "license": "MIT" + esc, "via": "index",
+					"copyrights": []string{"Copyright X\n\n## Injected"}}},
+			{"file": "b" + esc + ".go", "lines": []int{1, 9}, "status": "conflict", "source": map[string]any{"component": "lib", "license": "MIT"}},
+		},
+		"texts": map[string]any{"k" + esc: map[string]string{"license_text": "Line one\nLine\x1b[8m two\n", "notice_text": "N\x07"}},
+	}
+	data, _ := json.Marshal(file)
+	path := filepath.Join(dir, "findings.json")
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	found, in, texts, err := ImportResults(path, dir)
+	if err != nil || in.Kind != "remixware" || len(found) != 1 {
+		t.Fatalf("%v, %+v, %d findings", err, in, len(found))
+	}
+	got := fmt.Sprintf("%+v %+v", found[0], texts)
+	for _, bad := range []string{"\x1b", "\x07", "\n\n"} {
+		if strings.Contains(got, bad) {
+			t.Errorf("imported text carries %q: %s", bad, got)
+		}
+	}
+	tx := texts["k [2J [1;1HPASS"]
+	if tx == nil || tx.LicenseText != "Line one\nLine[8m two\n" || tx.NoticeText != "N" {
+		t.Errorf("texts %+v", texts)
 	}
 }

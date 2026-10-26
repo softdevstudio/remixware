@@ -82,12 +82,14 @@ jobs:
           cd ../..
           echo "::notice::${{ runner.os }}: scanoss-py $(scanoss-py --version 2>&1 | tail -1) took $(( $(date +%s) - start ))s: $(cut -c1-700 py.status)"
       - name: Compare
+        env:
+          PYTHONUTF8: "1"
         run: |
           python - "${{ runner.os }}" <<'PY'
           import json, os, sys
           osname = sys.argv[1]
-          rmx = open("rmx.status").read().strip()
-          py = open("py.status").read().strip() if os.path.exists("py.status") else "not run"
+          rmx = open("rmx.status", encoding="utf-8").read().strip()
+          py = open("py.status", encoding="utf-8").read().strip() if os.path.exists("py.status") else "not run"
           want = ["internal/fields/fields.go", "internal/logging/format.go"]
 
           def named(results):
@@ -106,7 +108,7 @@ jobs:
               else:
                   print(f"::error::{osname}: inconclusive, SCANOSS turned this runner away. Remixware: {rmx} | scanoss-py: {py}")
               sys.exit(1)
-          r = json.load(open("findings.json"))
+          r = json.load(open("findings.json", encoding="utf-8"))
           ins = [i for i in r["inputs"] if i["kind"] == "scanoss-api"]
           print(f"::notice::{osname}: Remixware sent {ins[0]['files']} files and got {ins[0]['matches']} matches")
           traced = set()
@@ -120,7 +122,7 @@ jobs:
           for w in missing:
               print(f"::error::{osname}: SCANOSS didn't trace {w} to logrus for Remixware")
           if py == "ok":
-              a, b = named(json.load(open("scanoss.json"))), named(json.load(open("py.json")))
+              a, b = named(json.load(open("scanoss.json", encoding="utf-8"))), named(json.load(open("py.json", encoding="utf-8")))
               if a == b:
                   print(f"::notice::{osname}: Remixware and scanoss-py got the same matches: {sorted((k, sorted(v)) for k, v in a.items())}")
               else:

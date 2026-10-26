@@ -157,13 +157,19 @@ Directly:
 remixware check . --scanoss
 ```
 
-`--scanoss` fingerprints the files a scan reads, plus minified `.min.js`
-and `.min.css` files, which SCANOSS can name as a whole. It makes the same
-fingerprints as SCANOSS's scanner and sends them to the free service at
+`--scanoss` fingerprints the files a scan reads, plus the minified files a
+scan skips (`.min.js`, `.min.css` and source files with very long lines),
+which SCANOSS can name as a whole. It makes its fingerprints the way
+SCANOSS's scanner does and sends them to the free service at
 `https://api.osskb.org`, which the Software Transparency Foundation runs.
 For each file it sends a number with the file's extension, the file's MD5
-and size, and the hashes of its text: no code and no file names. The
-answers are matched back to your files by those numbers. The service's
+and size, and the hashes of its text: no code and no file names. (One
+difference from SCANOSS's scanner: that scanner takes a few text files for
+binary by their first bytes, such as a source file starting with "BM", and
+sends no hashes for them; Remixware hashes them.) The answers are matched
+back to your files by those numbers, and they have to cover every file
+sent: an answer that leaves files out is asked for again, and then ends
+the command with exit code 2. The service's
 [terms](https://www.softwaretransparency.org/terms) apply: it's free and
 comes with no guarantees, it limits how much you ask, and it may log usage.
 Remixware waits and tries again when the service asks it to slow down for a
@@ -176,8 +182,11 @@ key avoids that.
 With a SCANOSS API key, set `SCANOSS_API_KEY` (or pass `--scanoss-key`)
 and Remixware asks `https://api.scanoss.com` instead. `--scanoss-url` (or
 `SCANOSS_SCAN_URL`) points it at another SCANOSS server, such as one you
-run. `--scanoss-out FILE` saves the answers as a SCANOSS results file,
-which `--from` reads later without asking again.
+run: as SCANOSS's scanner does, Remixware asks `/scan/direct` on that URL's
+host and leaves out any other path. It doesn't follow redirects, which
+could take the key and the fingerprints elsewhere. `--scanoss-out FILE`
+saves the answers as a SCANOSS results file, which `--from` reads later
+without asking again.
 
 Through SCANOSS's scanner:
 
@@ -192,6 +201,10 @@ one of them finds is reported once.
 
 `--from` also reads a findings file written by `remixware scan --json`,
 so a scan made on one machine can be checked on another.
+
+Answers from SCANOSS and files read with `--from` come from elsewhere, so
+Remixware keeps their text to printable characters on one line before it
+prints them or writes them into reports and notices.
 
 ## Findings
 

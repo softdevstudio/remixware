@@ -364,10 +364,19 @@ func askSCANOSS(res *remixware.Results, pol *remixware.Policy, o *compareOpts, p
 	if err != nil {
 		return err
 	}
+	if len(o.indexes) == 0 && r.Symlinks > 0 {
+		// No index scan walked the project to count them.
+		res.Skipped["symlink"] = r.Symlinks
+	}
 	if o.scanossOut != "" {
 		data, err := r.JSON()
 		if err != nil {
 			return err
+		}
+		if dir := filepath.Dir(o.scanossOut); dir != "." {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return err
+			}
 		}
 		if err := os.WriteFile(o.scanossOut, data, 0o644); err != nil {
 			return err

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // scanossMatch is one match in the results file written by the SCANOSS
@@ -65,6 +66,8 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 			// A findings file may come from another machine or another
 			// person: its paths are never read, and its files must be
 			// inside the project.
+			// Its text goes to terminals and notice files: only printable
+			// characters on one line, and line breaks in licence texts.
 			var kept []Finding
 			for _, f := range r.Findings {
 				rel, ok := projectPath(f.File)
@@ -73,25 +76,41 @@ func ImportResults(path, project string) ([]Finding, Input, map[string]*Componen
 				}
 				f.File = rel
 				f.Source.Abs = ""
+				cleanSource(&f.Source)
 				for i := range f.Also {
 					f.Also[i].Abs = ""
+					cleanSource(&f.Also[i])
 				}
+				f.Match.Kind = printable(f.Match.Kind, 20)
 				kept = append(kept, f)
 			}
-			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept)}, r.Texts, nil
+			texts := map[string]*ComponentTexts{}
+			for k, t := range r.Texts {
+				if t != nil {
+					texts[printable(k, 300)] = &ComponentTexts{LicenseText: printableText(t.LicenseText), NoticeText: printableText(t.NoticeText)}
+				}
+			}
+			return kept, Input{Kind: "remixware", Path: path, Matches: len(kept)}, texts, nil
 		}
 	}
-	findings, err := scanossFindings(probe, path+" is not a SCANOSS results file", project)
+	findings, err := scanossFindings(probe, path+" is not a SCANOSS results file", project, false)
 	if err != nil {
 		return nil, Input{}, nil, err
 	}
 	return findings, Input{Kind: "scanoss", Path: path, Matches: len(findings)}, nil, nil
 }
 
+// scanossMaxMatches is the most matches one file's entry may hold. The
+// engine gives a file one match, or a few; more is a broken or made-up
+// answer, and merging them costs time that grows with their square.
+const scanossMaxMatches = 100
+
 // scanossFindings reads SCANOSS results, an object that maps each scanned
-// file to its list of matches, into findings. Paths that would point outside
-// the project are left out. what names the results in an error.
-func scanossFindings(results map[string]json.RawMessage, what, project string) ([]Finding, error) {
+// file to its list of matches, into findings. what names the results in an
+// error. Paths from a results file are untrusted: those that would point
+// outside the project are left out. trusted says the paths are the
+// project's own, as when they come back from ScanSCANOSS.
+func scanossFindings(results map[string]json.RawMessage, what, project string, trusted bool) ([]Finding, error) {
 	var findings []Finding
 	files := make([]string, 0, len(results))
 	for f := range results {
@@ -103,25 +122,41 @@ func scanossFindings(results map[string]json.RawMessage, what, project string) (
 		if err := json.Unmarshal(results[file], &matches); err != nil {
 			return nil, fmt.Errorf("%s: the entry for %q isn't a list of matches", what, file)
 		}
-		rel, ok := projectPath(file)
+		rel, ok := file, true
+		if !trusted {
+			rel, ok = projectPath(file)
+		}
 		if !ok {
 			continue
 		}
+		n, lines := 0, -1
 		for _, m := range matches {
 			if m.ID != "file" && m.ID != "snippet" {
 				continue
 			}
-			findings = append(findings, scanossFinding(rel, m, project))
+			if n++; n > scanossMaxMatches {
+				return nil, fmt.Errorf("%s: the entry for %q holds more than %d matches, more than SCANOSS gives for one file", what, file, scanossMaxMatches)
+			}
+			if lines < 0 && len(parseRanges(m.Lines)) == 0 {
+				// "all": the whole file, whose lines are counted once.
+				lines = max(countLines([]byte(readSmall(filepath.Join(project, filepath.FromSlash(rel)), 16<<20))), 1)
+			}
+			findings = append(findings, scanossFinding(rel, m, lines))
 		}
 	}
 	return findings, nil
 }
 
 // projectPath cleans a path from a results file. It reports false for
-// paths that would point outside the project.
+// paths that would point outside the project, and for paths with
+// characters that aren't printable, which a terminal could take for
+// commands.
 func projectPath(p string) (string, bool) {
 	p = strings.ReplaceAll(p, "\\", "/")
 	if p == "" || strings.HasPrefix(p, "/") || filepath.VolumeName(p) != "" || (len(p) > 1 && p[1] == ':') {
+		return "", false
+	}
+	if strings.IndexFunc(p, func(r rune) bool { return !unicode.IsPrint(r) }) >= 0 {
 		return "", false
 	}
 	c := path.Clean(p)
@@ -131,14 +166,27 @@ func projectPath(p string) (string, bool) {
 	return c, true
 }
 
-func scanossFinding(rel string, m scanossMatch, project string) Finding {
+// scanossFinding turns one match into a finding. fileLines is the length
+// of the project file, for a match of the whole file. Every text the match
+// carries came from elsewhere and goes to terminals, reports and notices,
+// so it's kept to printable characters on one line.
+func scanossFinding(rel string, m scanossMatch, fileLines int) Finding {
 	lines := parseRanges(m.Lines)
 	if len(lines) == 0 {
-		// "all": the whole file.
-		n := countLines([]byte(readSmall(filepath.Join(project, filepath.FromSlash(rel)), 16<<20)))
-		lines = []Range{{1, max(n, 1)}}
+		lines = []Range{{1, max(fileLines, 1)}}
 	}
 	oss := parseRanges(m.OSSLines)
+	m.Component, m.Vendor, m.Version = printable(m.Component, 200), printable(m.Vendor, 200), printable(m.Version, 100)
+	m.File, m.URL = printable(m.File, 300), printable(m.URL, 300)
+	for i := range m.PURL {
+		m.PURL[i] = printable(m.PURL[i], 300)
+	}
+	for i := range m.Licenses {
+		m.Licenses[i].Name, m.Licenses[i].Source = printable(m.Licenses[i].Name, 100), printable(m.Licenses[i].Source, 100)
+	}
+	for i := range m.Copyrights {
+		m.Copyrights[i].Name = printable(m.Copyrights[i].Name, 300)
+	}
 	name := m.Component
 	vendor := m.Vendor
 	if strings.EqualFold(vendor, "none") {
@@ -240,4 +288,30 @@ func span(rs []Range) Range {
 		r.Start, r.End = min(r.Start, x.Start), max(r.End, x.End)
 	}
 	return r
+}
+
+// cleanSource keeps a source's text from elsewhere to printable characters
+// on one line (see printable).
+func cleanSource(s *Source) {
+	s.Key, s.Component, s.Version = printable(s.Key, 300), printable(s.Component, 200), printable(s.Version, 100)
+	for i := range s.OtherVersions {
+		s.OtherVersions[i] = printable(s.OtherVersions[i], 100)
+	}
+	s.File, s.URL, s.PURL = printable(s.File, 300), printable(s.URL, 300), printable(s.PURL, 300)
+	s.License, s.LicenseFrom, s.Via = printable(s.License, 200), printable(s.LicenseFrom, 100), printable(s.Via, 20)
+	for i := range s.Copyrights {
+		s.Copyrights[i] = printable(s.Copyrights[i], 300)
+	}
+}
+
+// printableText keeps the line breaks and tabs of a text from elsewhere,
+// such as a licence text, and drops every other character that isn't
+// printable.
+func printableText(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\t' || unicode.IsPrint(r) {
+			return r
+		}
+		return -1
+	}, s)
 }

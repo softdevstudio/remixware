@@ -22,10 +22,19 @@ binary. It connects to the network only when asked to, with `--scanoss`.
   letters and digits, gram 30, window 64), ported from scanoss.py's MIT
   `winnowing.py` and checked byte for byte against it
   (`testdata/scanoss/wfp/expected.wfp`, made by `scripts/wfp-golden.py`).
-  `scanossapi.go` sends them to the service (`--scanoss`) in batches of 32
-  files or 32 KB, file names replaced by numbers, and reads the answers with
-  the code that reads results files. The answers are untrusted input: only
-  names that were sent count, and a response is read up to 64 MB.
+  One known difference: scanoss.py's binaryornot takes some text files for
+  binary by their first bytes ("BM", "MZ", "RIFF", "PACK"...) and sends no
+  hashes for them; Remixware hashes every file it sends (it never sends
+  files with NUL bytes). `scanossapi.go` sends them to the service
+  (`--scanoss`) in batches of 32 files or 32 KB, file names replaced by
+  numbers, and reads the answers with the code that reads results files.
+  The answers are untrusted input: only names that were sent count, every
+  name sent must come back (the API server drops the files of a failed
+  engine run and still answers 200), a response is read up to 64 MB, a file
+  entry may hold at most 100 matches, redirects aren't followed (they'd
+  carry the key), and all service text goes through `printable` before it
+  reaches a terminal, report or notice. Reports and errors show the URL
+  without user name, password or query.
 - `policy.go` evaluates statuses, notice files and allow rules;
   `notice.go` writes notices with the texts in `licensetexts/` (from the
   SPDX License List); `report.go` + `report.html.tmpl`, `spdx.go` write
@@ -153,6 +162,8 @@ Known gaps, not planned yet:
 - `--scanoss` findings are what SCANOSS says: Remixware doesn't hold the
   matched source, so the HTML report shows only the project's side of
   them, and a SCANOSS answer it can't map to a licence reads as review.
+  SCANOSS may name a fork that has the same files (it named
+  github.com/copejon/logrus for logrus code in the live check).
 - The free SCANOSS service may limit how often it's asked and gives no
   guarantees; a large project means many requests (32 files or 32 KB each,
   4 at a time).
@@ -185,6 +196,4 @@ Known gaps, not planned yet:
 
 ## Next
 
-Approved by the owner on 2026-10-26: 0.2 adds a built-in `--scanoss`
-backend, so `remixware scan --scanoss` asks the SCANOSS service directly
-instead of reading a results file. Ask the owner before starting it.
+Nothing is approved after 0.2. Ask the owner before starting anything new.
