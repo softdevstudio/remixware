@@ -67,6 +67,9 @@ SOFTWARE.
 
 `testdata/scanoss/wfp/expected.wfp` holds fingerprints written by scanoss.py
 for the test files next to it, made with `scripts/wfp-golden.py`.
+`testdata/scanoss/scanoss-py-result.json` is `tests/data/result.json` from
+scanoss.py, SCANOSS's sample of its service's answers, unchanged. Both are
+under the license above.
 
 ## Licence texts
 

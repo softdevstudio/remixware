@@ -366,6 +366,77 @@ func TestSCANOSSWaitsAndTriesAgain(t *testing.T) {
 	}
 }
 
+// SCANOSS's own sample of its service's answers, from scanoss.py's tests,
+// goes through the whole path: the fingerprints go out under numbers, the
+// answers come back about those numbers, and each turns into a finding with
+// the licence from the most specific place SCANOSS names. Entries with no
+// licence, a null copyright list and "lines": "all" are in the sample.
+func TestSCANOSSRealAnswers(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "scanoss", "scanoss-py-result.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sample map[string]json.RawMessage
+	if err := json.Unmarshal(data, &sample); err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	byMD5 := map[string]json.RawMessage{}
+	for name, answer := range sample {
+		path := filepath.Join(dir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		var b strings.Builder
+		for i := 1; i <= 40; i++ {
+			fmt.Fprintf(&b, "int %s_%d = %d;\n", strings.NewReplacer("/", "_", ".", "_").Replace(name), i, i)
+		}
+		if err := os.WriteFile(path, []byte(b.String()), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		byMD5[md5Of(t, path)] = answer
+	}
+	fake := &fakeSCANOSS{t: t, answer: func(_, sum string) string { return string(byMD5[sum]) }}
+	srv := httptest.NewServer(fake)
+	defer srv.Close()
+	r, err := ScanSCANOSS(dir, SCANOSSOptions{URL: srv.URL, sleep: noSleep})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Eleven C files go out; package.json isn't source.
+	if r.Files != 11 || len(r.Results) != 11 {
+		t.Errorf("sent %d files, %d answers", r.Files, len(r.Results))
+	}
+	found, in, err := r.Findings(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := NewResults(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.Add(found, in, nil)
+	Evaluate(res, nil, "MIT")
+	whole := Range{1, 40}
+	checkFindings(t, res, []want{
+		{StatusConflict, "src/winnowing.c", Range{32, 161}, "scanoss/engine", "GPL-2.0-or-later"},
+		{StatusConflict, "inc/winnowing.h", whole, "scanoss/engine", "GPL-2.0-only"},
+		{StatusConflict, "inc/log.h", whole, "scanoss/scanner.c", "GPL-2.0-only"},
+		{StatusConflict, "src/log.c", whole, "scanoss/scanner.c", "GPL-2.0-only"},
+		{StatusAttributionMissing, "inc/json.h", whole, "scanoss/scanner.c", "BSD-2-Clause"},
+		{StatusAttributionMissing, "src/json.c", whole, "scanoss/scanner.c", "BSD-2-Clause"},
+		{StatusAttributionMissing, "src/crc32c.c", whole, "scanoss/wfp", "Zlib"},
+		{StatusReview, "inc/component.c", whole, "scanoss/scanner.c", LicenseNoAssertion},
+		{StatusReview, "inc/helper.c", whole, "scanoss/scanner.c", LicenseNoAssertion},
+		{StatusReview, "inc/log.c", whole, "scanoss/scanner.c", LicenseNoAssertion},
+	})
+	for _, f := range res.Findings {
+		if f.File == "src/winnowing.c" && (f.Source.Lines != Range{29, 158} || f.Source.LicenseFrom != "SCANOSS (file spdx tag)" || f.Match.Kind != "snippet") {
+			t.Errorf("snippet: %+v", f)
+		}
+	}
+}
+
 // A service that asks for a longer wait than the tries left could cover
 // gets no more requests, and the error says how long and until when. The
 // free service answers a used-up monthly limit this way.
