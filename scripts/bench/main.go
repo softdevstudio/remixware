@@ -288,6 +288,32 @@ func main() {
 		}
 		fmt.Fprintln(&recall)
 	}
+	fmt.Fprintf(&recall, "%-10s", "all kinds")
+	bigFound, bigTotal := 0, 0
+	for _, b := range tokenBuckets {
+		found, total := 0, 0
+		for _, v := range variants {
+			if t := byTokens[v+"/"+b]; t != nil {
+				found += t.found
+				total += t.total
+			}
+		}
+		if b == "100-199" || b == "200+" {
+			bigFound += found
+			bigTotal += total
+		}
+		if total == 0 {
+			fmt.Fprintf(&recall, "%16s", "-")
+			continue
+		}
+		fmt.Fprintf(&recall, "%16s", fmt.Sprintf("%d/%d %3.0f%%", found, total, pct(found, total)))
+		summary["recall_tokens_all_"+b] = round(pct(found, total))
+	}
+	fmt.Fprintln(&recall)
+	fmt.Fprintf(&recall, "\nCopies of 100 tokens or more, all kinds of change: %d of %d found (%.1f%%).\n", bigFound, bigTotal, pct(bigFound, bigTotal))
+	summary["copies_100plus"] = bigTotal
+	summary["copies_100plus_found"] = bigFound
+	summary["recall_100plus"] = round(pct(bigFound, bigTotal))
 	wrongTotal := 0
 	for _, t := range byLangVariant {
 		wrongTotal += t.wrong

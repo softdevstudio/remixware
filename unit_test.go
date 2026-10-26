@@ -548,3 +548,42 @@ func TestCredit(t *testing.T) {
 		t.Errorf("versioned key credit wrong")
 	}
 }
+
+func TestJoinPieces(t *testing.T) {
+	piece := func(a, b, sa, sb, tokens int) Finding {
+		return Finding{File: "x.go", Lines: Range{a, b}, Match: Match{Kind: "verbatim", Tokens: tokens, Coverage: 1},
+			Source: Source{Key: "k", Component: "k", File: "s.go", Lines: Range{sa, sb}, Via: "index"}}
+	}
+	cases := []struct {
+		name  string
+		in    []Finding
+		lines []Range
+	}{
+		{"touching", []Finding{piece(1, 20, 1, 20, 100), piece(21, 40, 21, 40, 100)}, []Range{{1, 40}}},
+		{"lines removed from the copy", []Finding{piece(1, 20, 1, 20, 100), piece(22, 40, 50, 68, 100)}, []Range{{1, 40}}},
+		{"lines added to the copy", []Finding{piece(1, 20, 1, 20, 100), piece(50, 70, 21, 41, 100)}, []Range{{1, 70}}},
+		{"overlapping edges, lined up", []Finding{piece(1, 31, 1, 29, 175), piece(27, 36, 29, 36, 56)}, []Range{{1, 36}}},
+		{"same code twice in the source", []Finding{piece(36, 47, 335, 346, 54), piece(36, 47, 357, 368, 54)}, []Range{{36, 47}, {36, 47}}},
+		{"far apart", []Finding{piece(1, 20, 1, 20, 100), piece(200, 220, 200, 220, 100)}, []Range{{1, 20}, {200, 220}}},
+		{"source order reversed", []Finding{piece(1, 20, 100, 120, 100), piece(21, 40, 1, 20, 100)}, []Range{{1, 20}, {21, 40}}},
+	}
+	for _, c := range cases {
+		out := joinPieces(c.in)
+		var got []Range
+		for _, f := range out {
+			got = append(got, f.Lines)
+		}
+		if len(got) != len(c.lines) {
+			t.Errorf("%s: got %v, want %v", c.name, got, c.lines)
+			continue
+		}
+		for i := range got {
+			if got[i] != c.lines[i] {
+				t.Errorf("%s: got %v, want %v", c.name, got, c.lines)
+			}
+		}
+		if c.name == "lines removed from the copy" && out[0].Match.Kind != "edited" {
+			t.Errorf("%s: kind %s, want edited", c.name, out[0].Match.Kind)
+		}
+	}
+}

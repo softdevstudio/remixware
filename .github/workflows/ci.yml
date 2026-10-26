@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
+          cache: false
       - name: gofmt
         run: |
           out=$(gofmt -l .)
@@ -54,6 +55,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
+          cache: false
       - name: Tests
         shell: bash
         run: |

@@ -38,10 +38,10 @@ go run ./scripts/bench -cache "$cache" -out "$res/benchmark" | tee "$res/benchma
 echo "== sample report gallery"
 bin="$work/remixware"
 go build -o "$bin" ./cmd/remixware
-ix=gallery-upstream.rmx
+ix=upstream.rmx
 trap 'rm -rf "$work" "$root/$ix"' EXIT
-"$bin" index testdata/upstream --out "$ix" --quiet
 g="$res/gallery"
+"$bin" index testdata/upstream --out "$ix" > "$g/index.txt" 2>/dev/null
 for p in shopfront firmware clean; do
   "$bin" scan "testdata/projects/$p" --index "$ix" --quiet \
     --html "$g/$p.html" --json "$g/$p.json" --spdx "$g/$p.spdx.json" > "$g/$p.txt"

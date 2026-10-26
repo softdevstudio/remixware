@@ -5,6 +5,8 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -315,13 +317,19 @@ func TestDamagedIndexIsRefused(t *testing.T) {
 		"flipped byte":    {write("flipped.rmx", flipped), "damaged"},
 		"other settings":  {write("other.rmx", other.Bytes()), "other settings"},
 		"trailing data":   {write("trailing.rmx", append(append([]byte(nil), data...), "junk"...)), "damaged"},
-		"missing file":    {filepath.Join(dir, "nope.rmx"), "no such file"},
+		"missing file":    {filepath.Join(dir, "nope.rmx"), "not-exist"},
 		"gzip, not index": {write("plain.rmx", append([]byte(indexMagic), 0x1f, 0x8b, 0, 0)), "nope"},
 	}
 	for name, c := range cases {
 		_, err := LoadIndex(c.path)
 		if err == nil {
 			t.Errorf("%s: loaded without error", name)
+			continue
+		}
+		if c.msg == "not-exist" {
+			if !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("%s: error %q isn't a missing-file error", name, err)
+			}
 			continue
 		}
 		if c.msg != "nope" && !strings.Contains(err.Error(), c.msg) {

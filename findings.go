@@ -244,8 +244,14 @@ func joinPieces(in []Finding) []Finding {
 			forward := f.Source.Lines.Start >= p.Source.Lines.Start-3
 			// Pieces join when they touch on one side and are near on the
 			// other: code removed from the copy leaves a gap in the source,
-			// code added to it a gap in the copy.
-			near := forward && ((scanGap <= 3 && srcGap <= 60) || (srcGap <= 3 && scanGap <= 60))
+			// code added to it a gap in the copy. A piece that mostly
+			// covers the same lines of the copy as the one before, lined up
+			// with a different place in the source, is the same code found
+			// twice in the source, not a second part of one copy.
+			ov := min(p.Lines.End, f.Lines.End) - max(p.Lines.Start, f.Lines.Start) + 1
+			shift := (f.Source.Lines.Start - p.Source.Lines.Start) - (f.Lines.Start - p.Lines.Start)
+			sameCopy := 2*ov < f.Lines.len() || (shift >= -3 && shift <= 3)
+			near := forward && sameCopy && ((scanGap <= 3 && srcGap <= 60) || (srcGap <= 3 && scanGap <= 60))
 			if p.File == f.File && p.Source.Key == f.Source.Key && p.Source.File == f.Source.File &&
 				p.Source.Via == f.Source.Via && near {
 				total := p.Match.Tokens + f.Match.Tokens

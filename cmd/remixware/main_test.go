@@ -82,7 +82,7 @@ func TestUsageAndVersion(t *testing.T) {
 
 func TestIndexCommand(t *testing.T) {
 	upstreamIndex(t)
-	expect(t, indexRes, exitOK, "Indexed 10 files", "10 components", "Licences: MIT 2", "1 components have no licence file")
+	expect(t, indexRes, exitOK, "Indexed 10 files", "10 components", "Licences: MIT 2", "1 component has no licence: copies of its code")
 	if st, err := os.Stat(indexPath); err != nil || st.Size() == 0 {
 		t.Fatalf("index file not written: %v", err)
 	}

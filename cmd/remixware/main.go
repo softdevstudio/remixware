@@ -182,10 +182,12 @@ func cmdIndex(args []string, stdout, stderr io.Writer) error {
 	if st != nil {
 		size = st.Size()
 	}
-	fmt.Fprintf(stdout, "Indexed %s files (%s lines) in %s components into %s (%s) in %s.\n",
-		comma(len(ix.Files)), comma(ix.Lines), comma(len(ix.Components)), o.out, humanSize(size), time.Since(start).Round(time.Millisecond))
+	fmt.Fprintf(stdout, "Indexed %s %s (%s lines) in %s %s into %s (%s) in %s.\n",
+		comma(len(ix.Files)), plural(len(ix.Files), "file", "files"), comma(ix.Lines), comma(len(ix.Components)),
+		plural(len(ix.Components), "component", "components"), o.out, humanSize(size), time.Since(start).Round(time.Millisecond))
 	if ix.Duplicates > 0 {
-		fmt.Fprintf(stdout, "%s files were identical to a file in another version and are recorded once.\n", comma(ix.Duplicates))
+		fmt.Fprintf(stdout, "%s %s identical to a file in another version and recorded once.\n", comma(ix.Duplicates),
+			plural(ix.Duplicates, "file was", "files were"))
 	}
 	counts := ix.LicenseCounts()
 	var lics []string
@@ -204,7 +206,8 @@ func cmdIndex(args []string, stdout, stderr io.Writer) error {
 	}
 	fmt.Fprintf(stdout, "Licences: %s\n", strings.Join(parts, ", "))
 	if n := counts[remixware.LicenseNone]; n > 0 {
-		fmt.Fprintf(stdout, "%d components have no licence file: copies of their code will be reported as no-license.\n", n)
+		fmt.Fprintf(stdout, "%d %s no licence: copies of %s code will be reported as no-license.\n", n,
+			plural(n, "component has", "components have"), plural(n, "its", "their"))
 	}
 	return nil
 }
@@ -242,7 +245,7 @@ func compareFlags(cmd string, stderr io.Writer) (*flag.FlagSet, *compareOpts) {
 		fs.StringVar(&o.htmlOut, "html", "", "write an HTML report to this file")
 	case "notice", "notices":
 		fs.StringVar(&o.out, "out", "", "notices file to add entries to (default: print to standard output)")
-		fs.BoolVar(&o.all, "all", false, "write entries for everything that needs attribution, not only what's missing")
+		fs.BoolVar(&o.all, "all", false, "also write entries for copies that are already credited")
 	}
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "Usage: remixware %s [project] [flags]\n\n", cmd)
@@ -363,9 +366,10 @@ func writeReports(res *remixware.Results, o *compareOpts, stderr io.Writer) erro
 
 func header(w io.Writer, res *remixware.Results) {
 	if res.FilesScanned > 0 {
-		fmt.Fprintf(w, "Scanned %s files (%s lines) in %s\n", comma(res.FilesScanned), comma(res.LinesScanned), res.Project)
+		fmt.Fprintf(w, "Scanned %s %s (%s lines) in %s\n", comma(res.FilesScanned), plural(res.FilesScanned, "file", "files"),
+			comma(res.LinesScanned), shownPath(res.Project))
 	} else {
-		fmt.Fprintf(w, "Project %s\n", res.Project)
+		fmt.Fprintf(w, "Project %s\n", shownPath(res.Project))
 	}
 	lic := res.ProjectLicense
 	if res.ProjectLicenseFrom != "" {
@@ -379,9 +383,10 @@ func header(w io.Writer, res *remixware.Results) {
 	for _, in := range res.Inputs {
 		switch in.Kind {
 		case "index":
-			ins = append(ins, fmt.Sprintf("%s (%s components, %s files)", in.Path, comma(in.Components), comma(in.Files)))
+			ins = append(ins, fmt.Sprintf("%s (%s %s, %s %s)", in.Path, comma(in.Components), plural(in.Components, "component", "components"),
+				comma(in.Files), plural(in.Files, "file", "files")))
 		case "scanoss":
-			ins = append(ins, fmt.Sprintf("%s (SCANOSS, %s matches)", in.Path, comma(in.Matches)))
+			ins = append(ins, fmt.Sprintf("%s (SCANOSS, %s %s)", in.Path, comma(in.Matches), plural(in.Matches, "match", "matches")))
 		default:
 			ins = append(ins, in.Path)
 		}
@@ -616,6 +621,16 @@ func cmdNotice(args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "added %d %s to %s: %s\n", len(nr.Written), plural(len(nr.Written), "entry", "entries"), o.out, strings.Join(nr.Written, ", "))
 	}
 	return nil
+}
+
+// shownPath shows a folder inside the current one by its relative path.
+func shownPath(p string) string {
+	if wd, err := os.Getwd(); err == nil {
+		if rel, err := filepath.Rel(wd, p); err == nil && !strings.HasPrefix(rel, "..") {
+			return filepath.ToSlash(rel)
+		}
+	}
+	return p
 }
 
 func plural(n int, one, many string) string {
