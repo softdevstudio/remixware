@@ -308,26 +308,36 @@ Bring In Risky Dependencies", reference (deps command, Dependency Gate
 section, policy keys, exit codes), quick start step 6, download page smoke
 test line, hero badge 0.3.
 
-## In progress: independent review of deps gate
-
-Scope (2026-10-31, Claude, independent reviewer): `remixware deps` from
-0.3.0 (depslock.go, deps.go, registry.go, cmd/remixware/deps.go,
-testdata/deps, scripts/record-deps.sh, release smoke test, README/docs).
-Checks: go.mod/go.sum, package-lock v1-3, npm-shrinkwrap, requirements
-(includes, hashes, markers, extras, VCS/URL/path, -e, index options,
-PEP 503 names), poetry.lock; direct vs transitive; aliases; downgrades;
-remove then re-add; -r path traversal and symlinks; --base-ref odd refs;
---online cache; exit codes; JSON. Each suspected bug gets a failing test
-first; only confirmed bugs are fixed. Resume: read the tests added in
-deps_review_test.go and the notes below, then continue down the list.
-
-Notes so far: 13 confirmed bugs, all fixed in the working tree with tests
-in deps_review_test.go (npm case-folded keys, pip line breaks, -c index,
-requirements names, VCS builds, poetry header spaces / multi-line strings /
-inline source, go.work, new symlinked lockfile, lockfile deleted with
-manifest kept, policy settings not shown, registry cache key). Not a bug:
-a comment ending in a backslash joins the next line in pip too (checked
-against pip 26.2.1). Next: record-results.sh, push 0.3.1, check release.
+0.3.1 (2026-10-31): the independent agent review of the deps gate that
+0.3.0 owed. Checked: every lockfile reader against crafted input (npm v1-3
+and shrinkwrap, requirements against pip 26.2.1's own parser, poetry.lock,
+go.mod/go.sum), name normalisation, aliases, direct/transitive, removals,
+symlinks and -r/-c paths, --base-ref handling, the --online cache, exit
+codes and JSON. 13 confirmed bugs, each with a failing-first test in
+deps_review_test.go, all fixed: package-lock.json keys matched without case
+by encoding/json ("LINK", "haſInstallScript", "LockfileVersion" hid
+packages or scripts; now read as exact keys from maps); pip's Python line
+breaks (\r, \f, U+2028...) hid requirements in comments; `-c` constraints
+files' index options were ignored; test-/dev-requirements.txt weren't
+read; VCS and source-archive requirements updated freely (now
+install-script, as poetry's git packages were); poetry.lock `[[ package ]]`
+headers, multi-line strings and inline or dotted `source` slipped past
+(duplicate keys are now errors); go.work wasn't seen (now not-checked); a
+new lockfile that's a symlink was skipped (links are now followed inside
+the project, on disk and in git); deleting package-lock.json or poetry.lock
+while keeping the manifest passed (now not-checked); policy edits to
+fail_on, lockfiles, publisher_days and ignore weren't shown (now
+`policy_changes`); the --online cache answered for a mirror with another
+registry's facts (now keyed by registry). Not a bug: a comment ending in a
+backslash joins the next line in pip too. The benchmark folder in
+test/results stays from 0.2.1: the shared sandbox ran at load 6 on 2 cores,
+so its speeds were noise; licence scanning is unchanged. Released as
+v0.3.1 (tag at 3b571d1): five archives plus SHA256SUMS, every
+latest/download link answers 200 to a GET (a HEAD gets 401 from the asset
+host), the downloaded Linux build's checksum matches, and it prints 0.3.1
+and fails the fixture change with exit 1. remixware.com: the reference's
+Dependency Gate section covers the new behaviour, and the gallery was
+copied again from test/results/gallery (only version and time changed).
 
 ## Gaps and to-do
 
@@ -341,8 +351,14 @@ Known gaps, not planned yet:
   isn't flagged (only updates that move off the registry are). PyPI has no
   uploader record, so its publisher check uses metadata and is weak. A
   base version that's gone from the registry makes an online run exit 2.
-  An independent agent review of the gate is still owed (this session
-  couldn't spawn one); do it before building more on it. Possible next:
+  Left open by the 0.3.1 review: npm git dependencies run `prepare` on
+  install, which hasInstallScript doesn't record; a PyPI release with
+  wheels for some platforms only counts as having a wheel (offline and
+  online); `.npmrc` registry changes aren't seen (integrity hashes in
+  package-lock still hold); symlinked folders holding lockfiles aren't
+  walked; downgrades are plain updates; a v1 lockfile's alias
+  (`npm:other@1.0.0`) is named by its alias, so an allow rule for the alias
+  name allows it; lockfile names compare case-sensitively. Possible next:
   read a committed cache offline, pnpm/yarn readers, dogfood the gate in
   this repo's CI on pull requests.
 - Copies under 50 tokens or 5 lines aren't reported, by design. Renamed
