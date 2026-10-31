@@ -24,6 +24,7 @@ type Policy struct {
 	NoticeFiles []string    `json:"notice_files,omitempty"` // where the project credits third-party code
 	MinTokens   int         `json:"min_tokens,omitempty"`
 	MinLines    int         `json:"min_lines,omitempty"`
+	Deps        *DepsPolicy `json:"deps,omitempty"` // the dependency gate (remixware deps)
 
 	Path string `json:"-"`
 }
@@ -69,6 +70,11 @@ func LoadPolicy(path string) (*Policy, error) {
 		}
 		if strings.TrimSpace(a.Reason) == "" {
 			return nil, fmt.Errorf("%s: allow rule %d has no reason", path, i+1)
+		}
+	}
+	if p.Deps != nil {
+		if err := p.Deps.validate(path); err != nil {
+			return nil, err
 		}
 	}
 	if p.License != "" {
