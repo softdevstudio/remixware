@@ -93,6 +93,93 @@ binary. It connects to the network only when asked to, with `--scanoss`.
 Site repo: github.com/photozeitgeist/remixware.com (Hugo, Launch template,
 content and config values only; never touch the theme).
 
+## In progress: dependency change gate (0.3.0)
+
+Asked for by the owner on 2026-10-31 (through the main session): a second
+check next to the licence check. `remixware deps` compares a project's
+dependency set with the one on main and fails a PR that brings in
+supply-chain risk: a new direct or transitive dependency that isn't on an
+allow list, a package that runs install scripts, or a package whose
+publisher changed recently. Why: licence findings say what copied code
+asks; this says what a dependency change lets in, from the same lockfiles
+a PR already touches.
+
+Design decisions:
+
+- Command: `remixware deps [project] (--base DIR | --base-ref REV)
+  [--online] [--cache FILE] [--npm-registry URL] [--pypi-url URL]
+  [--fail-on LIST] [--policy FILE] [--json FILE] [--quiet]`. `--base` is a
+  checkout of main; `--base-ref` reads main's lockfiles with
+  `git ls-tree`/`git show` (local, no network). Exit 0 pass, 1 fail, 2 for
+  errors: a malformed lockfile, git failing, an online lookup that failed.
+  Never pass on something it couldn't read.
+- Lockfiles (found under the project, skipping node_modules, vendor, .git
+  and the policy's `ignore`; `deps.lockfiles` replaces the search):
+  `go.mod` + `go.sum` (direct and `// indirect` from go.mod, the rest of
+  the module graph from go.sum's code hashes, `replace` targets count as
+  the dependency, local path replacements don't), `package-lock.json` and
+  `npm-shrinkwrap.json` (lockfileVersion 1, 2, 3; direct = the root
+  package's dependencies), `requirements*.txt` (pinned or not, `-r`
+  followed inside the project), `poetry.lock` (direct from pyproject.toml).
+  A changed lockfile Remixware can't read (yarn.lock, pnpm-lock.yaml,
+  Pipfile.lock, Cargo.lock...) is a `not-checked` change, which fails by
+  default, so nothing passes unread.
+- "New" means the package (ecosystem + name) is in no lockfile on main.
+  Version changes are `updated`. Install-script and publisher checks look
+  at every added or updated version only.
+- Statuses (public, like the licence ones): `not-allowed`,
+  `install-script`, `publisher-changed`, `not-checked` (default fail_on),
+  `allowed`, `updated`, `removed`.
+- Policy: a `deps` object in `.remixware.json`: `allow` (rules with
+  `package` like `npm/@acme/*`, `golang/golang.org/x/*`, `pypi/requests`,
+  `*` wildcard, case-sensitive except PyPI names, which are normalised;
+  required `reason`; optional `install_scripts: true` and
+  `publisher_change: true` to accept those too), `fail_on`, `lockfiles`,
+  `publisher_days` (default 90). Unknown keys are errors, as today.
+- Offline (default, deterministic): allow list on every added package;
+  install scripts from package-lock.json v2/v3 `hasInstallScript` and from
+  poetry.lock file lists (no wheel = builds from source = runs code).
+  Online (`--online`, opt-in, the only new network code): npm registry
+  packuments (`scripts` pre/install/postinstall, `gypfile`, `_npmUser`,
+  `maintainers`, `time`) and PyPI JSON (no wheel; author/maintainer
+  metadata as the publisher, weaker). Go modules run no install scripts and
+  the Go proxy records no publisher: the output says so. Facts per
+  name@version are immutable, cached forever in a JSON file
+  (`--cache`, default in the user cache folder). Publisher changed = the
+  new version's publisher is neither the publisher nor a maintainer of the
+  version it's compared with (main's version for updates, the release
+  before it for added packages), and it was published within
+  `publisher_days`.
+- Output reuses check's style (status label column, wrapped reason, a
+  PASS/FAIL line) plus a "Checks:" block that says for each check whether
+  it ran, offline or online, on how many packages, and what it skipped and
+  why. Offline output never claims an online check ran. `--json` gives the
+  same as data.
+- Code: `deps.go` (lockfile readers, diff, evaluate), `registry.go`
+  (online lookups and cache), tests in `deps_test.go` and
+  `cmd/remixware/main_test.go`, fixtures in `testdata/deps/`.
+  record-results.sh records `test/results/deps/`.
+
+Steps (mark done as they land, push this file with the code):
+
+1. [x] Plan in CLAUDE.md (this section), pushed with [skip ci].
+2. [ ] Lockfile readers + diff + policy keys + offline checks, unit tests.
+3. [ ] `remixware deps` command, text and JSON output, CLI tests.
+4. [ ] Online lookups with cache (httptest server in tests).
+5. [ ] Failure tests on the main promise (risky dependency always fails,
+   unchanged/allowed passes, malformed lockfiles exit 2, offline never
+   claims an online check), record-results.sh section, test/results/deps.
+6. [ ] README (manual), CHANGELOG 0.3.0, independent review, fixes,
+   re-record.
+7. [ ] Release 0.3.0 (VERSION + version.go + CHANGELOG), watch CI and the
+   release run, check assets, SHA256SUMS, latest/download links, run a
+   downloaded binary.
+8. [ ] remixware.com: announcement post (tags, numbers from
+   test/results/deps), reference/quick start/download pages, deploy check.
+
+Resume at the first unchecked step. Run `go test ./...` first to see where
+the code stands.
+
 ## Workflow (low maintenance)
 
 - Pull before working: ChatGPT/Codex also works on this repo (see AGENTS.md).
@@ -335,4 +422,6 @@ Known gaps, not planned yet:
 
 ## Next
 
-Nothing is approved after 0.2.1. Ask the owner before starting anything new.
+The dependency change gate (0.3.0) is approved and in progress; see
+"In progress: dependency change gate" above. Ask the owner before starting
+anything else new.
