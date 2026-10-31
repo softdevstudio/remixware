@@ -304,7 +304,8 @@ the change and in the base:
   their index options, which pip takes from them too. Lines end where pip
   ends them (a lone carriage return, a form feed or U+2028 ends a line, as
   in Python). Requirements are direct unless pip-compile's `# via` comments
-  say they came in through other packages. A requirement from git or
+  say they came in through other packages. A requirement with no version
+  shows as `unpinned`. A requirement from git or
   another VCS, or from a source archive URL, builds from source when pip
   installs it, so it counts as an install script.
 - `poetry.lock`, with `pyproject.toml` naming the direct packages. A key
@@ -334,7 +335,7 @@ allows.
 | `not-allowed` | A package no lockfile on the base names, direct or transitive, and no allow rule names. |
 | `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip builds from source. |
 | `publisher-changed` | An added or updated version was published within `publisher_days` (90 by default) by someone who neither published nor maintained the version it's compared with: the base's version for an update, the release before it for a new package. Only with `--online`. |
-| `not-checked` | A lockfile Remixware doesn't read changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry), or the change deletes a lockfile and keeps its manifest. |
+| `not-checked` | A lockfile Remixware doesn't read changed, or a lockfile outside `deps.lockfiles` was added or changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry), or the change deletes a lockfile and keeps its manifest. |
 | `allowed` | A new package an allow rule names. |
 | `updated` | A package at a new version, with nothing wrong found. |
 | `removed` | A package no lockfile names any more. |
@@ -405,7 +406,13 @@ The `deps` object in `.remixware.json` holds the gate's settings:
   normalised as pip does (`Zope.Interface` is `zope-interface`).
 - `fail_on`: the statuses that fail. An empty list is an error.
 - `lockfiles`: the lockfiles to read, instead of searching for them. A
-  path that's in neither the change nor the base is an error.
+  path that's in neither the change nor the base is an error. Remixware
+  still searches: a lockfile outside the list that the change adds or
+  edits is `not-checked` (failing by default), so a new requirements file
+  can't bring in packages or an `--extra-index-url` unread. Add it to the
+  list to check it, or put it in the policy's `ignore` to leave it out on
+  purpose. A file a listed requirements file takes in with `-r` or `-c`
+  counts as read.
 - `publisher_days`: how recent a publisher change has to be to count.
 
 Unknown keys are errors, as everywhere in the policy file. The policy comes
@@ -445,7 +452,9 @@ publisher checks against the registries.
 `online`, `lockfiles` (each with `path`, `kind`, `head_packages`,
 `base_packages`, `in_head`, `in_base`), `changes` (each with `package`,
 `ecosystem`, `name`, `change` (added, updated, removed or unread),
-`from`, `to`, `direct`, `lockfiles`, `status`, `reason`, `allowed_by` and
+`from`, `to` (the versions on the base and the change; a requirement
+with no version is `unpinned`, a range is shown as written, such as
+`>=1.26`), `direct`, `lockfiles`, `status`, `reason`, `allowed_by` and
 `issues`, each issue with `status`, `version` and `reason`), `checks` (each
 with `name`, `status` (ran, partly, not-run, not-applicable or
 nothing-to-check), `packages`, `offline`, `online`, `cached`,

@@ -1,4 +1,4 @@
-recorded: 2026-10-31T10:03:39Z
+recorded: 2026-10-31T10:31:13Z
 machine: Linux 6.18.44-fc-v185 x86_64
 go: go version go1.24.7 linux/amd64
-remixware: 0.3.1
+remixware: 0.3.2

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.2
+
+Two fixes in the dependency gate, found while recording the case studies.
+
+- With `deps.lockfiles` set, a lockfile outside the list that a change adds
+  or edits is now `not-checked`, which fails by default. Before, it wasn't
+  read at all, so a new requirements file with packages or an
+  `--extra-index-url` passed without a word. The message names the file
+  and says how to add it to `deps.lockfiles` or leave it out on purpose
+  with the policy's `ignore`. Files a listed requirements file reads with
+  `-r` or `-c` count as read.
+- A requirement with no version shows as `unpinned`, in the text output
+  (`pypi/neuronx-cc unpinned, added`) and in the JSON (`"to": ["unpinned"]`,
+  and in `from`). It showed an empty version before.
+
 ## 0.3.1
 
 Fixes from an independent review of the dependency gate. Each one let a

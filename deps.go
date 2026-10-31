@@ -121,6 +121,10 @@ func (r DepAllowRule) match(eco, name string) bool {
 	return ok
 }
 
+// UnpinnedVersion stands for a requirement that names no version (pip
+// takes whatever is newest), in From, To and an issue's Version.
+const UnpinnedVersion = "unpinned"
+
 // DepsResult is what remixware deps found.
 type DepsResult struct {
 	Project   string         `json:"project"`
@@ -254,7 +258,20 @@ type pkgEntry struct {
 	lockfiles map[string]bool
 }
 
+// readsTree records every file a lockfile reader reads (go.sum,
+// package.json, requirements files taken in with -r or -c).
+type readsTree struct {
+	depTree
+	reads map[string]bool
+}
+
+func (r readsTree) read(rel string) ([]byte, bool, error) {
+	r.reads[rel] = true
+	return r.depTree.read(rel)
+}
+
 type depSide struct {
+	reads   map[string]bool // every file the readers read, includes too
 	pkgs    map[pkgKey]*pkgEntry
 	count   map[string]int // packages per lockfile
 	raw     map[string][]byte
@@ -263,8 +280,9 @@ type depSide struct {
 }
 
 func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
-	s := &depSide{pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{}, has: map[string]bool{},
-		sources: map[string][]string{}}
+	s := &depSide{reads: map[string]bool{}, pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{},
+		has: map[string]bool{}, sources: map[string][]string{}}
+	rt := readsTree{depTree: t.t, reads: s.reads}
 	for _, rel := range lockfiles {
 		data, ok, err := t.t.read(rel)
 		if err != nil {
@@ -278,7 +296,7 @@ func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
 			s.raw[rel] = data
 			continue
 		}
-		pkgs, sources, err := readLockfile(t.t, rel, data)
+		pkgs, sources, err := readLockfile(rt, rel, data)
 		if err != nil {
 			return nil, err
 		}
@@ -398,6 +416,43 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 		}
 	}
 
+	if len(dp.Lockfiles) > 0 {
+		// The list replaces the search, but a lockfile outside it that the
+		// change adds or edits mustn't pass unread: search anyway, and make
+		// each such file not-checked unless a listed file reads it (-r, -c).
+		listed := map[string]bool{}
+		for _, l := range lockfiles {
+			listed[l] = true
+		}
+		found, err := findLockfiles(head.t, pol.Ignore)
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range found {
+			if listed[f] || hs.reads[f] {
+				continue
+			}
+			hd, _, err := head.t.read(f)
+			if err != nil {
+				return nil, err
+			}
+			bd, inBase, err := base.t.read(f)
+			if err != nil {
+				return nil, err
+			}
+			what := "is new"
+			if inBase {
+				if bytes.Equal(hd, bd) {
+					continue
+				}
+				what = "changed"
+			}
+			res.Changes = append(res.Changes, DepChange{Change: "unread", Lockfiles: []string{f}, Status: DepNotChecked,
+				Reason: f + " " + what + ", and it isn't in the policy's deps.lockfiles, so Remixware didn't read it. Add it to deps.lockfiles to check its packages, or add it to the policy's ignore to leave it out on purpose.",
+				Issues: []DepIssue{{Status: DepNotChecked, Reason: "lockfile outside deps.lockfiles"}}})
+		}
+	}
+
 	allow := &DepCheck{Name: "allow-list"}
 	scripts := &DepCheck{Name: "install-scripts"}
 	pub := &DepCheck{Name: "publisher"}
@@ -474,6 +529,26 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 			}
 		}
 		res.Changes = append(res.Changes, c)
+	}
+	// A requirement with no version is read as version "": show it as
+	// unpinned, never as an empty string.
+	unpinned := func(vs []string) {
+		for i, v := range vs {
+			if v == "" {
+				vs[i] = UnpinnedVersion
+			}
+		}
+	}
+	for i := range res.Changes {
+		c := &res.Changes[i]
+		unpinned(c.From)
+		unpinned(c.To)
+		for j := range c.Issues {
+			// Version-level issues name the version; package-level ones don't.
+			if st := c.Issues[j].Status; c.Issues[j].Version == "" && (st == DepInstallScript || st == DepPublisherChanged) {
+				c.Issues[j].Version = UnpinnedVersion
+			}
+		}
 	}
 	sort.SliceStable(res.Changes, func(i, j int) bool {
 		return depStatusRank(res.Changes[i].Status) > depStatusRank(res.Changes[j].Status)

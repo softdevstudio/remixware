@@ -450,7 +450,10 @@ build if quoted outputs change (serve post, recipes post), VERSION 0.3.2,
 CHANGELOG, README, push; the release workflow publishes. Site: reference
 deps section and version badge.
 
-Status: plan pushed.
+Status: both fixed in deps.go (failing-first tests in deps_fix_test.go:
+monorepo, git revision, unpinned), README updated, record-deps.sh re-run
+(47 tests, fixture output unchanged), VERSION 0.3.2 pushed. Next: watch
+CI and the release, then case studies with the released build, site.
 
 ## Done: deps case studies (2026-10-31)
 
@@ -464,9 +467,6 @@ not-checked, 2 not-allowed, 6 updated). remixware.com (3758e5c): three
 case study posts, "Five Tested Recipes for the Remixware Dependency Gate"
 (use cases), links from the dependency gate post and the quick start.
 
-Found during case studies: an unpinned requirement (`neuronx-cc`, no
-version) shows an empty version, in the text (`pypi/neuronx-cc , added`) and
-in the JSON (`"to": [""]`, numpy's `from` starts with ""); cosmetic, not
-fixed here. Not a bug, worth a line in the docs: with `deps.lockfiles` set,
-a new lockfile not on the list isn't read, so a new requirements file with
-`--extra-index-url` passes (recipes/monorepo-lockfiles.txt).
+Found during case studies (both fixed in 0.3.2): an unpinned requirement
+showed an empty version, and with `deps.lockfiles` set a new lockfile not
+on the list wasn't read (recipes/monorepo-lockfiles.txt).
