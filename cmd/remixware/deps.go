@@ -17,7 +17,7 @@ import (
 type depsOpts struct {
 	base, baseRef, policy, failOn, jsonOut string
 	cache, npmURL, pypiURL                 string
-	online, noCache, quiet                 bool
+	online, noCache, quiet, basePolicy     bool
 }
 
 func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
@@ -27,6 +27,7 @@ func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
 	fs.StringVar(&o.base, "base", "", "folder holding the version to compare with, such as a checkout of main")
 	fs.StringVar(&o.baseRef, "base-ref", "", "git revision to compare with, such as origin/main (read from the local repository)")
 	fs.StringVar(&o.policy, "policy", "", "policy file (default: .remixware.json in the project, if there is one)")
+	fs.BoolVar(&o.basePolicy, "base-policy", false, "use the base's .remixware.json, so a change can't allow its own packages")
 	fs.StringVar(&o.failOn, "fail-on", "", "statuses that fail, comma separated (default: the policy's deps.fail_on, or "+strings.Join(remixware.DefaultDepFailOn, ",")+")")
 	fs.StringVar(&o.jsonOut, "json", "", "write the changes as JSON to this file")
 	fs.BoolVar(&o.online, "online", false, "also ask the npm registry and PyPI about added and updated packages (install scripts, publisher changes)")
@@ -94,10 +95,26 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 	if err != nil {
 		return exitUsage, err
 	}
+	if o.basePolicy && o.policy != "" {
+		return exitUsage, errors.New("deps: --base-policy and --policy don't go together")
+	}
+	// The base's policy, to use with --base-policy or to show which allow
+	// rules the change adds.
+	basePol := &remixware.Policy{}
+	if data, ok, err := base.ReadFile(remixware.PolicyFile); err != nil {
+		return exitUsage, err
+	} else if ok {
+		if basePol, err = remixware.ParsePolicy(data, remixware.PolicyFile+" at "+base.Label()); err != nil {
+			return exitUsage, err
+		}
+	}
 	var pol *remixware.Policy
-	if o.policy != "" {
+	switch {
+	case o.basePolicy:
+		pol = basePol
+	case o.policy != "":
 		pol, err = remixware.LoadPolicy(o.policy)
-	} else {
+	default:
 		pol, err = remixware.FindPolicy(project)
 	}
 	if err != nil {
@@ -119,7 +136,7 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 			reg.CachePath = ""
 		}
 	}
-	res, err := remixware.CompareDeps(head, base, remixware.DepsOptions{Policy: pol, Registry: reg})
+	res, err := remixware.CompareDeps(head, base, remixware.DepsOptions{Policy: pol, Registry: reg, BasePolicy: basePol})
 	if reg != nil {
 		for _, w := range reg.Warnings {
 			fmt.Fprintln(stderr, "remixware: warning:", w)
@@ -148,6 +165,20 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 		printDepChange(stdout, c)
 	}
 	fmt.Fprintln(stdout)
+	if len(res.NewAllowRules) > 0 {
+		fmt.Fprintln(stdout, "Allow rules this change adds to the policy (review them: a change can allow its own packages):")
+		for _, r := range res.NewAllowRules {
+			extra := ""
+			if r.InstallScripts {
+				extra += ", install scripts too"
+			}
+			if r.PublisherChange {
+				extra += ", publisher changes too"
+			}
+			fmt.Fprintf(stdout, "  %s%s: %s\n", r.Package, extra, r.Reason)
+		}
+		fmt.Fprintln(stdout)
+	}
 	printChecks(stdout, res)
 	if o.jsonOut != "" {
 		if err := writeDepsJSON(o.jsonOut, res); err != nil {
@@ -309,7 +340,7 @@ func checkText(c remixware.DepCheck, online bool) string {
 	if c.Packages != 1 {
 		noun += "s"
 	}
-	return fmt.Sprintf("%s, %d %s: %s", c.Status, c.Packages, noun, strings.Join(parts, ", "))
+	return fmt.Sprintf("%s, %d %s: %s", strings.ReplaceAll(c.Status, "-", " "), c.Packages, noun, strings.Join(parts, ", "))
 }
 
 func depsSummary(res *remixware.DepsResult) string {

@@ -174,13 +174,26 @@ Steps (mark done as they land, push this file with the code):
 5. [x] Failure tests on the main promise (risky dependency always fails,
    unchanged/allowed passes, malformed lockfiles exit 2, offline never
    claims an online check), record-results.sh section, test/results/deps.
-6. [ ] README (manual), CHANGELOG 0.3.0, independent review, fixes,
+6. [x] README (manual), CHANGELOG 0.3.0, independent review, fixes,
    re-record.
-7. [ ] Release 0.3.0 (VERSION + version.go + CHANGELOG), watch CI and the
+7. [~] Release 0.3.0 (VERSION raised and pushed; watch CI and the release run) (VERSION + version.go + CHANGELOG), watch CI and the
    release run, check assets, SHA256SUMS, latest/download links, run a
    downloaded binary.
 8. [ ] remixware.com: announcement post (tags, numbers from
    test/results/deps), reference/quick start/download pages, deploy check.
+
+Review (step 6): no agent could be spawned in this session, so the review
+was a second pass of my own over the diff. It found and fixed: a change
+could add allow rules for its own packages in the PR's policy (now listed
+as "Allow rules this change adds", plus `--base-policy`); a requirements
+file pointing pip at a new index (`--extra-index-url`) passed (now
+not-checked); an update moving a package off the public registry (URL,
+git, another npm registry) passed (now not-checked); poetry.lock junk
+lines inside arrays were swallowed (the generated promise test caught it;
+the reader is strict now); check statuses in JSON are hyphenated
+(`not-run`). The full record-results.sh (benchmark, case studies) wasn't
+re-run: the licence scan code didn't change, and no site number comes from
+test/results/tests.txt; record-deps.sh recorded test/results/deps.
 
 Resume at the first unchecked step. Run `go test ./...` first to see where
 the code stands.

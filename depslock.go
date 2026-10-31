@@ -252,6 +252,15 @@ func safeRel(rel string) bool {
 // (DepsDir) or a git revision (DepsGit).
 type DepsTree struct{ t depTree }
 
+// ReadFile reads a file of the tree, given as a slash path relative to
+// the project, and says whether it exists.
+func (t DepsTree) ReadFile(rel string) ([]byte, bool, error) {
+	if t.t == nil {
+		return nil, false, nil
+	}
+	return t.t.read(rel)
+}
+
 // Label is the folder or revision.
 func (t DepsTree) Label() string {
 	if t.t == nil {
@@ -320,40 +329,41 @@ func findLockfiles(t depTree, ignore []string) ([]string, error) {
 // readLockfile reads one lockfile from a tree. Sibling files (go.sum,
 // package.json, pyproject.toml, included requirements) come from the same
 // tree.
-func readLockfile(t depTree, rel string, data []byte) ([]lockPackage, error) {
+func readLockfile(t depTree, rel string, data []byte) ([]lockPackage, []string, error) {
 	var pkgs []lockPackage
+	var sources []string
 	var err error
 	switch lockfileKind(rel) {
 	case kindGoMod:
 		sum, _, serr := t.read(path.Join(path.Dir(rel), "go.sum"))
 		if serr != nil {
-			return nil, serr
+			return nil, nil, serr
 		}
 		pkgs, err = parseGoMod(data, sum)
 	case kindNPM:
 		pj, _, perr := t.read(path.Join(path.Dir(rel), "package.json"))
 		if perr != nil {
-			return nil, perr
+			return nil, nil, perr
 		}
 		pkgs, err = parseNPMLock(data, pj)
 	case kindRequirement:
-		pkgs, err = parseRequirements(t, rel, data, 0)
+		pkgs, err = parseRequirements(t, rel, data, 0, &sources)
 	case kindPoetry:
 		py, _, perr := t.read(path.Join(path.Dir(rel), "pyproject.toml"))
 		if perr != nil {
-			return nil, perr
+			return nil, nil, perr
 		}
 		pkgs, err = parsePoetryLock(data, py)
 	default:
-		return nil, fmt.Errorf("%s: not a lockfile Remixware reads", rel)
+		return nil, nil, fmt.Errorf("%s: not a lockfile Remixware reads", rel)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%s at %s: %v", rel, t.label(), err)
+		return nil, nil, fmt.Errorf("%s at %s: %v", rel, t.label(), err)
 	}
 	for i := range pkgs {
 		pkgs[i].lockfile = rel
 	}
-	return pkgs, nil
+	return pkgs, sources, nil
 }
 
 // --- Go -------------------------------------------------------------------
@@ -670,7 +680,12 @@ var pyPinned = regexp.MustCompile(`^===?\s*([A-Za-z0-9][A-Za-z0-9.+!_-]*)$`)
 // parseRequirements reads a pip requirements file. Every requirement is
 // direct, except where pip-compile's "# via" comments say a package came
 // in through others. -r includes are read from the same tree.
-func parseRequirements(t depTree, rel string, data []byte, depth int) ([]lockPackage, error) {
+//
+// Options that change where pip looks for packages (--index-url,
+// --extra-index-url, --find-links, --trusted-host, --no-index) go to
+// sources: a change can point pip at another index without touching a
+// single requirement.
+func parseRequirements(t depTree, rel string, data []byte, depth int, sources *[]string) ([]lockPackage, error) {
 	if depth > 10 {
 		return nil, fmt.Errorf("-r includes go deeper than 10 files")
 	}
@@ -750,7 +765,7 @@ func parseRequirements(t depTree, rel string, data []byte, depth int) ([]lockPac
 				if !ok {
 					return nil, fmt.Errorf("line %d: -r %s: no such file", lineNo[i], val)
 				}
-				sub, err := parseRequirements(t, inc, b, depth+1)
+				sub, err := parseRequirements(t, inc, b, depth+1, sources)
 				if err != nil {
 					return nil, fmt.Errorf("%s: %v", inc, err)
 				}
@@ -761,10 +776,15 @@ func parseRequirements(t depTree, rel string, data []byte, depth int) ([]lockPac
 				} else if !pyLocal(val) {
 					return nil, fmt.Errorf("line %d: can't read %q", lineNo[i], trim)
 				}
-			case "-c", "--constraint", "-i", "--index-url", "--extra-index-url", "-f", "--find-links", "--pre",
-				"--no-binary", "--only-binary", "--prefer-binary", "--trusted-host", "--require-hashes", "--use-feature",
-				"--no-index", "--config-settings", "--global-option", "--hash":
-				// Options that change where pip looks, not what it installs.
+			case "-i", "--index-url", "--extra-index-url", "-f", "--find-links", "--trusted-host", "--no-index":
+				long := map[string]string{"-i": "--index-url", "-f": "--find-links"}[opt]
+				if long == "" {
+					long = opt
+				}
+				*sources = append(*sources, strings.TrimSpace(long+" "+val))
+			case "-c", "--constraint", "--pre", "--no-binary", "--only-binary", "--prefer-binary", "--require-hashes",
+				"--use-feature", "--config-settings", "--global-option", "--hash":
+				// Options that change how pip installs, not what or from where.
 			default:
 				return nil, fmt.Errorf("line %d: unknown option %q", lineNo[i], opt)
 			}

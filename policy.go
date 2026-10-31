@@ -48,6 +48,11 @@ func LoadPolicy(path string) (*Policy, error) {
 	if err != nil {
 		return nil, err
 	}
+	return ParsePolicy(data, path)
+}
+
+// ParsePolicy reads a policy file's contents; path names it in errors.
+func ParsePolicy(data []byte, path string) (*Policy, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	p := &Policy{Path: path}

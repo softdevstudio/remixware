@@ -129,6 +129,9 @@ type DepsResult struct {
 	Changes   []DepChange    `json:"changes"`
 	Checks    []DepCheck     `json:"checks"`
 	Counts    map[string]int `json:"counts"`
+	// Allow rules in the policy used that the base's policy doesn't have:
+	// a change can allow its own packages, so these deserve a look.
+	NewAllowRules []DepAllowRule `json:"new_allow_rules,omitempty"`
 }
 
 // DepLockfile is one lockfile and how many packages it names on each side.
@@ -168,7 +171,7 @@ type DepIssue struct {
 // DepCheck says whether a check ran, and on what.
 type DepCheck struct {
 	Name          string         `json:"name"`     // allow-list, install-scripts, publisher
-	Status        string         `json:"status"`   // ran, partly, not run, not applicable, nothing to check
+	Status        string         `json:"status"`   // ran, partly, not-run, not-applicable, nothing-to-check
 	Packages      int            `json:"packages"` // package versions the check applies to
 	Offline       int            `json:"offline"`  // checked from the lockfiles
 	Online        int            `json:"online"`   // checked with the registry
@@ -192,11 +195,11 @@ func (c *DepCheck) finish() {
 	done := c.Offline + c.Online
 	switch {
 	case c.Packages == 0:
-		c.Status = "nothing to check"
+		c.Status = "nothing-to-check"
 	case done == 0 && notRun == 0:
-		c.Status = "not applicable"
+		c.Status = "not-applicable"
 	case done == 0:
-		c.Status = "not run"
+		c.Status = "not-run"
 	case notRun == 0:
 		c.Status = "ran"
 	default:
@@ -233,7 +236,10 @@ func DepFailures(res *DepsResult, failOn []string) []DepChange {
 type DepsOptions struct {
 	Policy   *Policy
 	Registry *Registry // nil: no online checks
-	Now      func() time.Time
+	// BasePolicy is the base's policy file, when it has one; allow rules
+	// the policy used adds to it are listed in NewAllowRules.
+	BasePolicy *Policy
+	Now        func() time.Time
 }
 
 type pkgKey struct{ eco, name string }
@@ -245,14 +251,16 @@ type pkgEntry struct {
 }
 
 type depSide struct {
-	pkgs  map[pkgKey]*pkgEntry
-	count map[string]int // packages per lockfile
-	raw   map[string][]byte
-	has   map[string]bool
+	pkgs    map[pkgKey]*pkgEntry
+	count   map[string]int // packages per lockfile
+	raw     map[string][]byte
+	has     map[string]bool
+	sources map[string][]string // where a lockfile tells the installer to look
 }
 
 func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
-	s := &depSide{pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{}, has: map[string]bool{}}
+	s := &depSide{pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{}, has: map[string]bool{},
+		sources: map[string][]string{}}
 	for _, rel := range lockfiles {
 		data, ok, err := t.t.read(rel)
 		if err != nil {
@@ -266,10 +274,11 @@ func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
 			s.raw[rel] = data
 			continue
 		}
-		pkgs, err := readLockfile(t.t, rel, data)
+		pkgs, sources, err := readLockfile(t.t, rel, data)
 		if err != nil {
 			return nil, err
 		}
+		s.sources[rel] = sources
 		s.count[rel] = len(pkgs)
 		for _, p := range pkgs {
 			k := pkgKey{p.eco, p.name}
@@ -359,6 +368,18 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 					" files, so its packages weren't checked. Check them by hand, or take not-checked out of deps.fail_on.",
 				Issues: []DepIssue{{Status: DepNotChecked, Reason: "lockfile changed and wasn't read"}}})
 		}
+		var newSources []string
+		for _, src := range hs.sources[l] {
+			if !containsString(bs.sources[l], src) && !containsString(newSources, src) {
+				newSources = append(newSources, src)
+			}
+		}
+		if len(newSources) > 0 {
+			res.Changes = append(res.Changes, DepChange{Change: "unread", Lockfiles: []string{l}, Status: DepNotChecked,
+				Reason: "This change tells pip to look for packages somewhere new (" + strings.Join(newSources, "; ") +
+					"), and a package of the same name there can take the place of the one you expect. Check the index by hand, or take not-checked out of deps.fail_on.",
+				Issues: []DepIssue{{Status: DepNotChecked, Reason: "package index changed"}}})
+		}
 	}
 
 	allow := &DepCheck{Name: "allow-list"}
@@ -411,6 +432,19 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 			c.Direct, c.Lockfiles = h.direct, sortedKeys(h.lockfiles)
 			c.Reason = "At a new version."
 		}
+		if c.Change == "updated" {
+			fromRegistry := true
+			for _, bp := range b.versions {
+				fromRegistry = fromRegistry && bp.registry
+			}
+			for _, v := range c.To {
+				if np := h.versions[v]; fromRegistry && !np.registry {
+					c.Issues = append(c.Issues, DepIssue{Status: DepNotChecked, Version: v,
+						Reason: "Main takes it from the public registry; this change takes it from somewhere else (" + v +
+							"), which Remixware can't check. Check the source by hand, or take not-checked out of deps.fail_on."})
+				}
+			}
+		}
 		if c.Change != "removed" {
 			for _, v := range c.To {
 				if err := ev.check(&c, k, h.versions[v], b); err != nil {
@@ -438,6 +472,24 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 	if opt.Registry != nil {
 		if err := opt.Registry.Save(); err != nil {
 			return res, fmt.Errorf("saving the registry cache: %v", err)
+		}
+	}
+	if opt.BasePolicy != nil {
+		var old []DepAllowRule
+		if opt.BasePolicy.Deps != nil {
+			old = opt.BasePolicy.Deps.Allow
+		}
+		for _, r := range dp.Allow {
+			found := false
+			for _, o := range old {
+				if o == r {
+					found = true
+					break
+				}
+			}
+			if !found {
+				res.NewAllowRules = append(res.NewAllowRules, r)
+			}
 		}
 	}
 	if res.Lockfiles == nil {
@@ -586,7 +638,10 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 			}
 		}
 		sort.Strings(compare)
-	} else if facts.Previous != "" {
+	}
+	if len(compare) == 0 && facts.Previous != "" {
+		// A new package, or one main took from elsewhere: compare with the
+		// release before this one.
 		compare = []string{facts.Previous}
 	}
 	if len(compare) == 0 {
@@ -598,6 +653,11 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 		return nil
 	}
 	if facts.Publisher == "" {
+		e.pub.Online--
+		if facts.fromCache {
+			e.pub.Cached--
+		}
+		e.pub.skip("no publisher recorded")
 		return nil
 	}
 	recent := facts.Published.IsZero() || e.now.Sub(facts.Published) < time.Duration(e.days)*24*time.Hour

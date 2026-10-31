@@ -559,7 +559,7 @@ func TestDepsBaseRef(t *testing.T) {
 		t.Helper()
 		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
 		cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@example.com", "GIT_COMMITTER_NAME=t",
-			"GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL=/dev/null")
+			"GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL="+noGitConfig(t))
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
@@ -575,4 +575,28 @@ func TestDepsBaseRef(t *testing.T) {
 	}
 	expect(t, cli("deps", dir, "--base-ref", "main"), exitFail, "10 changes", "FAIL: 3 changes")
 	expect(t, cli("deps", dir, "--base-ref", "origin/nope"), exitUsage, "not found")
+}
+
+func noGitConfig(t *testing.T) string {
+	p := filepath.Join(t.TempDir(), "gitconfig")
+	os.WriteFile(p, nil, 0o644)
+	return p
+}
+
+func TestDepsChangeCantAllowItself(t *testing.T) {
+	head := copyTree(t, fixture("deps", "head"))
+	pol := `{"deps": {"allow": [{"package": "npm/is-thirteen", "reason": "needed it"},
+	  {"package": "golang/golang.org/x/*", "reason": "modules of the Go project"},
+	  {"package": "npm/@shop/*", "reason": "our own packages"},
+	  {"package": "pypi/requests", "reason": "reviewed by the platform team"}]}}`
+	os.WriteFile(filepath.Join(head, ".remixware.json"), []byte(pol), 0o644)
+	out := filepath.Join(t.TempDir(), "d.json")
+	r := cli("deps", head, "--base", fixture("deps", "base"), "--quiet", "--json", out)
+	expect(t, r, exitFail, "Allow rules this change adds", "npm/is-thirteen: needed it", "FAIL: 2 changes")
+	data, _ := os.ReadFile(out)
+	if !strings.Contains(string(data), `"new_allow_rules"`) {
+		t.Errorf("JSON lacks new_allow_rules")
+	}
+	expect(t, cli("deps", head, "--base", fixture("deps", "base"), "--base-policy"), exitFail, "FAIL: 3 changes")
+	expect(t, cli("deps", head, "--base", fixture("deps", "base"), "--base-policy", "--policy", "x.json"), exitUsage)
 }

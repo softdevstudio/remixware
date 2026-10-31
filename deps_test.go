@@ -191,9 +191,13 @@ cattrs==23.2.0
 		"requirements/base.txt": "Flask===3.0.0\n",
 	})
 	data, _, _ := tr.t.read("requirements.txt")
-	ps, err := parseRequirements(tr.t, "requirements.txt", data, 0)
+	var sources []string
+	ps, err := parseRequirements(tr.t, "requirements.txt", data, 0, &sources)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if strings.Join(sources, "|") != "--index-url https://pypi.org/simple" {
+		t.Errorf("sources: %q", sources)
 	}
 	m := pkgsByName(ps)
 	for k, want := range map[string][3]bool{ // direct, registry, pinned
@@ -227,7 +231,7 @@ cattrs==23.2.0
 	} {
 		tr := tree(t, map[string]string{"requirements.txt": body})
 		data, _, _ := tr.t.read("requirements.txt")
-		if _, err := parseRequirements(tr.t, "requirements.txt", data, 0); err == nil {
+		if _, err := parseRequirements(tr.t, "requirements.txt", data, 0, new([]string)); err == nil {
 			t.Errorf("%s: no error", name)
 		}
 	}
@@ -379,7 +383,7 @@ func TestDepsUnchangedPasses(t *testing.T) {
 		t.Errorf("lockfiles: %+v", res.Lockfiles)
 	}
 	for _, c := range res.Checks {
-		if c.Status != "nothing to check" || c.Online != 0 {
+		if c.Status != "nothing-to-check" || c.Online != 0 {
 			t.Errorf("check %+v", c)
 		}
 	}
@@ -422,7 +426,7 @@ func TestDepsTransitiveGoModuleNeedsAllowRule(t *testing.T) {
 	if c == nil || c.Status != DepNotAllowed || c.Direct {
 		t.Fatalf("case-changed module path slipped through: %+v", res.Changes)
 	}
-	if s := check(res, "install-scripts"); s.NotApplicable != 1 || s.Status != "not applicable" {
+	if s := check(res, "install-scripts"); s.NotApplicable != 1 || s.Status != "not-applicable" {
 		t.Errorf("install-scripts on a Go module: %+v", s)
 	}
 	if p := check(res, "publisher"); p.NotApplicable != 1 || p.Online != 0 {
@@ -471,7 +475,7 @@ func TestDepsInstallScriptOffline(t *testing.T) {
 		t.Errorf("install-scripts: %+v", s)
 	}
 	p := check(res, "publisher")
-	if p.Status != "not run" || p.Online != 0 || p.NotRun[whyNeedsOnline] != 1 {
+	if p.Status != "not-run" || p.Online != 0 || p.NotRun[whyNeedsOnline] != 1 {
 		t.Errorf("publisher offline: %+v", p)
 	}
 	res = compare(t, head, base, allowPolicy(DepAllowRule{Package: "npm/esbuild", Reason: "binary", InstallScripts: true}), nil)
@@ -504,7 +508,7 @@ func TestDepsOfflineNeverClaimsOnline(t *testing.T) {
 		}
 	}
 	s := check(res, "install-scripts")
-	if s.Status != "not run" || s.NotRun[whyNeedsOnline] != 3 {
+	if s.Status != "not-run" || s.NotRun[whyNeedsOnline] != 3 {
 		t.Errorf("install-scripts: %+v", s)
 	}
 }
@@ -608,7 +612,7 @@ func TestDepsGitRevision(t *testing.T) {
 		t.Helper()
 		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
 		cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@example.com", "GIT_COMMITTER_NAME=t",
-			"GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL=/dev/null")
+			"GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL="+noGitConfig(t))
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
@@ -937,4 +941,40 @@ func TestDepsGatePromise(t *testing.T) {
 	}
 	t.Logf("promise: %d new packages not on the allow list, %d failed; %d unchanged or allowed sets, %d passed; %d new install scripts, %d failed; %d broken lockfiles, %d stopped with an error",
 		risky, riskyFailed, safe, safePassed, scripts, scriptsFailed, broken, brokenErr)
+}
+
+// noGitConfig is an empty git config file, so the tests don't depend on
+// the machine's.
+func noGitConfig(t *testing.T) string {
+	p := filepath.Join(t.TempDir(), "gitconfig")
+	os.WriteFile(p, nil, 0o644)
+	return p
+}
+
+func TestDepsPipIndexChange(t *testing.T) {
+	base := map[string]string{"requirements.txt": "--index-url https://pypi.org/simple\nflask==3.0.0\n"}
+	head := map[string]string{"requirements.txt": "--index-url https://pypi.org/simple\n--extra-index-url https://pkgs.example.net/simple\nflask==3.0.0\n"}
+	res := compare(t, head, base, nil, nil)
+	if len(res.Changes) != 1 || res.Changes[0].Status != DepNotChecked || !strings.Contains(res.Changes[0].Reason, "pkgs.example.net") {
+		t.Errorf("new extra index: %+v", res.Changes)
+	}
+	if res := compare(t, base, head, nil, nil); len(res.Changes) != 0 {
+		t.Errorf("an index taken away: %+v", res.Changes)
+	}
+}
+
+func TestDepsMovedOffRegistry(t *testing.T) {
+	base := map[string]string{"requirements.txt": "requests==2.32.3\n"}
+	head := map[string]string{"requirements.txt": "requests @ https://files.example.net/requests-2.32.3.tar.gz\n"}
+	res := compare(t, head, base, nil, nil)
+	c := change(res, "pypi/requests")
+	if c == nil || c.Status != DepNotChecked || len(DepFailures(res, DefaultDepFailOn)) != 1 {
+		t.Errorf("moved to a URL: %+v", res.Changes)
+	}
+	baseNPM := map[string]string{"package-lock.json": npmLock("a@1.0.0")}
+	headNPM := map[string]string{"package-lock.json": `{"lockfileVersion": 3, "packages": {"": {"dependencies": {"a": "*"}},
+	  "node_modules/a": {"version": "1.0.1", "resolved": "https://npm.example.net/a/-/a-1.0.1.tgz"}}}`}
+	if c := change(compare(t, headNPM, baseNPM, nil, nil), "npm/a"); c == nil || c.Status != DepNotChecked {
+		t.Errorf("npm moved to another registry: %+v", c)
+	}
 }

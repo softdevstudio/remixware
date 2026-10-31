@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.3.0
+
+A second check, next to the licence check: `remixware deps` compares the
+packages a change's lockfiles name with those of the main branch, and
+fails the change when it brings in supply-chain risk.
+
+- It reads `go.mod` with `go.sum`, `package-lock.json` and
+  `npm-shrinkwrap.json` (lockfile versions 1 to 3), `requirements*.txt`
+  (with `-r` includes and pip-compile's `# via` comments) and
+  `poetry.lock`, in the project folder and in the base: another folder
+  (`--base`) or a git revision read from the local repository
+  (`--base-ref origin/main`).
+- New statuses: `not-allowed` (a new package, direct or transitive, that
+  no allow rule names), `install-script` (an added or updated package that
+  runs code when installed), `publisher-changed` (a recent release by
+  someone who neither published nor maintained the one it's compared with),
+  `not-checked` (a lockfile kind Remixware doesn't read changed, or a
+  requirements file points pip at a new package index), and
+  `allowed`, `updated` and `removed`.
+- A `deps` object in `.remixware.json` holds allow rules (`package` such as
+  `npm/@acme/*`, a `reason`, and optionally `install_scripts` and
+  `publisher_change`), `fail_on`, `lockfiles` and `publisher_days`. The
+  output lists allow rules the change adds to the policy, and
+  `--base-policy` uses main's policy instead.
+- Without `--online` it reads only lockfiles: the allow list, and install
+  scripts as package-lock.json (versions 2 and 3) and poetry.lock record
+  them. `--online` also asks the npm registry and PyPI, with answers kept
+  in a cache file. The output's `Checks:` block says what each check
+  covered and why the rest wasn't checked, and an offline run never
+  reports an online check.
+- A broken lockfile, on either side, or a failed registry lookup ends the
+  command with exit code 2, never a pass. `--json` writes the result for
+  other tools.
+
 ## 0.2.1
 
 Running Remixware on real projects for the case studies on remixware.com

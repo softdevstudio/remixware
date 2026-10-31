@@ -117,6 +117,14 @@ jobs:
           code=$?
           set -e
           [ $code = 2 ] || { echo "::error::check on an empty folder exited $code, want 2"; sed 's/^/::error::/' empty.txt | head -5; exit 1; }
+          # The dependency gate must fail the fixture change and pass an unchanged set.
+          set +e
+          $rw deps testdata/deps/head --base testdata/deps/base > deps.txt 2>&1
+          code=$?
+          set -e
+          [ $code = 1 ] || { echo "::error::deps on the fixture change exited $code, want 1"; sed 's/^/::error::/' deps.txt | head -20; exit 1; }
+          grep -q "FAIL: 3 changes break the policy" deps.txt || { sed 's/^/::error::/' deps.txt | head -40; exit 1; }
+          $rw deps testdata/deps/base --base testdata/deps/base > deps-same.txt 2>&1 || { sed 's/^/::error::/' deps-same.txt | head -20; exit 1; }
       - name: Package
         run: |
           set -eux

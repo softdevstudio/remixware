@@ -241,7 +241,7 @@
     },
     {
       "name": "publisher",
-      "status": "not run",
+      "status": "not-run",
       "packages": 10,
       "offline": 0,
       "online": 0,

@@ -1,58 +1,64 @@
 === RUN   TestParseGoMod
 --- PASS: TestParseGoMod (0.00s)
 === RUN   TestParseNPMLock
---- PASS: TestParseNPMLock (0.02s)
+--- PASS: TestParseNPMLock (0.00s)
 === RUN   TestParseRequirements
---- PASS: TestParseRequirements (0.09s)
+--- PASS: TestParseRequirements (0.03s)
 === RUN   TestParsePoetryLock
 --- PASS: TestParsePoetryLock (0.00s)
 === RUN   TestDepsUnchangedPasses
---- PASS: TestDepsUnchangedPasses (0.03s)
+--- PASS: TestDepsUnchangedPasses (0.01s)
 === RUN   TestDepsNewPackageNeedsAllowRule
---- PASS: TestDepsNewPackageNeedsAllowRule (0.08s)
+--- PASS: TestDepsNewPackageNeedsAllowRule (0.03s)
 === RUN   TestDepsTransitiveGoModuleNeedsAllowRule
 --- PASS: TestDepsTransitiveGoModuleNeedsAllowRule (0.02s)
 === RUN   TestDepsPyPINamesNormalised
---- PASS: TestDepsPyPINamesNormalised (0.01s)
+--- PASS: TestDepsPyPINamesNormalised (0.03s)
 === RUN   TestDepsUpdatedAndRemoved
---- PASS: TestDepsUpdatedAndRemoved (0.01s)
+--- PASS: TestDepsUpdatedAndRemoved (0.00s)
 === RUN   TestDepsInstallScriptOffline
---- PASS: TestDepsInstallScriptOffline (0.04s)
+--- PASS: TestDepsInstallScriptOffline (0.02s)
 === RUN   TestDepsOfflineNeverClaimsOnline
 --- PASS: TestDepsOfflineNeverClaimsOnline (0.01s)
 === RUN   TestDepsUnreadLockfile
---- PASS: TestDepsUnreadLockfile (0.02s)
+--- PASS: TestDepsUnreadLockfile (0.01s)
 === RUN   TestDepsMalformedLockfileFails
---- PASS: TestDepsMalformedLockfileFails (0.26s)
+--- PASS: TestDepsMalformedLockfileFails (0.11s)
 === RUN   TestDepsLockfileSearch
---- PASS: TestDepsLockfileSearch (0.06s)
+--- PASS: TestDepsLockfileSearch (0.07s)
 === RUN   TestDepsPolicyValidation
---- PASS: TestDepsPolicyValidation (0.12s)
+--- PASS: TestDepsPolicyValidation (0.04s)
 === RUN   TestDepsGitRevision
---- PASS: TestDepsGitRevision (0.22s)
+--- PASS: TestDepsGitRevision (0.10s)
 === RUN   TestDepsOnlinePublisherChange
---- PASS: TestDepsOnlinePublisherChange (0.05s)
+--- PASS: TestDepsOnlinePublisherChange (0.04s)
 === RUN   TestDepsOnlineErrorsFail
---- PASS: TestDepsOnlineErrorsFail (0.04s)
+--- PASS: TestDepsOnlineErrorsFail (0.01s)
 === RUN   TestDepsOnlinePyPI
 --- PASS: TestDepsOnlinePyPI (0.01s)
 === RUN   TestDepsGatePromise
-    deps_test.go:938: promise: 400 new packages not on the allow list, 400 failed; 800 unchanged or allowed sets, 800 passed; 80 new install scripts, 80 failed; 400 broken lockfiles, 400 stopped with an error
---- PASS: TestDepsGatePromise (17.30s)
+    deps_test.go:942: promise: 400 new packages not on the allow list, 400 failed; 800 unchanged or allowed sets, 800 passed; 80 new install scripts, 80 failed; 400 broken lockfiles, 400 stopped with an error
+--- PASS: TestDepsGatePromise (12.26s)
+=== RUN   TestDepsPipIndexChange
+--- PASS: TestDepsPipIndexChange (0.00s)
+=== RUN   TestDepsMovedOffRegistry
+--- PASS: TestDepsMovedOffRegistry (0.00s)
 === RUN   TestIncludeDepsScansVendor
---- PASS: TestIncludeDepsScansVendor (0.60s)
+--- PASS: TestIncludeDepsScansVendor (0.45s)
 PASS
-ok  	github.com/softdevstudio/remixware	20.187s
+ok  	github.com/softdevstudio/remixware	14.366s
 === RUN   TestDepsFixture
---- PASS: TestDepsFixture (0.16s)
+--- PASS: TestDepsFixture (0.02s)
 === RUN   TestDepsUsageErrors
 --- PASS: TestDepsUsageErrors (0.00s)
 === RUN   TestDepsMalformedLockfileExits2
---- PASS: TestDepsMalformedLockfileExits2 (0.12s)
+--- PASS: TestDepsMalformedLockfileExits2 (0.09s)
 === RUN   TestDepsOnline
---- PASS: TestDepsOnline (0.06s)
+--- PASS: TestDepsOnline (0.03s)
 === RUN   TestDepsBaseRef
---- PASS: TestDepsBaseRef (0.47s)
+--- PASS: TestDepsBaseRef (0.19s)
+=== RUN   TestDepsChangeCantAllowItself
+--- PASS: TestDepsChangeCantAllowItself (0.05s)
 PASS
-ok  	github.com/softdevstudio/remixware/cmd/remixware	2.009s
+ok  	github.com/softdevstudio/remixware/cmd/remixware	1.475s
 ?   	github.com/softdevstudio/remixware/scripts/bench	[no test files]
