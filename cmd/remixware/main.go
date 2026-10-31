@@ -26,6 +26,7 @@ Usage:
   remixware scan [project] --index FILE        compare a project with indexes, list the matches
   remixware check [project] --index FILE       the same, as a pass/fail gate for CI
   remixware notice [project] --index FILE      write third-party notices for what you copied
+  remixware deps [project] --base-ref REV      fail a change that brings in risky dependencies
   remixware licenses                           list the licences Remixware knows
   remixware version
 
@@ -34,6 +35,10 @@ remixware index, with --from results files written by the SCANOSS scanner
 (scanoss-py scan -o results.json), with the SCANOSS service itself
 (--scanoss, which sends fingerprints of your files, never the code), or with
 several of these.
+
+deps compares the packages in the project's lockfiles with those of a base
+version (--base FOLDER or --base-ref REV, such as origin/main) and fails on new
+packages that aren't on the allow list, install scripts and new publishers.
 
 Run "remixware help <command>" for a command's flags.
 Remixware flags licensing questions. It is not legal advice.
@@ -82,6 +87,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		code, err = cmdCheck(rest, stdout, stderr)
 	case "notice", "notices":
 		err = cmdNotice(rest, stdout, stderr)
+	case "deps":
+		code, err = cmdDeps(rest, stdout, stderr)
 	case "licenses", "licences":
 		cmdLicenses(stdout)
 	case "version", "--version", "-v":
@@ -112,6 +119,8 @@ func helpFor(cmd string, stdout, stderr io.Writer) int {
 		fs, _ = indexFlags(stdout)
 	case "scan", "check", "notice", "notices":
 		fs, _ = compareFlags(cmd, stdout)
+	case "deps":
+		fs, _ = depsFlags(stdout)
 	default:
 		fmt.Fprint(stdout, usage)
 		return exitOK

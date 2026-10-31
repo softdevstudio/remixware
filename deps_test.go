@@ -804,3 +804,137 @@ func TestDepsOnlinePyPI(t *testing.T) {
 		t.Errorf("install-scripts: %+v", s)
 	}
 }
+
+// genLock writes one lockfile of the given kind naming pkgs (name@version,
+// a trailing ! for an install script), in the given order.
+func genLock(kind string, pkgs []string) map[string]string {
+	switch kind {
+	case "npm":
+		return map[string]string{"package-lock.json": npmLock(pkgs...)}
+	case "npm1":
+		var e []string
+		for _, p := range pkgs {
+			n, v, _ := strings.Cut(strings.TrimSuffix(p, "!"), "@")
+			e = append(e, fmt.Sprintf(`"%s": {"version": "%s"}`, n, v))
+		}
+		return map[string]string{"package-lock.json": `{"lockfileVersion": 1, "dependencies": {` + strings.Join(e, ", ") + `}}`}
+	case "go":
+		var b strings.Builder
+		for _, p := range pkgs {
+			n, v, _ := strings.Cut(strings.TrimSuffix(p, "!"), "@")
+			fmt.Fprintf(&b, "%s v%s h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n", n, v)
+		}
+		return map[string]string{"go.mod": "module example.com/app\n", "go.sum": b.String()}
+	case "pip":
+		var b strings.Builder
+		for _, p := range pkgs {
+			n, v, _ := strings.Cut(strings.TrimSuffix(p, "!"), "@")
+			fmt.Fprintf(&b, "%s==%s\n", n, v)
+		}
+		return map[string]string{"requirements.txt": b.String()}
+	case "poetry":
+		var b strings.Builder
+		for _, p := range pkgs {
+			n, v, _ := strings.Cut(strings.TrimSuffix(p, "!"), "@")
+			fmt.Fprintf(&b, "[[package]]\nname = %q\nversion = %q\nfiles = [\n    {file = \"%s-%s-py3-none-any.whl\", hash = \"sha256:aa\"},\n]\n\n", n, v, n, v)
+		}
+		return map[string]string{"poetry.lock": b.String()}
+	}
+	panic(kind)
+}
+
+var genEco = map[string]string{"npm": EcoNPM, "npm1": EcoNPM, "go": EcoGo, "pip": EcoPyPI, "poetry": EcoPyPI}
+
+// TestDepsGatePromise checks the gate's promise on generated changes: a
+// new package that isn't allowed always fails, an allowed one or an
+// unchanged set (in any order) always passes, a new install script always
+// fails, and a broken lockfile is always an error. The counts are
+// recorded in test/results/deps/promise.txt.
+func TestDepsGatePromise(t *testing.T) {
+	rng := uint64(20261031)
+	next := func(n int) int {
+		rng ^= rng << 13
+		rng ^= rng >> 7
+		rng ^= rng << 17
+		return int(rng % uint64(n))
+	}
+	kinds := []string{"npm", "npm1", "go", "pip", "poetry"}
+	var risky, riskyFailed, safe, safePassed, scripts, scriptsFailed, broken, brokenErr int
+	for i := 0; i < 400; i++ {
+		kind := kinds[i%len(kinds)]
+		var basePkgs []string
+		for j := 0; j < 3+next(20); j++ {
+			basePkgs = append(basePkgs, fmt.Sprintf("pkg%d-%d@%d.%d.%d", i, j, next(5), next(10), next(10)))
+		}
+		shuffled := append([]string(nil), basePkgs...)
+		for j := len(shuffled) - 1; j > 0; j-- {
+			k := next(j + 1)
+			shuffled[j], shuffled[k] = shuffled[k], shuffled[j]
+		}
+		newName := fmt.Sprintf("new%d", i)
+		withNew := append(append([]string(nil), shuffled...), newName+"@1.0.0")
+		run := func(head []string, pol *Policy) []DepChange {
+			res, err := CompareDeps(tree(t, genLock(kind, head)), tree(t, genLock(kind, basePkgs)), DepsOptions{Policy: pol})
+			if err != nil {
+				t.Fatalf("%s case %d: %v", kind, i, err)
+			}
+			return DepFailures(res, DefaultDepFailOn)
+		}
+		// Unchanged, reordered: passes.
+		safe++
+		if len(run(shuffled, nil)) == 0 {
+			safePassed++
+		} else {
+			t.Errorf("%s case %d: an unchanged set failed", kind, i)
+		}
+		// New and not allowed: fails, naming the package.
+		risky++
+		if f := run(withNew, allowPolicy(DepAllowRule{Package: genEco[kind] + "/pkg*", Reason: "x"})); len(f) == 1 && f[0].Name == newName && f[0].Status == DepNotAllowed {
+			riskyFailed++
+		} else {
+			t.Errorf("%s case %d: new package %s gave %+v", kind, i, newName, f)
+		}
+		// New and allowed: passes.
+		safe++
+		if len(run(withNew, allowPolicy(DepAllowRule{Package: genEco[kind] + "/" + newName, Reason: "x"}))) == 0 {
+			safePassed++
+		} else {
+			t.Errorf("%s case %d: an allowed package failed", kind, i)
+		}
+		// An update that starts running an install script (npm lockfile v3).
+		if kind == "npm" {
+			scripts++
+			bumped := append([]string(nil), shuffled...)
+			k := next(len(bumped))
+			bumped[k] = strings.Replace(bumped[k], "@", "@9", 1) + "!"
+			if f := run(bumped, nil); len(f) == 1 && f[0].Status == DepInstallScript {
+				scriptsFailed++
+			} else {
+				t.Errorf("case %d: install script gave %+v", i, f)
+			}
+		}
+		// A broken lockfile: JSON cut short, or a line no lockfile has.
+		broken++
+		files := genLock(kind, withNew)
+		for name, body := range files {
+			if name == "go.mod" {
+				continue
+			}
+			if strings.HasSuffix(name, ".json") {
+				files[name] = body[:next(len(body)-1)]
+			} else {
+				lines := strings.SplitAfter(body, "\n")
+				k := next(len(lines))
+				bad := "@@ not a lockfile line @@\n"
+				files[name] = strings.Join(lines[:k], "") + bad + strings.Join(lines[k:], "")
+			}
+		}
+		if _, err := CompareDeps(tree(t, files), tree(t, genLock(kind, basePkgs)), DepsOptions{}); err != nil {
+			brokenErr++
+		} else {
+			t.Errorf("%s case %d: a broken lockfile passed", kind, i)
+		}
+	}
+	t.Logf("promise: %d new packages not on the allow list, %d failed; %d unchanged or allowed sets, %d passed; %d new install scripts, %d failed; %d broken lockfiles, %d stopped with an error",
+		risky, riskyFailed, safe, safePassed, scripts, scriptsFailed, broken, brokenErr)
+}

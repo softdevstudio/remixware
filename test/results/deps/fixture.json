@@ -1,0 +1,261 @@
+{
+  "project": "testdata/deps/head",
+  "base": "testdata/deps/base",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "go.mod",
+      "kind": "go.mod",
+      "head_packages": 4,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "web/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 7,
+      "base_packages": 5,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "npm/esbuild",
+      "ecosystem": "npm",
+      "name": "esbuild",
+      "change": "updated",
+      "from": [
+        "0.19.2"
+      ],
+      "to": [
+        "0.21.5"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "web/package-lock.json"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.21.5",
+          "reason": "Runs an install script (preinstall, install or postinstall, or a node-gyp build) when npm installs it. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/tinylog/tinylog",
+      "ecosystem": "golang",
+      "name": "github.com/tinylog/tinylog",
+      "change": "added",
+      "to": [
+        "v0.1.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/is-thirteen",
+      "ecosystem": "npm",
+      "name": "is-thirteen",
+      "change": "added",
+      "to": [
+        "2.0.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "web/package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/golang.org/x/net",
+      "ecosystem": "golang",
+      "name": "golang.org/x/net",
+      "change": "added",
+      "to": [
+        "v0.30.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "allowed",
+      "reason": "New, and on the allow list: modules of the Go project",
+      "allowed_by": "modules of the Go project"
+    },
+    {
+      "package": "npm/@shop/icons",
+      "ecosystem": "npm",
+      "name": "@shop/icons",
+      "change": "added",
+      "to": [
+        "1.0.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "web/package-lock.json"
+      ],
+      "status": "allowed",
+      "reason": "New, and on the allow list: our own packages",
+      "allowed_by": "our own packages"
+    },
+    {
+      "package": "pypi/requests",
+      "ecosystem": "pypi",
+      "name": "requests",
+      "change": "added",
+      "to": [
+        "2.32.3"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements.txt"
+      ],
+      "status": "allowed",
+      "reason": "New, and on the allow list: reviewed by the platform team",
+      "allowed_by": "reviewed by the platform team"
+    },
+    {
+      "package": "golang/golang.org/x/text",
+      "ecosystem": "golang",
+      "name": "golang.org/x/text",
+      "change": "updated",
+      "from": [
+        "v0.14.0"
+      ],
+      "to": [
+        "v0.19.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "npm/@shop/ui",
+      "ecosystem": "npm",
+      "name": "@shop/ui",
+      "change": "updated",
+      "from": [
+        "1.0.0"
+      ],
+      "to": [
+        "1.1.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "web/package-lock.json"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/flask",
+      "ecosystem": "pypi",
+      "name": "flask",
+      "change": "updated",
+      "from": [
+        "3.0.0"
+      ],
+      "to": [
+        "3.0.3"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/werkzeug",
+      "ecosystem": "pypi",
+      "name": "werkzeug",
+      "change": "updated",
+      "from": [
+        "3.0.1"
+      ],
+      "to": [
+        "3.0.4"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 5,
+      "offline": 5,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "partly",
+      "packages": 10,
+      "offline": 4,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 3,
+      "not_run": {
+        "needs --online": 3
+      }
+    },
+    {
+      "name": "publisher",
+      "status": "not run",
+      "packages": 10,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 3,
+      "not_run": {
+        "needs --online": 7
+      }
+    }
+  ],
+  "counts": {
+    "allowed": 3,
+    "install-script": 1,
+    "not-allowed": 2,
+    "updated": 4
+  }
+}

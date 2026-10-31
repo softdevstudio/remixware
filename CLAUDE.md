@@ -159,15 +159,19 @@ Design decisions:
   (policy keys, diff, checks), `registry.go`
   (online lookups and cache), tests in `deps_test.go` and
   `cmd/remixware/main_test.go`, fixtures in `testdata/deps/`.
-  record-results.sh records `test/results/deps/`.
+  `scripts/record-deps.sh` (also run by record-results.sh, no network)
+  records `test/results/deps/`: the gate's tests, the counts of the
+  generated promise test (TestDepsGatePromise), and the gate on the
+  testdata/deps fixture (base = main, head = a change: 10 changes, 3
+  failing), an unchanged set and a broken lockfile.
 
 Steps (mark done as they land, push this file with the code):
 
 1. [x] Plan in CLAUDE.md (this section), pushed with [skip ci].
 2. [x] Lockfile readers + diff + policy keys + offline checks, unit tests.
-3. [ ] `remixware deps` command, text and JSON output, CLI tests.
+3. [x] `remixware deps` command, text and JSON output, CLI tests.
 4. [x] Online lookups with cache (httptest server in tests).
-5. [ ] Failure tests on the main promise (risky dependency always fails,
+5. [x] Failure tests on the main promise (risky dependency always fails,
    unchanged/allowed passes, malformed lockfiles exit 2, offline never
    claims an online check), record-results.sh section, test/results/deps.
 6. [ ] README (manual), CHANGELOG 0.3.0, independent review, fixes,

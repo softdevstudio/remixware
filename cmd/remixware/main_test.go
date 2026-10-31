@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 var testdata = filepath.Join("..", "..", "testdata")
@@ -402,4 +404,175 @@ func TestDroppedEntries(t *testing.T) {
 	expect(t, cli("scan", dir, "--from", results, "--license", "MIT"), exitOK, "1 entry with matches left out")
 	expect(t, cli("check", dir, "--from", results, "--license", "MIT", "--fail-on", "conflict"), exitUsage,
 		"a check can't pass on a results file it couldn't read whole")
+}
+
+func TestDepsFixture(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "deps.json")
+	r := cli("deps", fixture("deps", "head"), "--base", fixture("deps", "base"), "--json", out)
+	expect(t, r, exitFail, "INSTALL SCRIPT       npm/esbuild 0.19.2 -> 0.21.5 (direct)",
+		"NOT ALLOWED          golang/github.com/tinylog/tinylog v0.1.0, added (transitive)",
+		"NOT ALLOWED          npm/is-thirteen 2.0.0, added (transitive)",
+		"ALLOWED              pypi/requests 2.32.3, added (direct)",
+		"publisher changes  not run", "not checked (needs", "not applicable (Go",
+		"10 changes: 1 install-script, 2 not-allowed, 3 allowed, 4 updated.", "FAIL: 3 changes break the policy")
+	if strings.Contains(r.stdout, "checked online") {
+		t.Errorf("offline run claims an online check:\n%s", r.stdout)
+	}
+	data, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var res struct {
+		Online  bool `json:"online"`
+		Changes []struct {
+			Package, Status, Change string
+		} `json:"changes"`
+		Checks []struct {
+			Name   string
+			Status string
+			Online int
+		} `json:"checks"`
+		Counts map[string]int `json:"counts"`
+	}
+	if err := json.Unmarshal(data, &res); err != nil {
+		t.Fatal(err)
+	}
+	if res.Online || len(res.Changes) != 10 || res.Counts["not-allowed"] != 2 || len(res.Checks) != 3 {
+		t.Errorf("JSON: %+v", res)
+	}
+	for _, c := range res.Checks {
+		if c.Online != 0 {
+			t.Errorf("JSON check claims online work: %+v", c)
+		}
+	}
+	// --fail-on narrows what fails; --quiet prints only what fails.
+	r = cli("deps", fixture("deps", "head"), "--base", fixture("deps", "base"), "--fail-on", "install-script", "--quiet")
+	expect(t, r, exitFail, "FAIL: 1 change breaks the policy (fail on: install-script)")
+	if strings.Contains(r.stdout, "ALLOWED ") || strings.Contains(r.stdout, "NOT ALLOWED") {
+		t.Errorf("--quiet printed changes that don't fail:\n%s", r.stdout)
+	}
+	// The same set passes.
+	expect(t, cli("deps", fixture("deps", "base"), "--base", fixture("deps", "base")), exitOK, "No dependency changes.", "PASS:")
+}
+
+func TestDepsUsageErrors(t *testing.T) {
+	head, base := fixture("deps", "head"), fixture("deps", "base")
+	expect(t, cli("deps", head), exitUsage, "--base FOLDER or --base-ref REV")
+	expect(t, cli("deps", head, "--base", base, "--base-ref", "main"), exitUsage, "either --base")
+	expect(t, cli("deps", head, "--base", base, "--cache", "x.json"), exitUsage, "go with --online")
+	expect(t, cli("deps", head, "--base", base, "--fail-on", "conflict"), exitUsage, "unknown status")
+	expect(t, cli("deps", head, "--base", filepath.Join(base, "nothere")), exitUsage)
+	expect(t, cli("help", "deps"), exitOK, "--base-ref")
+}
+
+// copyTree copies a fixture folder so a test can change it.
+func copyTree(t *testing.T, src string) string {
+	t.Helper()
+	dst := t.TempDir()
+	err := filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(src, p)
+		target := filepath.Join(dst, rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, b, 0o644)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return dst
+}
+
+func TestDepsMalformedLockfileExits2(t *testing.T) {
+	for _, f := range []struct{ name, body string }{
+		{"web/package-lock.json", `{"lockfileVersion": 3, "packages": {`},
+		{"go.sum", "github.com/google/uuid v1.6.0\n"},
+		{"requirements.txt", "flask=3.0.0\n"},
+	} {
+		head := copyTree(t, fixture("deps", "head"))
+		os.WriteFile(filepath.Join(head, filepath.FromSlash(f.name)), []byte(f.body), 0o644)
+		r := cli("deps", head, "--base", fixture("deps", "base"))
+		expect(t, r, exitUsage)
+		if strings.Contains(r.stdout, "PASS") {
+			t.Errorf("%s: passed with a broken lockfile", f.name)
+		}
+		// Broken on main's side fails too.
+		r = cli("deps", fixture("deps", "base"), "--base", head)
+		expect(t, r, exitUsage)
+	}
+}
+
+func TestDepsOnline(t *testing.T) {
+	var down bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down {
+			http.Error(w, "down", http.StatusBadGateway)
+			return
+		}
+		switch r.URL.EscapedPath() {
+		case "/leftpad":
+			w.Write([]byte(`{"versions": {"1.0.0": {"_npmUser": {"name": "azer"}, "maintainers": [{"name": "azer"}]},
+			  "1.0.1": {"_npmUser": {"name": "newcomer"}, "maintainers": [{"name": "newcomer"}], "scripts": {"install": "node x.js"}}},
+			  "time": {"1.0.0": "2016-01-01T00:00:00Z", "1.0.1": "` + time.Now().Add(-48*time.Hour).UTC().Format(time.RFC3339) + `"}}`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	base, head := t.TempDir(), t.TempDir()
+	os.WriteFile(filepath.Join(base, "package-lock.json"), []byte(`{"lockfileVersion": 1, "dependencies": {"leftpad": {"version": "1.0.0"}}}`), 0o644)
+	os.WriteFile(filepath.Join(head, "package-lock.json"), []byte(`{"lockfileVersion": 1, "dependencies": {"leftpad": {"version": "1.0.1"}}}`), 0o644)
+	cache := filepath.Join(t.TempDir(), "c.json")
+	r := cli("deps", head, "--base", base, "--online", "--npm-registry", srv.URL, "--cache", cache)
+	expect(t, r, exitFail, "PUBLISHER CHANGED", "by newcomer", "INSTALL SCRIPT (1.0.1)", "checked online")
+	if _, err := os.Stat(cache); err != nil {
+		t.Errorf("no cache written: %v", err)
+	}
+	// Offline, the same change shows only what the lockfile says.
+	r = cli("deps", head, "--base", base)
+	expect(t, r, exitOK, "not checked (needs")
+	if strings.Contains(r.stdout, "checked online") || strings.Contains(r.stdout, "PUBLISHER CHANGED") {
+		t.Errorf("offline run claims online results:\n%s", r.stdout)
+	}
+	// From the cache while the registry is down.
+	down = true
+	expect(t, cli("deps", head, "--base", base, "--online", "--npm-registry", srv.URL, "--cache", cache), exitFail,
+		"(1 of them from", "PUBLISHER CHANGED")
+	// Down, without a cache: exit 2, never a pass.
+	r = cli("deps", head, "--base", base, "--online", "--npm-registry", srv.URL, "--no-cache")
+	expect(t, r, exitUsage, "502")
+}
+
+func TestDepsBaseRef(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("no git")
+	}
+	dir := copyTree(t, fixture("deps", "base"))
+	gitc := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
+		cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@example.com", "GIT_COMMITTER_NAME=t",
+			"GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL=/dev/null")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+	gitc("init", "-q", "-b", "main")
+	gitc("add", ".")
+	gitc("commit", "-q", "-m", "main")
+	expect(t, cli("deps", dir, "--base-ref", "main"), exitOK, "No dependency changes.", "with main")
+	head := copyTree(t, fixture("deps", "head"))
+	for _, f := range []string{"go.mod", "go.sum", "requirements.txt", "web/package-lock.json"} {
+		b, _ := os.ReadFile(filepath.Join(head, filepath.FromSlash(f)))
+		os.WriteFile(filepath.Join(dir, filepath.FromSlash(f)), b, 0o644)
+	}
+	expect(t, cli("deps", dir, "--base-ref", "main"), exitFail, "10 changes", "FAIL: 3 changes")
+	expect(t, cli("deps", dir, "--base-ref", "origin/nope"), exitUsage, "not found")
 }

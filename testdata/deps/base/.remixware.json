@@ -1,0 +1,9 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "golang/golang.org/x/*", "reason": "modules of the Go project"},
+      {"package": "npm/@shop/*", "reason": "our own packages"},
+      {"package": "pypi/requests", "reason": "reviewed by the platform team"}
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+
+INSTALL SCRIPT       npm/esbuild 0.19.2 -> 0.21.5 (direct)
+                     in web/package-lock.json
+                     Runs an install script (preinstall, install or postinstall, or a node-gyp
+                     build) when npm installs it. Accept it with a deps allow rule that has
+                     install_scripts: true and a reason.
+
+NOT ALLOWED          golang/github.com/tinylog/tinylog v0.1.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/is-thirteen 2.0.0, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 5 added packages: 5 checked from the lockfiles
+  install scripts    partly, 10 added or updated versions: 4 checked from the
+                     lockfiles, 3 not checked (needs --online), 3 not applicable (Go
+                     modules run no install scripts)
+  publisher changes  not run, 10 added or updated versions: 7 not checked (needs
+                     --online), 3 not applicable (the Go module proxy records no
+                     publisher)
+
+10 changes: 1 install-script, 2 not-allowed, 3 allowed, 4 updated.
+FAIL: 3 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

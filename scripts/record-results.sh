@@ -101,4 +101,7 @@ cat "$res/gallery.txt"
 echo "== case studies"
 # Real projects that took code from others (see test/results/case-studies/README.md).
 python3 "$root/scripts/case_studies.py" "$bin" "$cache" "$res/case-studies"
+
+echo "== dependency gate"
+"$root/scripts/record-deps.sh"
 echo "recorded in $res"

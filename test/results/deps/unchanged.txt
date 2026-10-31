@@ -1,0 +1,11 @@
+Compared the dependencies of testdata/deps/base with testdata/deps/base
+Lockfiles: go.mod (2 packages), requirements.txt (2 packages), web/package-lock.json (5 packages)
+
+Checks:
+  allow list         nothing to check (no added packages)
+  install scripts    nothing to check (no added or updated versions)
+  publisher changes  nothing to check (no added or updated versions)
+
+No dependency changes.
+PASS: no changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 0

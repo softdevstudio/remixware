@@ -1,0 +1,1 @@
+400 new packages not on the allow list, 400 failed; 800 unchanged or allowed sets, 800 passed; 80 new install scripts, 80 failed; 400 broken lockfiles, 400 stopped with an error

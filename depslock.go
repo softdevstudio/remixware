@@ -867,24 +867,27 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 	metaFiles := map[string][]string{}
 	var cur *pkg
 	table := ""
-	inFiles := false
-	metaName := ""
+	inArray := false
+	var collect func(string) // where the file names of an open files array go
 	sawMeta := false
 	for n, raw := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
 		line := strings.TrimSpace(raw)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		if inFiles {
-			for _, m := range tomlFile.FindAllStringSubmatch(line, -1) {
-				if metaName != "" {
-					metaFiles[metaName] = append(metaFiles[metaName], m[1])
-				} else if cur != nil {
-					cur.files = append(cur.files, m[1])
+		if inArray {
+			// Inside a multi-line array: items or its end, nothing else.
+			if !strings.HasPrefix(line, "{") && !strings.HasPrefix(line, `"`) && !strings.HasPrefix(line, "'") &&
+				!strings.HasPrefix(line, "]") {
+				return nil, fmt.Errorf("line %d: %q inside an array", n+1, raw)
+			}
+			if collect != nil {
+				for _, m := range tomlFile.FindAllStringSubmatch(line, -1) {
+					collect(m[1])
 				}
 			}
 			if strings.HasPrefix(line, "]") {
-				inFiles = false
+				inArray, collect = false, nil
 			}
 			continue
 		}
@@ -908,8 +911,7 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 		}
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {
-			// Lines of multi-line arrays and inline tables we don't need.
-			continue
+			return nil, fmt.Errorf("line %d: %q", n+1, raw)
 		}
 		key = strings.Trim(strings.TrimSpace(key), `"`)
 		val = strings.TrimSpace(val)
@@ -919,6 +921,8 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 				str = val[1 : end+1]
 			}
 		}
+		opens := strings.HasPrefix(val, "[") && !strings.HasSuffix(val, "]")
+		var into func(string)
 		switch {
 		case table == "package" && cur != nil:
 			switch key {
@@ -927,24 +931,26 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 			case "version":
 				cur.version = str
 			case "files":
-				for _, m := range tomlFile.FindAllStringSubmatch(val, -1) {
-					cur.files = append(cur.files, m[1])
-				}
-				if strings.HasPrefix(val, "[") && !strings.HasSuffix(val, "]") {
-					inFiles, metaName = true, ""
-				}
+				p := cur
+				into = func(f string) { p.files = append(p.files, f) }
 			}
 		case table == "package.source" && cur != nil && key == "type":
 			cur.source = str
 		case table == "metadata.files":
-			metaName = pyName(key)
+			name := pyName(key)
+			into = func(f string) { metaFiles[name] = append(metaFiles[name], f) }
+		}
+		if into != nil {
 			for _, m := range tomlFile.FindAllStringSubmatch(val, -1) {
-				metaFiles[metaName] = append(metaFiles[metaName], m[1])
-			}
-			if strings.HasPrefix(val, "[") && !strings.HasSuffix(val, "]") {
-				inFiles = true
+				into(m[1])
 			}
 		}
+		if opens {
+			inArray, collect = true, into
+		}
+	}
+	if inArray {
+		return nil, fmt.Errorf("an array is never closed")
 	}
 	if len(pkgs) == 0 && !sawMeta {
 		return nil, fmt.Errorf("no [[package]] tables and no [metadata]: not a poetry.lock")
