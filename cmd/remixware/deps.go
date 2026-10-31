@@ -40,7 +40,7 @@ func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
 		fmt.Fprint(fs.Output(), `Usage: remixware deps [project] (--base FOLDER | --base-ref REV) [flags]
 
 Compares the packages the project's lockfiles name (go.mod and go.sum,
-package-lock.json, requirements*.txt, poetry.lock) with those of the base, and
+package-lock.json, requirements files, poetry.lock) with those of the base, and
 exits with status 1 when the change adds a package that isn't on the policy's
 deps allow list, a package that runs install scripts, or a release by a new
 publisher. Without --online it uses the lockfiles only.
@@ -176,6 +176,13 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 				extra += ", publisher changes too"
 			}
 			fmt.Fprintf(stdout, "  %s%s: %s\n", r.Package, extra, r.Reason)
+		}
+		fmt.Fprintln(stdout)
+	}
+	if len(res.PolicyChanges) > 0 {
+		fmt.Fprintln(stdout, "Settings this change alters in the policy (review them: a change can loosen its own gate):")
+		for _, c := range res.PolicyChanges {
+			fmt.Fprintf(stdout, "  %s\n", c)
 		}
 		fmt.Fprintln(stdout)
 	}

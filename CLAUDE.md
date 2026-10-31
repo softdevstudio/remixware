@@ -321,7 +321,13 @@ remove then re-add; -r path traversal and symlinks; --base-ref odd refs;
 first; only confirmed bugs are fixed. Resume: read the tests added in
 deps_review_test.go and the notes below, then continue down the list.
 
-Notes so far: (none yet)
+Notes so far: 13 confirmed bugs, all fixed in the working tree with tests
+in deps_review_test.go (npm case-folded keys, pip line breaks, -c index,
+requirements names, VCS builds, poetry header spaces / multi-line strings /
+inline source, go.work, new symlinked lockfile, lockfile deleted with
+manifest kept, policy settings not shown, registry cache key). Not a bug:
+a comment ending in a backslash joins the next line in pip too (checked
+against pip 26.2.1). Next: record-results.sh, push 0.3.1, check release.
 
 ## Gaps and to-do
 

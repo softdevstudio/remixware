@@ -109,7 +109,9 @@ func (d dirTree) files() ([]string, error) {
 			}
 			return nil
 		}
-		if e.Type().IsRegular() {
+		// Links are listed too: npm, pip and go follow a lockfile that's a
+		// link, so read follows it (inside the project only).
+		if e.Type().IsRegular() || e.Type()&os.ModeSymlink != 0 {
 			out = append(out, relSlash(d.root, p))
 		}
 		return nil
@@ -129,6 +131,19 @@ func (d dirTree) read(rel string) ([]byte, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+	if st.Mode()&os.ModeSymlink != 0 {
+		target, err := filepath.EvalSymlinks(p)
+		if err != nil {
+			return nil, false, fmt.Errorf("%s is a link that can't be followed: %v", rel, err)
+		}
+		if r, err := filepath.Rel(d.root, target); err != nil || r == ".." || strings.HasPrefix(r, ".."+string(filepath.Separator)) || filepath.IsAbs(r) {
+			return nil, false, fmt.Errorf("%s is a link to %s, outside the project", rel, target)
+		}
+		p = target
+		if st, err = os.Stat(p); err != nil {
+			return nil, false, err
+		}
+	}
 	if !st.Mode().IsRegular() {
 		return nil, false, fmt.Errorf("%s is not a regular file", rel)
 	}
@@ -143,6 +158,8 @@ type gitTree struct {
 	dir, rev string
 	blobs    map[string]string // project-relative path -> blob id
 	sizes    map[string]int64
+	links    map[string]string // repository path -> blob id of a symbolic link
+	prefix   string            // the project's folder in the repository
 }
 
 // DepsGit is a git revision (a branch, tag or commit) of the repository
@@ -168,7 +185,8 @@ func DepsGit(project, rev string) (DepsTree, error) {
 	if err != nil {
 		return DepsTree{}, err
 	}
-	t := gitTree{dir: abs, rev: rev, blobs: map[string]string{}, sizes: map[string]int64{}}
+	t := gitTree{dir: abs, rev: rev, blobs: map[string]string{}, sizes: map[string]int64{}, links: map[string]string{},
+		prefix: pre}
 	for _, entry := range bytes.Split(out, []byte{0}) {
 		if len(entry) == 0 {
 			continue
@@ -178,8 +196,11 @@ func DepsGit(project, rev string) (DepsTree, error) {
 			return DepsTree{}, fmt.Errorf("git ls-tree gave an entry it shouldn't: %q", entry)
 		}
 		f := strings.Fields(string(meta))
-		if len(f) != 4 || f[1] != "blob" || f[0] == "120000" {
-			continue // folders of submodules, symbolic links
+		if len(f) != 4 || f[1] != "blob" {
+			continue // folders of submodules
+		}
+		if f[0] == "120000" {
+			t.links[string(name)] = f[2]
 		}
 		rel := string(name)
 		if pre != "" {
@@ -232,6 +253,30 @@ func (g gitTree) read(rel string) ([]byte, bool, error) {
 	if !ok {
 		return nil, false, nil
 	}
+	// Follow symbolic links, as the package managers do, inside the project.
+	full := g.prefix + rel
+	for hops := 0; ; hops++ {
+		lid, isLink := g.links[full]
+		if !isLink {
+			break
+		}
+		if hops == 8 {
+			return nil, false, fmt.Errorf("%s at %s: too many links", rel, g.rev)
+		}
+		target, err := git(g.dir, "cat-file", "blob", lid)
+		if err != nil {
+			return nil, false, err
+		}
+		next := path.Join(path.Dir(full), string(target))
+		inner := strings.TrimPrefix(next, g.prefix)
+		if strings.HasPrefix(string(target), "/") || !strings.HasPrefix(next, g.prefix) || !safeRel(inner) {
+			return nil, false, fmt.Errorf("%s at %s is a link to %s, outside the project", rel, g.rev, target)
+		}
+		if id, ok = g.blobs[inner]; !ok {
+			return nil, false, fmt.Errorf("%s at %s is a link to %s, which isn't there", rel, g.rev, target)
+		}
+		full, rel = next, inner
+	}
 	if g.sizes[rel] > maxLockfile {
 		return nil, true, fmt.Errorf("%s at %s is larger than %d MB", rel, g.rev, maxLockfile>>20)
 	}
@@ -278,14 +323,19 @@ const (
 	kindUnsupported = "unsupported"
 )
 
-var requirementsName = regexp.MustCompile(`^requirements.*\.txt$`)
+// requirementsName matches requirements.txt, requirements-dev.txt and the
+// other common spellings: test-requirements.txt, dev_requirements.txt.
+var requirementsName = regexp.MustCompile(`^(?i)(requirements.*|.*[-_.]requirements([-_.].*)?)\.txt$`)
 
 // unsupportedLockfiles are lockfiles the gate doesn't read. When one of
 // them changes, the change is not-checked: nothing passes unread.
 var unsupportedLockfiles = map[string]bool{"yarn.lock": true, "pnpm-lock.yaml": true, "bun.lock": true, "bun.lockb": true,
 	"Pipfile.lock": true, "pdm.lock": true, "uv.lock": true, "Cargo.lock": true, "Gemfile.lock": true, "composer.lock": true,
 	"packages.lock.json": true, "gradle.lockfile": true, "Package.resolved": true, "mix.lock": true, "pubspec.lock": true,
-	"conan.lock": true, "deno.lock": true}
+	"conan.lock": true, "deno.lock": true,
+	// go build reads go.work (its use and replace directives override go.mod)
+	// and go.work.sum when they're in the module's folder or above it.
+	"go.work": true, "go.work.sum": true}
 
 // lockfileKind says what kind of lockfile a path is, or "".
 func lockfileKind(rel string) string {
@@ -519,27 +569,135 @@ func unquoteGo(s string) string {
 // --- npm ------------------------------------------------------------------
 
 type npmLockFile struct {
-	LockfileVersion *int                    `json:"lockfileVersion"`
-	Packages        map[string]npmLockEntry `json:"packages"`
-	Dependencies    map[string]npmV1Entry   `json:"dependencies"`
+	LockfileVersion *int
+	Packages        map[string]npmLockEntry
+	Dependencies    map[string]npmV1Entry
 }
 
 type npmLockEntry struct {
-	Name                 string            `json:"name"`
-	Version              string            `json:"version"`
-	Resolved             string            `json:"resolved"`
-	Link                 bool              `json:"link"`
-	HasInstallScript     bool              `json:"hasInstallScript"`
-	Dependencies         map[string]string `json:"dependencies"`
-	DevDependencies      map[string]string `json:"devDependencies"`
-	OptionalDependencies map[string]string `json:"optionalDependencies"`
-	PeerDependencies     map[string]string `json:"peerDependencies"`
+	Name                 string
+	Version              string
+	Resolved             string
+	Link                 bool
+	HasInstallScript     bool
+	Dependencies         map[string]string
+	DevDependencies      map[string]string
+	OptionalDependencies map[string]string
+	PeerDependencies     map[string]string
 }
 
 type npmV1Entry struct {
-	Version      string                `json:"version"`
-	Resolved     string                `json:"resolved"`
-	Dependencies map[string]npmV1Entry `json:"dependencies"`
+	Version      string
+	Resolved     string
+	Dependencies map[string]npmV1Entry
+}
+
+// npm reads a lockfile's keys exactly, while encoding/json matches struct
+// fields without regard to case (and folds ſ to s and K to k), so a key
+// npm ignores ("LINK", "haſInstallScript") would change what the gate
+// read. These readers take objects as maps and pick the exact keys.
+
+func jsonObject(data []byte, what string) (map[string]json.RawMessage, error) {
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(data, &m); err != nil {
+		return nil, fmt.Errorf("%s: %v", what, err)
+	}
+	if m == nil {
+		return nil, fmt.Errorf("%s is not an object", what)
+	}
+	return m, nil
+}
+
+// jsonField decodes m[key] into into, when the key is there and not null.
+func jsonField(m map[string]json.RawMessage, key string, into any, what string) error {
+	raw, ok := m[key]
+	if !ok || string(raw) == "null" {
+		return nil
+	}
+	if err := json.Unmarshal(raw, into); err != nil {
+		return fmt.Errorf("%s: %q: %v", what, key, err)
+	}
+	return nil
+}
+
+func decodeNPMEntry(data []byte, what string) (npmLockEntry, error) {
+	var e npmLockEntry
+	m, err := jsonObject(data, what)
+	if err != nil {
+		return e, err
+	}
+	for _, f := range []struct {
+		key  string
+		into any
+	}{{"name", &e.Name}, {"version", &e.Version}, {"resolved", &e.Resolved}, {"link", &e.Link},
+		{"hasInstallScript", &e.HasInstallScript}, {"dependencies", &e.Dependencies},
+		{"devDependencies", &e.DevDependencies}, {"optionalDependencies", &e.OptionalDependencies},
+		{"peerDependencies", &e.PeerDependencies}} {
+		if err := jsonField(m, f.key, f.into, what); err != nil {
+			return e, err
+		}
+	}
+	return e, nil
+}
+
+func decodeNPMV1(data []byte, what string, depth int) (map[string]npmV1Entry, error) {
+	if depth > 1000 {
+		return nil, fmt.Errorf("%s: dependencies nested too deep", what)
+	}
+	deps, err := jsonObject(data, what)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]npmV1Entry{}
+	for name, raw := range deps {
+		m, err := jsonObject(raw, what+" "+name)
+		if err != nil {
+			return nil, err
+		}
+		var e npmV1Entry
+		if err := jsonField(m, "version", &e.Version, name); err != nil {
+			return nil, err
+		}
+		if err := jsonField(m, "resolved", &e.Resolved, name); err != nil {
+			return nil, err
+		}
+		if raw, ok := m["dependencies"]; ok && string(raw) != "null" {
+			if e.Dependencies, err = decodeNPMV1(raw, name+" dependencies", depth+1); err != nil {
+				return nil, err
+			}
+		}
+		out[name] = e
+	}
+	return out, nil
+}
+
+func decodeNPMLock(data []byte) (npmLockFile, error) {
+	var lf npmLockFile
+	top, err := jsonObject(data, "lockfile")
+	if err != nil {
+		return lf, err
+	}
+	if err := jsonField(top, "lockfileVersion", &lf.LockfileVersion, "lockfile"); err != nil {
+		return lf, err
+	}
+	if raw, ok := top["packages"]; ok && string(raw) != "null" {
+		pk, err := jsonObject(raw, "packages")
+		if err != nil {
+			return lf, err
+		}
+		lf.Packages = map[string]npmLockEntry{}
+		for k, v := range pk {
+			if lf.Packages[k], err = decodeNPMEntry(v, fmt.Sprintf("package %q", k)); err != nil {
+				return lf, err
+			}
+		}
+	}
+	if raw, ok := top["dependencies"]; ok && string(raw) != "null" {
+		if lf.Dependencies, err = decodeNPMV1(raw, "dependencies", 0); err != nil {
+			return lf, err
+		}
+	}
+	return lf, nil
 }
 
 // NPMRegistry is the public npm registry. Packages resolved from
@@ -554,8 +712,8 @@ func (e npmLockEntry) allDeps() []map[string]string {
 // 1 to 3. Versions 2 and 3 record install scripts (hasInstallScript),
 // version 1 doesn't.
 func parseNPMLock(data, packageJSON []byte) ([]lockPackage, error) {
-	var lf npmLockFile
-	if err := json.Unmarshal(data, &lf); err != nil {
+	lf, err := decodeNPMLock(data)
+	if err != nil {
 		return nil, err
 	}
 	if lf.LockfileVersion == nil {
@@ -609,9 +767,9 @@ func parseNPMLock(data, packageJSON []byte) ([]lockPackage, error) {
 		}
 	case 1:
 		if len(packageJSON) > 0 {
-			var root npmLockEntry
-			if err := json.Unmarshal(packageJSON, &root); err != nil {
-				return nil, fmt.Errorf("package.json: %v", err)
+			root, err := decodeNPMEntry(packageJSON, "package.json")
+			if err != nil {
+				return nil, err
 			}
 			for _, m := range root.allDeps() {
 				for name := range m {
@@ -694,7 +852,7 @@ func parseRequirements(t depTree, rel string, data []byte, depth int, sources *[
 	var lineNo []int
 	cont := ""
 	start := 0
-	for n, raw := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
+	for n, raw := range pyLines(string(data)) {
 		if cont == "" {
 			start = n + 1
 		}
@@ -782,7 +940,24 @@ func parseRequirements(t depTree, rel string, data []byte, depth int, sources *[
 					long = opt
 				}
 				*sources = append(*sources, strings.TrimSpace(long+" "+val))
-			case "-c", "--constraint", "--pre", "--no-binary", "--only-binary", "--prefer-binary", "--require-hashes",
+			case "-c", "--constraint":
+				// A constraints file adds no packages, but pip takes its index
+				// options: read it for those.
+				inc := path.Join(path.Dir(rel), val)
+				if val == "" || strings.HasPrefix(val, "/") || strings.Contains(val, "://") || !safeRel(inc) {
+					return nil, fmt.Errorf("line %d: -c %q points outside the project", lineNo[i], val)
+				}
+				b, ok, err := t.read(inc)
+				if err != nil {
+					return nil, err
+				}
+				if !ok {
+					return nil, fmt.Errorf("line %d: -c %s: no such file", lineNo[i], val)
+				}
+				if _, err := parseRequirements(t, inc, b, depth+1, sources); err != nil {
+					return nil, fmt.Errorf("%s: %v", inc, err)
+				}
+			case "--pre", "--no-binary", "--only-binary", "--prefer-binary", "--require-hashes",
 				"--use-feature", "--config-settings", "--global-option", "--hash":
 				// Options that change how pip installs, not what or from where.
 			default:
@@ -812,6 +987,7 @@ func parseRequirements(t depTree, rel string, data []byte, depth int, sources *[
 		case strings.HasPrefix(spec, "@"):
 			p.version = strings.TrimSpace(spec[1:])
 			p.registry = false
+			p.scripts = pyURLScripts(p.version)
 		case pyPinned.MatchString(spec):
 			p.version = pyPinned.FindStringSubmatch(spec)[1]
 			p.pinned = true
@@ -832,6 +1008,36 @@ func parseRequirements(t depTree, rel string, data []byte, depth int, sources *[
 }
 
 var pySpec = regexp.MustCompile(`^(\(?\s*(~=|==|!=|<=|>=|<|>|===)\s*[A-Za-z0-9.*+!_-]+\s*,?\s*\)?)+$`)
+
+// pyLines splits text the way pip does, with Python's str.splitlines:
+// besides \n and \r\n, a lone \r, \v, \f, \x1c-\x1e, NEL, U+2028 and
+// U+2029 end a line. Splitting on \n alone would let "a==1 # x\revil==1"
+// hide evil in a comment that pip doesn't see.
+func pyLines(s string) []string {
+	var out []string
+	start := 0
+	for i, r := range s {
+		switch r {
+		case '\n', '\v', '\f', 0x1c, 0x1d, 0x1e, 0x85, 0x2028, 0x2029:
+			out = append(out, s[start:i])
+			start = i + len(string(r))
+		case '\r':
+			if i+1 < len(s) && s[i+1] == '\n' {
+				continue // the \n ends the line
+			}
+			out = append(out, s[start:i])
+			start = i + 1
+		}
+	}
+	out = append(out, s[start:])
+	if len(out) > 1 && out[len(out)-1] == "" {
+		out = out[:len(out)-1]
+	}
+	for i := range out {
+		out[i] = strings.TrimSuffix(out[i], "\r")
+	}
+	return out
+}
 
 // commentStart finds a # that starts a comment: at the start of a line or
 // after whitespace (a # inside a URL fragment is not a comment).
@@ -869,14 +1075,103 @@ func pyURLRequirement(s string) (lockPackage, bool) {
 	if m := pyEgg.FindStringSubmatch(url); m != nil {
 		name = pyName(m[1])
 	}
-	return lockPackage{eco: EcoPyPI, name: name, version: url, direct: true}, true
+	return lockPackage{eco: EcoPyPI, name: name, version: url, direct: true, scripts: pyURLScripts(url)}, true
+}
+
+// pyURLScripts says whether pip runs build code to install from a URL: it
+// does for a VCS checkout or a source archive (as for poetry.lock's git
+// packages), not for a wheel.
+func pyURLScripts(u string) int8 {
+	if i := strings.IndexAny(u, "#?"); i >= 0 {
+		u = u[:i]
+	}
+	if strings.HasSuffix(strings.ToLower(u), ".whl") && !strings.Contains(strings.SplitN(u, "://", 2)[0], "+") {
+		return scriptsNo
+	}
+	return scriptsYes
 }
 
 var tomlFile = regexp.MustCompile(`file\s*=\s*"([^"]+)"`)
 
+var tomlInlineType = regexp.MustCompile(`(?:^|[{,\s])type\s*=\s*["']([^"']*)["']`)
+
+// tomlHeader reads a table header ([a.b] or [[a.b]], spaces and quoted
+// keys allowed) as its dotted name, and whether it's an array of tables.
+func tomlHeader(line string) (string, bool, bool) {
+	array := strings.HasPrefix(line, "[[")
+	inner := strings.TrimPrefix(line, "[")
+	if array {
+		inner = strings.TrimPrefix(inner, "[")
+		if !strings.HasSuffix(inner, "]]") {
+			return "", false, false
+		}
+		inner = strings.TrimSuffix(inner, "]]")
+	} else {
+		if !strings.HasSuffix(inner, "]") {
+			return "", false, false
+		}
+		inner = strings.TrimSuffix(inner, "]")
+	}
+	parts := strings.Split(inner, ".")
+	for i, p := range parts {
+		p = strings.TrimSpace(p)
+		if len(p) >= 2 && (p[0] == '"' || p[0] == '\'') && p[len(p)-1] == p[0] {
+			p = p[1 : len(p)-1]
+		}
+		if p == "" || strings.ContainsAny(p, "[]\"'") {
+			return "", false, false
+		}
+		parts[i] = p
+	}
+	return strings.Join(parts, "."), array, true
+}
+
+// tomlString reads a one-line basic ("...") or literal ('...') string at
+// the start of val, and whether there was one.
+func tomlString(val string) (string, bool) {
+	if strings.HasPrefix(val, `"""`) || strings.HasPrefix(val, "'''") {
+		return "", false
+	}
+	if strings.HasPrefix(val, "'") {
+		if end := strings.Index(val[1:], "'"); end >= 0 {
+			return val[1 : end+1], true
+		}
+		return "", false
+	}
+	if !strings.HasPrefix(val, `"`) {
+		return "", false
+	}
+	var b strings.Builder
+	for i := 1; i < len(val); i++ {
+		switch c := val[i]; c {
+		case '"':
+			return b.String(), true
+		case '\\':
+			if i+1 >= len(val) {
+				return "", false
+			}
+			i++
+			switch val[i] {
+			case '"', '\\':
+				b.WriteByte(val[i])
+			default:
+				b.WriteByte('\\')
+				b.WriteByte(val[i])
+			}
+		default:
+			b.WriteByte(c)
+		}
+	}
+	return "", false
+}
+
 // parsePoetryLock reads poetry.lock's packages. A package whose files hold
 // no wheel builds from source when installed, which runs its build code:
 // that counts as an install script. pyproject.toml names the direct ones.
+//
+// It isn't a full TOML reader, so it refuses what it can't place rather
+// than skip it: a key given twice in a table, an unknown table header. A
+// multi-line string's lines are skipped as text, never read as keys.
 func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 	type pkg struct {
 		name, version, source string
@@ -887,10 +1182,21 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 	metaFiles := map[string][]string{}
 	var cur *pkg
 	table := ""
+	keys := map[string]bool{} // keys seen in the current table
 	inArray := false
+	inString := ""           // the closing delimiter of an open multi-line string
 	var collect func(string) // where the file names of an open files array go
 	sawMeta := false
 	for n, raw := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
+		if inString != "" {
+			if i := strings.Index(raw, inString); i >= 0 {
+				if rest := strings.TrimSpace(strings.TrimLeft(raw[i+3:], inString[:1])); rest != "" && !strings.HasPrefix(rest, "#") {
+					return nil, fmt.Errorf("line %d: %q after a multi-line string", n+1, raw)
+				}
+				inString = ""
+			}
+			continue
+		}
 		line := strings.TrimSpace(raw)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -898,7 +1204,7 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 		if inArray {
 			// Inside a multi-line array: items or its end, nothing else.
 			if !strings.HasPrefix(line, "{") && !strings.HasPrefix(line, `"`) && !strings.HasPrefix(line, "'") &&
-				!strings.HasPrefix(line, "]") {
+				!strings.HasPrefix(line, "]") || strings.Contains(line, `"""`) || strings.Contains(line, "'''") {
 				return nil, fmt.Errorf("line %d: %q inside an array", n+1, raw)
 			}
 			if collect != nil {
@@ -912,18 +1218,28 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 			continue
 		}
 		if strings.HasPrefix(line, "[") {
-			if !strings.HasSuffix(line, "]") {
+			name, array, ok := tomlHeader(line)
+			if !ok {
 				return nil, fmt.Errorf("line %d: %q", n+1, raw)
 			}
-			table = strings.Trim(line, "[] ")
+			table = name
+			keys = map[string]bool{}
 			switch {
-			case line == "[[package]]":
+			case array && name == "package":
 				cur = &pkg{line: n + 1}
 				pkgs = append(pkgs, cur)
-			case table == "metadata":
+			case array:
+				return nil, fmt.Errorf("line %d: %q: an array of tables poetry.lock doesn't have", n+1, raw)
+			case name == "metadata":
 				sawMeta = true
 				cur = nil
-			case strings.HasPrefix(table, "package."):
+			case name == "package.source":
+				if cur == nil {
+					return nil, fmt.Errorf("line %d: [package.source] outside a [[package]]", n+1)
+				}
+				// A source whose type can't be read isn't the registry.
+				cur.source = "unknown"
+			case strings.HasPrefix(name, "package."):
 			default:
 				cur = nil
 			}
@@ -933,29 +1249,57 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 		if !ok {
 			return nil, fmt.Errorf("line %d: %q", n+1, raw)
 		}
-		key = strings.Trim(strings.TrimSpace(key), `"`)
+		key = strings.TrimSpace(key)
+		if len(key) >= 2 && (key[0] == '"' || key[0] == '\'') && key[len(key)-1] == key[0] {
+			key = key[1 : len(key)-1]
+		}
+		if keys[key] {
+			return nil, fmt.Errorf("line %d: %s given twice", n+1, key)
+		}
+		keys[key] = true
 		val = strings.TrimSpace(val)
-		str := ""
-		if strings.HasPrefix(val, `"`) {
-			if end := strings.Index(val[1:], `"`); end >= 0 {
-				str = val[1 : end+1]
+		for _, d := range []string{`"""`, "'''"} {
+			if strings.HasPrefix(val, d) {
+				if i := strings.Index(val[3:], d); i < 0 {
+					inString = d
+				}
+				val = ""
 			}
 		}
+		str, isStr := tomlString(val)
 		opens := strings.HasPrefix(val, "[") && !strings.HasSuffix(val, "]")
 		var into func(string)
 		switch {
 		case table == "package" && cur != nil:
-			switch key {
-			case "name":
+			switch {
+			case key == "name":
 				cur.name = str
-			case "version":
+			case key == "version":
 				cur.version = str
-			case "files":
+			case key == "files":
 				p := cur
 				into = func(f string) { p.files = append(p.files, f) }
+			case key == "source" || strings.HasPrefix(key, "source."):
+				// source as an inline table or dotted keys: the same as a
+				// [package.source] table.
+				t := ""
+				if key == "source" {
+					if m := tomlInlineType.FindStringSubmatch(val); m != nil {
+						t = m[1]
+					}
+				} else if strings.TrimSpace(strings.TrimPrefix(key, "source.")) == "type" && isStr {
+					t = str
+				}
+				if t != "" {
+					cur.source = t
+				} else if cur.source == "" {
+					cur.source = "unknown"
+				}
 			}
 		case table == "package.source" && cur != nil && key == "type":
-			cur.source = str
+			if isStr {
+				cur.source = str
+			}
 		case table == "metadata.files":
 			name := pyName(key)
 			into = func(f string) { metaFiles[name] = append(metaFiles[name], f) }
@@ -971,6 +1315,9 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 	}
 	if inArray {
 		return nil, fmt.Errorf("an array is never closed")
+	}
+	if inString != "" {
+		return nil, fmt.Errorf("a multi-line string is never closed")
 	}
 	if len(pkgs) == 0 && !sawMeta {
 		return nil, fmt.Errorf("no [[package]] tables and no [metadata]: not a poetry.lock")
@@ -992,7 +1339,7 @@ func parsePoetryLock(data, pyproject []byte) ([]lockPackage, error) {
 			files = metaFiles[name]
 		}
 		switch {
-		case p.source == "git":
+		case p.source == "git" || p.source == "unknown":
 			lp.scripts = scriptsYes
 		case len(files) > 0:
 			lp.scripts = scriptsYes

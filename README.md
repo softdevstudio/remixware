@@ -292,14 +292,29 @@ the change and in the base:
 - `go.mod` with `go.sum`: go.mod's requirements are direct, or transitive
   when marked `// indirect`, and go.sum's code hashes add the rest of the
   module graph. A `replace` by another module counts as that module; a
-  replacement by a local folder is your own code.
+  replacement by a local folder is your own code. A `go.work` or
+  `go.work.sum` that the change touches is `not-checked`: its `use` and
+  `replace` lines override go.mod.
 - `package-lock.json` and `npm-shrinkwrap.json`, lockfile versions 1 to 3.
   The root package's dependencies (and those of workspace folders) are
   direct. Versions 2 and 3 record which packages run install scripts.
-- `requirements*.txt` and the `.txt` files in a `requirements/` folder,
-  with `-r` includes inside the project. Requirements are direct unless
-  pip-compile's `# via` comments say they came in through other packages.
-- `poetry.lock`, with `pyproject.toml` naming the direct packages.
+- `requirements*.txt`, the other usual spellings (`test-requirements.txt`,
+  `dev_requirements.txt`) and the `.txt` files in a `requirements/` folder,
+  with `-r` includes inside the project. `-c` constraints files are read for
+  their index options, which pip takes from them too. Lines end where pip
+  ends them (a lone carriage return, a form feed or U+2028 ends a line, as
+  in Python). Requirements are direct unless pip-compile's `# via` comments
+  say they came in through other packages. A requirement from git or
+  another VCS, or from a source archive URL, builds from source when pip
+  installs it, so it counts as an install script.
+- `poetry.lock`, with `pyproject.toml` naming the direct packages. A key
+  given twice in a table or a table header it doesn't know stops the
+  command; a package with a `source` it can't read counts as one from
+  outside the registry that builds from source.
+
+A lockfile that's a symbolic link is read through the link, as the
+package managers read it, when the link stays inside the project; a link
+out of the project stops the command.
 
 A lockfile Remixware can't make sense of stops the command with exit code
 2, on either side: a gate that skipped a broken lockfile would pass
@@ -307,16 +322,19 @@ whatever it hides. A lockfile kind it doesn't read (`yarn.lock`,
 `pnpm-lock.yaml`, `Pipfile.lock`, `uv.lock`, `Cargo.lock` and others)
 that the change touches is reported as `not-checked`, which fails by
 default. A `package.json` or `pyproject.toml` without a lockfile isn't
-read: commit your lockfiles.
+read: commit your lockfiles. A change that deletes `package-lock.json` or
+`poetry.lock` but keeps the `package.json` or `pyproject.toml` next to it
+is `not-checked`, since the next install picks whatever the manifest
+allows.
 
 ### Statuses
 
 | Status | Meaning |
 |---|---|
 | `not-allowed` | A package no lockfile on the base names, direct or transitive, and no allow rule names. |
-| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel, which pip builds from source. |
+| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip builds from source. |
 | `publisher-changed` | An added or updated version was published within `publisher_days` (90 by default) by someone who neither published nor maintained the version it's compared with: the base's version for an update, the release before it for a new package. Only with `--online`. |
-| `not-checked` | A lockfile Remixware doesn't read changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry). |
+| `not-checked` | A lockfile Remixware doesn't read changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry), or the change deletes a lockfile and keeps its manifest. |
 | `allowed` | A new package an allow rule names. |
 | `updated` | A package at a new version, with nothing wrong found. |
 | `removed` | A package no lockfile names any more. |
@@ -393,8 +411,11 @@ The `deps` object in `.remixware.json` holds the gate's settings:
 Unknown keys are errors, as everywhere in the policy file. The policy comes
 from the change being checked, so a change can add allow rules for its own
 packages. `deps` lists the allow rules the change adds compared with the
-base's policy, and `--base-policy` uses the base's policy instead, so only
-rules already on main count.
+base's policy, and the settings it changes (`deps.fail_on`,
+`deps.lockfiles`, `deps.publisher_days` and `ignore`, which also leaves
+lockfiles out), since narrowing those lets packages through as surely as
+an allow rule. `--base-policy` uses the base's policy instead, so only
+rules and settings already on main count.
 
 ### In a pull request
 
@@ -428,8 +449,9 @@ publisher checks against the registries.
 `issues`, each issue with `status`, `version` and `reason`), `checks` (each
 with `name`, `status` (ran, partly, not-run, not-applicable or
 nothing-to-check), `packages`, `offline`, `online`, `cached`,
-`not_applicable` and `not_run`, the count per reason), `counts` per status
-and `new_allow_rules`.
+`not_applicable` and `not_run`, the count per reason), `counts` per status,
+`new_allow_rules` and `policy_changes` (the gate's settings the policy used
+changes from the base's, one line each).
 
 ## Findings
 

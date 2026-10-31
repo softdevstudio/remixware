@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.3.1
+
+Fixes from an independent review of the dependency gate. Each one let a
+risky change pass with exit code 0 (or showed the wrong thing), and each
+has a test now.
+
+- package-lock.json keys are read exactly, as npm reads them. Go's JSON
+  reader matched them without regard to case, so a key npm ignores
+  (`"LINK": true`, `"haſInstallScript": false`, `"LockfileVersion": 1`)
+  could hide a package or an install script.
+- requirements files end lines where pip does (Python's line breaks: a lone
+  carriage return, vertical tab, form feed, U+2028 and others), so a
+  requirement can't hide in what looked like a comment. `-c` constraints
+  files are read for index options, which pip takes from them.
+  `test-requirements.txt`, `dev-requirements.txt` and the like are read.
+  A requirement from git or another VCS, or from a source archive URL,
+  counts as an install script (pip builds it from source), as poetry.lock's
+  git packages already did.
+- poetry.lock: `[[ package ]]` with spaces and quoted header keys are read;
+  lines inside a multi-line string are no longer read as keys; a key given
+  twice is an error; a `source` written as an inline table or dotted keys
+  counts as a source, not the registry.
+- `go.work` and `go.work.sum` are reported as `not-checked` when a change
+  touches them (they override go.mod).
+- A lockfile that's a symbolic link is read through the link when it stays
+  inside the project; a new linked lockfile was skipped.
+- Deleting `package-lock.json` or `poetry.lock` while keeping the manifest
+  next to it is `not-checked`.
+- Without `--base-policy`, the output and the JSON (`policy_changes`) list
+  the gate settings the change alters (`deps.fail_on`, `deps.lockfiles`,
+  `deps.publisher_days`, `ignore`), not just new allow rules.
+- The `--online` cache keeps answers from `--npm-registry` or `--pypi-url`
+  apart from the default registries' answers.
+
 ## 0.3.0
 
 A second check, next to the licence check: `remixware deps` compares the

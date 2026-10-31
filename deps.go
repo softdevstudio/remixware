@@ -3,6 +3,7 @@ package remixware
 import (
 	"bytes"
 	"fmt"
+	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -132,6 +133,9 @@ type DepsResult struct {
 	// Allow rules in the policy used that the base's policy doesn't have:
 	// a change can allow its own packages, so these deserve a look.
 	NewAllowRules []DepAllowRule `json:"new_allow_rules,omitempty"`
+	// Settings of the policy used that differ from the base's (fail_on,
+	// lockfiles, publisher_days, ignore): a change can loosen them too.
+	PolicyChanges []string `json:"policy_changes,omitempty"`
 }
 
 // DepLockfile is one lockfile and how many packages it names on each side.
@@ -368,6 +372,18 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 					" files, so its packages weren't checked. Check them by hand, or take not-checked out of deps.fail_on.",
 				Issues: []DepIssue{{Status: DepNotChecked, Reason: "lockfile changed and wasn't read"}}})
 		}
+		if bs.has[l] && !hs.has[l] {
+			if manifest := lockManifest(l); manifest != "" && !hasSiblingLockfile(hs, l) {
+				m := path.Join(path.Dir(l), manifest)
+				if _, ok, err := head.ReadFile(m); err != nil {
+					return nil, err
+				} else if ok {
+					res.Changes = append(res.Changes, DepChange{Change: "unread", Lockfiles: []string{l}, Status: DepNotChecked,
+						Reason: "This change deletes " + l + " but keeps " + m + ", so the next install picks versions, and new packages, that no lockfile names. Keep the lockfile, or take not-checked out of deps.fail_on.",
+						Issues: []DepIssue{{Status: DepNotChecked, Reason: "lockfile deleted, manifest kept"}}})
+				}
+			}
+		}
 		var newSources []string
 		for _, src := range hs.sources[l] {
 			if !containsString(bs.sources[l], src) && !containsString(newSources, src) {
@@ -491,6 +507,7 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 				res.NewAllowRules = append(res.NewAllowRules, r)
 			}
 		}
+		res.PolicyChanges = policyChanges(pol, opt.BasePolicy)
 	}
 	if res.Lockfiles == nil {
 		res.Lockfiles = []DepLockfile{}
@@ -499,6 +516,77 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 		res.Changes = []DepChange{}
 	}
 	return res, nil
+}
+
+// policyChanges lists the gate's settings that differ between the policy
+// used and the base's: a change that narrows fail_on, the lockfiles read or
+// the paths ignored passes its own packages as surely as an allow rule.
+func policyChanges(pol, base *Policy) []string {
+	eff := func(p *Policy) (failOn, lockfiles []string, days int) {
+		failOn, days = DefaultDepFailOn, DefaultPublisherDays
+		if p.Deps != nil {
+			if len(p.Deps.FailOn) > 0 {
+				failOn = p.Deps.FailOn
+			}
+			lockfiles = p.Deps.Lockfiles
+			if p.Deps.PublisherDays > 0 {
+				days = p.Deps.PublisherDays
+			}
+		}
+		return
+	}
+	show := func(l []string) string {
+		if len(l) == 0 {
+			return "(none)"
+		}
+		return strings.Join(l, ", ")
+	}
+	same := func(a, b []string) bool {
+		a, b = append([]string(nil), a...), append([]string(nil), b...)
+		sort.Strings(a)
+		sort.Strings(b)
+		return strings.Join(a, "\x00") == strings.Join(b, "\x00")
+	}
+	hf, hl, hd := eff(pol)
+	bf, bl, bd := eff(base)
+	var out []string
+	if !same(hf, bf) {
+		out = append(out, "deps.fail_on: "+show(bf)+" -> "+show(hf))
+	}
+	if !same(hl, bl) {
+		out = append(out, "deps.lockfiles: "+show(bl)+" -> "+show(hl))
+	}
+	if hd != bd {
+		out = append(out, fmt.Sprintf("deps.publisher_days: %d -> %d", bd, hd))
+	}
+	if !same(pol.Ignore, base.Ignore) {
+		out = append(out, "ignore: "+show(base.Ignore)+" -> "+show(pol.Ignore))
+	}
+	return out
+}
+
+// lockManifest is the file a lockfile pins the packages of, when an
+// installer would go on without the lockfile: package.json for npm,
+// pyproject.toml for Poetry.
+func lockManifest(l string) string {
+	switch lockfileKind(l) {
+	case kindNPM:
+		return "package.json"
+	case kindPoetry:
+		return "pyproject.toml"
+	}
+	return ""
+}
+
+// hasSiblingLockfile says whether the side has another lockfile of the
+// same kind in l's folder (npm-shrinkwrap.json for package-lock.json).
+func hasSiblingLockfile(s *depSide, l string) bool {
+	for o := range s.has {
+		if o != l && path.Dir(o) == path.Dir(l) && lockfileKind(o) == lockfileKind(l) {
+			return true
+		}
+	}
+	return false
 }
 
 func pathBase(p string) string {

@@ -129,7 +129,7 @@ func (r *Registry) Facts(eco, name, version string) (VersionFacts, bool, error) 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.load()
-	key := eco + "/" + name + "@" + version
+	key := r.cacheKey(eco, name, version)
 	if f, ok := r.cache[key]; ok {
 		return f, true, nil
 	}
@@ -149,6 +149,21 @@ func (r *Registry) Facts(eco, name, version string) (VersionFacts, bool, error) 
 	r.cache[key] = f
 	r.dirty = true
 	return f, false, nil
+}
+
+// cacheKey names a version in the cache. Answers from a registry other
+// than the default one (--npm-registry, --pypi-url) are kept apart, so a
+// run against a mirror or a test server can't answer for the real one.
+func (r *Registry) cacheKey(eco, name, version string) string {
+	key := eco + "/" + name + "@" + version
+	base, def := r.NPMURL, NPMRegistry
+	if eco == EcoPyPI {
+		base, def = r.PyPIURL, PyPIURL
+	}
+	if base = strings.TrimSuffix(base, "/"); base != "" && base != def {
+		key = base + " " + key
+	}
+	return key
 }
 
 // maxRegistryAnswer bounds a registry answer: the npm documents of the

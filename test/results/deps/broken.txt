@@ -1,2 +1,2 @@
-remixware: web/package-lock.json at broken: unexpected end of JSON input
+remixware: web/package-lock.json at broken: lockfile: unexpected end of JSON input
 exit code: 2

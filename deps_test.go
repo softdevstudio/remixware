@@ -968,7 +968,8 @@ func TestDepsMovedOffRegistry(t *testing.T) {
 	head := map[string]string{"requirements.txt": "requests @ https://files.example.net/requests-2.32.3.tar.gz\n"}
 	res := compare(t, head, base, nil, nil)
 	c := change(res, "pypi/requests")
-	if c == nil || c.Status != DepNotChecked || len(DepFailures(res, DefaultDepFailOn)) != 1 {
+	// A source archive also builds from source: install-script on top.
+	if c == nil || !containsString(c.Statuses(), DepNotChecked) || len(DepFailures(res, DefaultDepFailOn)) != 1 {
 		t.Errorf("moved to a URL: %+v", res.Changes)
 	}
 	baseNPM := map[string]string{"package-lock.json": npmLock("a@1.0.0")}

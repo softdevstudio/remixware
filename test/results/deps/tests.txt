@@ -1,64 +1,94 @@
+=== RUN   TestDepsReviewNPMKeysAreExact
+--- PASS: TestDepsReviewNPMKeysAreExact (0.01s)
+=== RUN   TestDepsReviewPoetryHeaderSpaces
+--- PASS: TestDepsReviewPoetryHeaderSpaces (0.00s)
+=== RUN   TestDepsReviewPoetryMultilineString
+--- PASS: TestDepsReviewPoetryMultilineString (0.00s)
+=== RUN   TestDepsReviewPoetryInlineSource
+--- PASS: TestDepsReviewPoetryInlineSource (0.01s)
+=== RUN   TestDepsReviewRequirementsCommentBackslashLikePip
+--- PASS: TestDepsReviewRequirementsCommentBackslashLikePip (0.00s)
+=== RUN   TestDepsReviewRequirementsPythonLineBreaks
+--- PASS: TestDepsReviewRequirementsPythonLineBreaks (0.02s)
+=== RUN   TestDepsReviewConstraintsIndex
+--- PASS: TestDepsReviewConstraintsIndex (0.00s)
+=== RUN   TestDepsReviewRequirementsNames
+--- PASS: TestDepsReviewRequirementsNames (0.03s)
+=== RUN   TestDepsReviewGoWork
+--- PASS: TestDepsReviewGoWork (0.01s)
+=== RUN   TestDepsReviewSymlinkedLockfile
+--- PASS: TestDepsReviewSymlinkedLockfile (0.02s)
+=== RUN   TestDepsReviewLockfileRemovedManifestKept
+--- PASS: TestDepsReviewLockfileRemovedManifestKept (0.02s)
+=== RUN   TestDepsReviewPolicySettingChangesShown
+--- PASS: TestDepsReviewPolicySettingChangesShown (0.01s)
+=== RUN   TestDepsReviewRegistryCacheKeyedByRegistry
+--- PASS: TestDepsReviewRegistryCacheKeyedByRegistry (0.01s)
+=== RUN   TestDepsReviewRequirementsVCSBuildsFromSource
+--- PASS: TestDepsReviewRequirementsVCSBuildsFromSource (0.01s)
+=== RUN   TestDepsReviewGitSymlinkedLockfile
+--- PASS: TestDepsReviewGitSymlinkedLockfile (0.07s)
 === RUN   TestParseGoMod
 --- PASS: TestParseGoMod (0.00s)
 === RUN   TestParseNPMLock
 --- PASS: TestParseNPMLock (0.00s)
 === RUN   TestParseRequirements
---- PASS: TestParseRequirements (0.03s)
+--- PASS: TestParseRequirements (0.01s)
 === RUN   TestParsePoetryLock
---- PASS: TestParsePoetryLock (0.00s)
+--- PASS: TestParsePoetryLock (0.01s)
 === RUN   TestDepsUnchangedPasses
 --- PASS: TestDepsUnchangedPasses (0.01s)
 === RUN   TestDepsNewPackageNeedsAllowRule
---- PASS: TestDepsNewPackageNeedsAllowRule (0.03s)
+--- PASS: TestDepsNewPackageNeedsAllowRule (0.02s)
 === RUN   TestDepsTransitiveGoModuleNeedsAllowRule
---- PASS: TestDepsTransitiveGoModuleNeedsAllowRule (0.02s)
+--- PASS: TestDepsTransitiveGoModuleNeedsAllowRule (0.00s)
 === RUN   TestDepsPyPINamesNormalised
---- PASS: TestDepsPyPINamesNormalised (0.03s)
+--- PASS: TestDepsPyPINamesNormalised (0.00s)
 === RUN   TestDepsUpdatedAndRemoved
 --- PASS: TestDepsUpdatedAndRemoved (0.00s)
 === RUN   TestDepsInstallScriptOffline
---- PASS: TestDepsInstallScriptOffline (0.02s)
+--- PASS: TestDepsInstallScriptOffline (0.01s)
 === RUN   TestDepsOfflineNeverClaimsOnline
 --- PASS: TestDepsOfflineNeverClaimsOnline (0.01s)
 === RUN   TestDepsUnreadLockfile
 --- PASS: TestDepsUnreadLockfile (0.01s)
 === RUN   TestDepsMalformedLockfileFails
---- PASS: TestDepsMalformedLockfileFails (0.11s)
+--- PASS: TestDepsMalformedLockfileFails (0.05s)
 === RUN   TestDepsLockfileSearch
---- PASS: TestDepsLockfileSearch (0.07s)
+--- PASS: TestDepsLockfileSearch (0.05s)
 === RUN   TestDepsPolicyValidation
 --- PASS: TestDepsPolicyValidation (0.04s)
 === RUN   TestDepsGitRevision
---- PASS: TestDepsGitRevision (0.10s)
+--- PASS: TestDepsGitRevision (0.15s)
 === RUN   TestDepsOnlinePublisherChange
---- PASS: TestDepsOnlinePublisherChange (0.04s)
+--- PASS: TestDepsOnlinePublisherChange (0.03s)
 === RUN   TestDepsOnlineErrorsFail
 --- PASS: TestDepsOnlineErrorsFail (0.01s)
 === RUN   TestDepsOnlinePyPI
 --- PASS: TestDepsOnlinePyPI (0.01s)
 === RUN   TestDepsGatePromise
     deps_test.go:942: promise: 400 new packages not on the allow list, 400 failed; 800 unchanged or allowed sets, 800 passed; 80 new install scripts, 80 failed; 400 broken lockfiles, 400 stopped with an error
---- PASS: TestDepsGatePromise (12.26s)
+--- PASS: TestDepsGatePromise (12.27s)
 === RUN   TestDepsPipIndexChange
---- PASS: TestDepsPipIndexChange (0.00s)
+--- PASS: TestDepsPipIndexChange (0.01s)
 === RUN   TestDepsMovedOffRegistry
---- PASS: TestDepsMovedOffRegistry (0.00s)
+--- PASS: TestDepsMovedOffRegistry (0.01s)
 === RUN   TestIncludeDepsScansVendor
---- PASS: TestIncludeDepsScansVendor (0.45s)
+--- PASS: TestIncludeDepsScansVendor (0.90s)
 PASS
-ok  	github.com/softdevstudio/remixware	14.366s
+ok  	github.com/softdevstudio/remixware	14.939s
 === RUN   TestDepsFixture
---- PASS: TestDepsFixture (0.02s)
+--- PASS: TestDepsFixture (0.04s)
 === RUN   TestDepsUsageErrors
 --- PASS: TestDepsUsageErrors (0.00s)
 === RUN   TestDepsMalformedLockfileExits2
---- PASS: TestDepsMalformedLockfileExits2 (0.09s)
+--- PASS: TestDepsMalformedLockfileExits2 (0.05s)
 === RUN   TestDepsOnline
---- PASS: TestDepsOnline (0.03s)
+--- PASS: TestDepsOnline (0.02s)
 === RUN   TestDepsBaseRef
---- PASS: TestDepsBaseRef (0.19s)
+--- PASS: TestDepsBaseRef (0.22s)
 === RUN   TestDepsChangeCantAllowItself
---- PASS: TestDepsChangeCantAllowItself (0.05s)
+--- PASS: TestDepsChangeCantAllowItself (0.01s)
 PASS
-ok  	github.com/softdevstudio/remixware/cmd/remixware	1.475s
+ok  	github.com/softdevstudio/remixware/cmd/remixware	1.400s
 ?   	github.com/softdevstudio/remixware/scripts/bench	[no test files]
