@@ -433,29 +433,17 @@ Known gaps, not planned yet:
 Nothing is approved after 0.3.0. Ask the owner before starting anything
 new.
 
-## In progress: deps case studies
+## Done: deps case studies (2026-10-31)
 
-Started 2026-10-31 by a separate session (an independent reviewer works on
-the gate's code at the same time; this work only adds files). Plan:
-
-1. Pick 2 or 3 real public projects whose git history has dependency
-   changes the gate catches (new transitive tree in Go, an npm package
-   with an install script, a Python index or package change). Clone
-   shallowly at the two commits, run the released binary offline, record
-   commands, hashes and output.
-2. `scripts/deps_case_studies.sh` and the recorded runs under
-   `test/results/case-studies/deps/`; every number on the site comes from
-   there.
-3. Site: case study posts (tag "case studies"), one use examples post
-   (tag "use cases") with each recipe run, links from the dependency gate
-   post and the quick start.
-4. Bugs found in the gate are noted here, not fixed.
-
-Status: runs recorded with the released 0.3.1 binary
-(scripts/deps_case_studies.sh, test/results/case-studies/deps): TypeScript
-4139807e7 (esbuild: 23 added, 1 install-script), Hugo c7165589 (gocloud.dev:
-18 new modules, 2 direct), pytorch/serve b260776b5 (2 new pip indexes,
-not-checked), and the use example recipes. Next: site posts.
+`scripts/deps_case_studies.sh REMIXWARE CACHE` records the released 0.3.1
+gate, offline, on three real commits and the use example recipes
+(test/results/case-studies/deps, README there): TypeScript 4139807e7
+(esbuild: 23 added, 1 install-script, passes with inputs/esbuild.json),
+Hugo c7165589 (gocloud.dev: 18 new modules, 2 direct; 12 left with an
+example Go/Google allow list), pytorch/serve b260776b5 (2 new pip indexes
+not-checked, 2 not-allowed, 6 updated). remixware.com (3758e5c): three
+case study posts, "Five Tested Recipes for the Remixware Dependency Gate"
+(use cases), links from the dependency gate post and the quick start.
 
 Found during case studies: an unpinned requirement (`neuronx-cc`, no
 version) shows an empty version, in the text (`pypi/neuronx-cc , added`) and
