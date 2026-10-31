@@ -308,6 +308,21 @@ Bring In Risky Dependencies", reference (deps command, Dependency Gate
 section, policy keys, exit codes), quick start step 6, download page smoke
 test line, hero badge 0.3.
 
+## In progress: independent review of deps gate
+
+Scope (2026-10-31, Claude, independent reviewer): `remixware deps` from
+0.3.0 (depslock.go, deps.go, registry.go, cmd/remixware/deps.go,
+testdata/deps, scripts/record-deps.sh, release smoke test, README/docs).
+Checks: go.mod/go.sum, package-lock v1-3, npm-shrinkwrap, requirements
+(includes, hashes, markers, extras, VCS/URL/path, -e, index options,
+PEP 503 names), poetry.lock; direct vs transitive; aliases; downgrades;
+remove then re-add; -r path traversal and symlinks; --base-ref odd refs;
+--online cache; exit codes; JSON. Each suspected bug gets a failing test
+first; only confirmed bugs are fixed. Resume: read the tests added in
+deps_review_test.go and the notes below, then continue down the list.
+
+Notes so far: (none yet)
+
 ## Gaps and to-do
 
 Known gaps, not planned yet:
