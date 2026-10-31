@@ -1,0 +1,5 @@
+{
+  "deps": {
+    "lockfiles": ["web/package-lock.json", "api/go.mod", "ml/requirements.txt"]
+  }
+}

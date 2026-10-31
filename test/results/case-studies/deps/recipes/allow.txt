@@ -1,0 +1,111 @@
+$ remixware deps . --base-ref origin/main --policy ./test/results/case-studies/deps/recipes/allow-policy.json
+Compared the dependencies of . with origin/main
+Lockfiles: package-lock.json (765 packages)
+
+ALLOWED              npm/@esbuild/android-arm 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries
+
+ALLOWED              npm/@esbuild/linux-loong64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries
+
+ALLOWED              npm/esbuild 0.15.13, added (direct)
+                     in package-lock.json
+                     New, and on the allow list: build tool; its install script fetches the binary
+                     for this platform
+
+ALLOWED              npm/esbuild-android-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-android-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-darwin-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-darwin-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-freebsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-freebsd-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-32 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-arm 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-mips64le 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-ppc64le 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-riscv64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-linux-s390x 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-netbsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-openbsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-sunos-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-windows-32 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-windows-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+ALLOWED              npm/esbuild-windows-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and on the allow list: esbuild's platform binaries (0.15 and earlier)
+
+Allow rules this change adds to the policy (review them: a change can allow its own packages):
+  npm/esbuild, install scripts too: build tool; its install script fetches the binary for this platform
+  npm/esbuild-*: esbuild's platform binaries (0.15 and earlier)
+  npm/@esbuild/*: esbuild's platform binaries
+
+Checks:
+  allow list         ran, 23 added packages: 23 checked from the lockfiles
+  install scripts    ran, 23 added or updated versions: 23 checked from the lockfiles
+  publisher changes  not run, 23 added or updated versions: 23 not checked (needs
+                     --online)
+
+23 changes: 23 allowed.
+PASS: no changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 0

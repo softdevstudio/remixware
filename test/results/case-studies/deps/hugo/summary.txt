@@ -1,0 +1,6 @@
+lockfiles: docs/requirements.txt (1 -> 1 packages), docs/src/package-lock.json (0 -> 0 packages), docs/themes/gohugoioTheme/package-lock.json (859 -> 859 packages), docs/themes/gohugoioTheme/src/package-lock.json (666 -> 666 packages), go.mod (81 -> 105 packages), requirements.txt (2 -> 2 packages)
+changes: 24
+counts: not-allowed 18, updated 6
+added: 18 (direct 2)
+install scripts: 
+checks: allow-list ran; install-scripts not-applicable; publisher not-applicable

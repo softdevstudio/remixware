@@ -1,0 +1,14 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "npm/esbuild", "install_scripts": true, "reason": "web build tool; its install script fetches the binary for this platform"},
+      {"package": "npm/esbuild-*", "reason": "esbuild's platform binaries (0.15 and earlier)"},
+      {"package": "npm/@esbuild/*", "reason": "esbuild's platform binaries"},
+      {"package": "golang/golang.org/x/*", "reason": "modules of the Go project"},
+      {"package": "golang/google.golang.org/*", "reason": "Google's Go API, gRPC and protobuf modules"},
+      {"package": "golang/cloud.google.com/*", "reason": "Google Cloud client libraries"},
+      {"package": "golang/gocloud.dev", "reason": "api: portable cloud storage for deploys, reviewed 2026-10"},
+      {"package": "pypi/neuronx-cc", "reason": "ml: AWS Neuron compiler for inf2 hosts"}
+    ]
+  }
+}

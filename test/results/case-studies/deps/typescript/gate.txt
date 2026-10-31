@@ -1,0 +1,131 @@
+$ remixware deps . --base-ref 36e29448e9d3fb09da278472bf88ebab166f1084 --json ./test/results/case-studies/deps/typescript/gate.json
+Compared the dependencies of . with 36e29448e9d3fb09da278472bf88ebab166f1084
+Lockfiles: package-lock.json (765 packages)
+
+INSTALL SCRIPT       npm/esbuild 0.15.13, added (direct)
+                     in package-lock.json
+                     NOT ALLOWED: New, and not on the allow list. Add a deps allow rule with a
+                     reason to the policy file, or drop it.
+                     Runs an install script (preinstall, install or postinstall, or a node-gyp
+                     build) when npm installs it. Accept it with a deps allow rule that has
+                     install_scripts: true and a reason.
+
+NOT ALLOWED          npm/@esbuild/android-arm 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/@esbuild/linux-loong64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-android-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-android-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-darwin-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-darwin-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-freebsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-freebsd-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-32 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-arm 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-mips64le 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-ppc64le 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-riscv64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-s390x 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-netbsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-openbsd-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-sunos-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-32 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-arm64 0.15.13, added (transitive)
+                     in package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 23 added packages: 23 checked from the lockfiles
+  install scripts    ran, 23 added or updated versions: 23 checked from the lockfiles
+  publisher changes  not run, 23 added or updated versions: 23 not checked (needs
+                     --online)
+
+23 changes: 1 install-script, 22 not-allowed.
+FAIL: 23 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

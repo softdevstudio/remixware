@@ -1,0 +1,10 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "npm/@types/*", "reason": "type definitions, no code at run time"},
+      {"package": "npm/esbuild", "install_scripts": true, "reason": "needed for the new build"},
+      {"package": "npm/esbuild-*", "reason": "needed for the new build"},
+      {"package": "npm/@esbuild/*", "reason": "needed for the new build"}
+    ]
+  }
+}

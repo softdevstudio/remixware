@@ -1,0 +1,541 @@
+{
+  "project": ".",
+  "base": "36e29448e9d3fb09da278472bf88ebab166f1084",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 765,
+      "base_packages": 742,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "npm/esbuild",
+      "ecosystem": "npm",
+      "name": "esbuild",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "install-script",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        },
+        {
+          "status": "install-script",
+          "version": "0.15.13",
+          "reason": "Runs an install script (preinstall, install or postinstall, or a node-gyp build) when npm installs it. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "npm/@esbuild/android-arm",
+      "ecosystem": "npm",
+      "name": "@esbuild/android-arm",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@esbuild/linux-loong64",
+      "ecosystem": "npm",
+      "name": "@esbuild/linux-loong64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-android-64",
+      "ecosystem": "npm",
+      "name": "esbuild-android-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-android-arm64",
+      "ecosystem": "npm",
+      "name": "esbuild-android-arm64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-darwin-64",
+      "ecosystem": "npm",
+      "name": "esbuild-darwin-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-darwin-arm64",
+      "ecosystem": "npm",
+      "name": "esbuild-darwin-arm64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-freebsd-64",
+      "ecosystem": "npm",
+      "name": "esbuild-freebsd-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-freebsd-arm64",
+      "ecosystem": "npm",
+      "name": "esbuild-freebsd-arm64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-32",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-32",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-64",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-arm",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-arm",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-arm64",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-arm64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-mips64le",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-mips64le",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-ppc64le",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-ppc64le",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-riscv64",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-riscv64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-linux-s390x",
+      "ecosystem": "npm",
+      "name": "esbuild-linux-s390x",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-netbsd-64",
+      "ecosystem": "npm",
+      "name": "esbuild-netbsd-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-openbsd-64",
+      "ecosystem": "npm",
+      "name": "esbuild-openbsd-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-sunos-64",
+      "ecosystem": "npm",
+      "name": "esbuild-sunos-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-windows-32",
+      "ecosystem": "npm",
+      "name": "esbuild-windows-32",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-windows-64",
+      "ecosystem": "npm",
+      "name": "esbuild-windows-64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/esbuild-windows-arm64",
+      "ecosystem": "npm",
+      "name": "esbuild-windows-arm64",
+      "change": "added",
+      "to": [
+        "0.15.13"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 23,
+      "offline": 23,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "ran",
+      "packages": 23,
+      "offline": 23,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 23,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 23
+      }
+    }
+  ],
+  "counts": {
+    "install-script": 1,
+    "not-allowed": 22
+  }
+}

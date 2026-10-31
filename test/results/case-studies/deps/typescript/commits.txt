@@ -1,0 +1,20 @@
+project: https://github.com/microsoft/TypeScript
+base: 36e29448e9d3fb09da278472bf88ebab166f1084
+head: 4139807e75af55d05e132fac81dd551160d60940
+head subject: Add build via esbuild
+head author date: 2022-09-13
+head commit date: 2022-11-07
+
+package.json change:
+diff --git a/package.json b/package.json
+index 215a104e..d4325da9 100644
+--- a/package.json
++++ b/package.json
+@@ -67,6 +67,7 @@
+         "chalk": "^4.1.2",
+         "del": "^6.1.1",
+         "diff": "^5.1.0",
++        "esbuild": "^0.15.13",
+         "eslint": "^8.22.0",
+         "eslint-formatter-autolinkable-stylish": "^1.2.0",
+         "eslint-plugin-import": "^2.26.0",

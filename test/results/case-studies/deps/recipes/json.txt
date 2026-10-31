@@ -1,0 +1,14 @@
+$ jq -r '.changes[] | select(.status != "allowed" and .status != "updated" and .status != "removed") | "\(.status)\t\(.package)\t\(.to // [] | join(","))"' deps.json | head -4
+install-script	npm/esbuild	0.15.13
+not-allowed	npm/@esbuild/android-arm	0.15.13
+not-allowed	npm/@esbuild/linux-loong64	0.15.13
+not-allowed	npm/esbuild-android-64	0.15.13
+$ jq '.counts' deps.json
+{
+  "install-script": 1,
+  "not-allowed": 22
+}
+$ jq -r '.checks[] | "\(.name): \(.status)"' deps.json
+allow-list: ran
+install-scripts: ran
+publisher: not-run

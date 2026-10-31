@@ -1,0 +1,7 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "npm/@types/*", "reason": "type definitions, no code at run time"}
+    ]
+  }
+}

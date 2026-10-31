@@ -1,0 +1,659 @@
+{
+  "project": ".",
+  "base": "2551a99e495d973fc916322bed352b3a13bf9d5f",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "benchmarks/requirements-ab.txt",
+      "kind": "requirements.txt",
+      "head_packages": 8,
+      "base_packages": 8,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "ci/launcher/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 3,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "docs/sphinx/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 11,
+      "base_packages": 11,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/Huggingface_Transformers/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/diffusers/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 3,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/instruction_embedding/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 1,
+      "base_packages": 1,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/large_models/Huggingface_accelerate/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/large_models/Huggingface_pippy/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/large_models/deepspeed/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/large_models/deepspeed_mii/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 3,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/large_models/inferentia2/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 3,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/nvidia_dali/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 1,
+      "base_packages": 1,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "examples/text_to_speech_synthesizer/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 6,
+      "base_packages": 6,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "kubernetes/kserve/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 3,
+      "base_packages": 3,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/common.txt",
+      "kind": "requirements.txt",
+      "head_packages": 6,
+      "base_packages": 6,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/common_gpu.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/developer.txt",
+      "kind": "requirements.txt",
+      "head_packages": 24,
+      "base_packages": 24,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/neuronx.txt",
+      "kind": "requirements.txt",
+      "head_packages": 6,
+      "base_packages": 0,
+      "in_head": true,
+      "in_base": false
+    },
+    {
+      "path": "requirements/torch_common.txt",
+      "kind": "requirements.txt",
+      "head_packages": 5,
+      "base_packages": 5,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu101_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu101_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu102_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu102_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu111_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu111_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu113_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu113_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu116_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu116_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu117_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu117_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu118_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu118_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu92.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_cu92_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_darwin.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements/torch_neuronx_linux.txt",
+      "kind": "requirements.txt",
+      "head_packages": 10,
+      "base_packages": 0,
+      "in_head": true,
+      "in_base": false
+    },
+    {
+      "path": "requirements/torch_windows.txt",
+      "kind": "requirements.txt",
+      "head_packages": 9,
+      "base_packages": 9,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "pypi/neuronx-cc",
+      "ecosystem": "pypi",
+      "name": "neuronx-cc",
+      "change": "added",
+      "to": [
+        ""
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/neuronx.txt"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "pypi/torchdata",
+      "ecosystem": "pypi",
+      "name": "torchdata",
+      "change": "added",
+      "to": [
+        "0.5.1"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/torch_neuronx_linux.txt"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "",
+      "change": "unread",
+      "direct": false,
+      "lockfiles": [
+        "requirements/neuronx.txt"
+      ],
+      "status": "not-checked",
+      "reason": "This change tells pip to look for packages somewhere new (--extra-index-url https://pip.repos.neuron.amazonaws.com), and a package of the same name there can take the place of the one you expect. Check the index by hand, or take not-checked out of deps.fail_on.",
+      "issues": [
+        {
+          "status": "not-checked",
+          "reason": "package index changed"
+        }
+      ]
+    },
+    {
+      "package": "",
+      "change": "unread",
+      "direct": false,
+      "lockfiles": [
+        "requirements/torch_neuronx_linux.txt"
+      ],
+      "status": "not-checked",
+      "reason": "This change tells pip to look for packages somewhere new (--extra-index-url https://download.pytorch.org/whl/cpu), and a package of the same name there can take the place of the one you expect. Check the index by hand, or take not-checked out of deps.fail_on.",
+      "issues": [
+        {
+          "status": "not-checked",
+          "reason": "package index changed"
+        }
+      ]
+    },
+    {
+      "package": "pypi/grpcio-tools",
+      "ecosystem": "pypi",
+      "name": "grpcio-tools",
+      "change": "updated",
+      "from": [
+        "1.54.2"
+      ],
+      "to": [
+        "1.48.2"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/developer.txt",
+        "requirements/neuronx.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/numpy",
+      "ecosystem": "pypi",
+      "name": "numpy",
+      "change": "updated",
+      "from": [
+        "",
+        "1.19.3",
+        "1.24.3"
+      ],
+      "to": [
+        "1.21.6"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "examples/diffusers/requirements.txt",
+        "examples/large_models/deepspeed_mii/requirements.txt",
+        "examples/text_to_speech_synthesizer/requirements.txt",
+        "requirements/neuronx.txt",
+        "requirements/torch_common.txt",
+        "requirements/torch_cu101_linux.txt",
+        "requirements/torch_cu101_windows.txt",
+        "requirements/torch_cu102_linux.txt",
+        "requirements/torch_cu102_windows.txt",
+        "requirements/torch_cu111_linux.txt",
+        "requirements/torch_cu111_windows.txt",
+        "requirements/torch_cu113_linux.txt",
+        "requirements/torch_cu113_windows.txt",
+        "requirements/torch_cu116_linux.txt",
+        "requirements/torch_cu116_windows.txt",
+        "requirements/torch_cu117_linux.txt",
+        "requirements/torch_cu117_windows.txt",
+        "requirements/torch_cu118_linux.txt",
+        "requirements/torch_cu118_windows.txt",
+        "requirements/torch_cu92.txt",
+        "requirements/torch_cu92_linux.txt",
+        "requirements/torch_darwin.txt",
+        "requirements/torch_linux.txt",
+        "requirements/torch_neuronx_linux.txt",
+        "requirements/torch_windows.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/protobuf",
+      "ecosystem": "pypi",
+      "name": "protobuf",
+      "change": "updated",
+      "from": [
+        "4.23.1"
+      ],
+      "to": [
+        "3.20.3"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/developer.txt",
+        "requirements/neuronx.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/torch",
+      "ecosystem": "pypi",
+      "name": "torch",
+      "change": "updated",
+      "from": [
+        "",
+        "1.10.0+cu102",
+        "1.12.0",
+        "1.12.0+cu113",
+        "1.13.1+cu116",
+        "1.8.1+cu101",
+        "1.8.1+cu92",
+        "1.9.0+cu111",
+        "2.0.1",
+        "2.0.1+cpu",
+        "2.0.1+cu117",
+        "2.0.1+cu118"
+      ],
+      "to": [
+        "1.13.1+cpu"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "docs/sphinx/requirements.txt",
+        "requirements/torch_cu101_linux.txt",
+        "requirements/torch_cu101_windows.txt",
+        "requirements/torch_cu102_linux.txt",
+        "requirements/torch_cu102_windows.txt",
+        "requirements/torch_cu111_linux.txt",
+        "requirements/torch_cu111_windows.txt",
+        "requirements/torch_cu113_linux.txt",
+        "requirements/torch_cu113_windows.txt",
+        "requirements/torch_cu116_linux.txt",
+        "requirements/torch_cu116_windows.txt",
+        "requirements/torch_cu117_linux.txt",
+        "requirements/torch_cu117_windows.txt",
+        "requirements/torch_cu118_linux.txt",
+        "requirements/torch_cu118_windows.txt",
+        "requirements/torch_cu92.txt",
+        "requirements/torch_cu92_linux.txt",
+        "requirements/torch_darwin.txt",
+        "requirements/torch_linux.txt",
+        "requirements/torch_neuronx_linux.txt",
+        "requirements/torch_windows.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/torchaudio",
+      "ecosystem": "pypi",
+      "name": "torchaudio",
+      "change": "updated",
+      "from": [
+        "0.10.0+cu102",
+        "0.12.0",
+        "0.12.0+cu113",
+        "0.13.1+cu116",
+        "0.8.1",
+        "0.9.0",
+        "2.0.2",
+        "2.0.2+cpu",
+        "2.0.2+cu117",
+        "2.0.2+cu118"
+      ],
+      "to": [
+        "0.13.1+cpu"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/torch_cu101_linux.txt",
+        "requirements/torch_cu101_windows.txt",
+        "requirements/torch_cu102_linux.txt",
+        "requirements/torch_cu102_windows.txt",
+        "requirements/torch_cu111_linux.txt",
+        "requirements/torch_cu111_windows.txt",
+        "requirements/torch_cu113_linux.txt",
+        "requirements/torch_cu113_windows.txt",
+        "requirements/torch_cu116_linux.txt",
+        "requirements/torch_cu116_windows.txt",
+        "requirements/torch_cu117_linux.txt",
+        "requirements/torch_cu117_windows.txt",
+        "requirements/torch_cu118_linux.txt",
+        "requirements/torch_cu118_windows.txt",
+        "requirements/torch_cu92.txt",
+        "requirements/torch_cu92_linux.txt",
+        "requirements/torch_darwin.txt",
+        "requirements/torch_linux.txt",
+        "requirements/torch_neuronx_linux.txt",
+        "requirements/torch_windows.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "pypi/torchvision",
+      "ecosystem": "pypi",
+      "name": "torchvision",
+      "change": "updated",
+      "from": [
+        "0.10.0+cu111",
+        "0.11.1+cu102",
+        "0.13.0",
+        "0.13.0+cu113",
+        "0.14.1+cu116",
+        "0.15.2",
+        "0.15.2+cpu",
+        "0.15.2+cu117",
+        "0.15.2+cu118",
+        "0.9.1+cu101",
+        "0.9.1+cu92"
+      ],
+      "to": [
+        "0.14.1+cpu"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "requirements/torch_cu101_linux.txt",
+        "requirements/torch_cu101_windows.txt",
+        "requirements/torch_cu102_linux.txt",
+        "requirements/torch_cu102_windows.txt",
+        "requirements/torch_cu111_linux.txt",
+        "requirements/torch_cu111_windows.txt",
+        "requirements/torch_cu113_linux.txt",
+        "requirements/torch_cu113_windows.txt",
+        "requirements/torch_cu116_linux.txt",
+        "requirements/torch_cu116_windows.txt",
+        "requirements/torch_cu117_linux.txt",
+        "requirements/torch_cu117_windows.txt",
+        "requirements/torch_cu118_linux.txt",
+        "requirements/torch_cu118_windows.txt",
+        "requirements/torch_cu92.txt",
+        "requirements/torch_cu92_linux.txt",
+        "requirements/torch_darwin.txt",
+        "requirements/torch_linux.txt",
+        "requirements/torch_neuronx_linux.txt",
+        "requirements/torch_windows.txt"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 2,
+      "offline": 2,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "not-run",
+      "packages": 8,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 8
+      }
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 8,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 8
+      }
+    }
+  ],
+  "counts": {
+    "not-allowed": 2,
+    "not-checked": 2,
+    "updated": 6
+  }
+}

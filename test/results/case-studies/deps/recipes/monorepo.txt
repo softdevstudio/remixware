@@ -1,0 +1,258 @@
+$ remixware deps . --base CACHE/mono-base --quiet
+
+INSTALL SCRIPT       npm/esbuild 0.15.13, added (direct)
+                     in web/package-lock.json
+                     NOT ALLOWED: New, and not on the allow list. Add a deps allow rule with a
+                     reason to the policy file, or drop it.
+                     Runs an install script (preinstall, install or postinstall, or a node-gyp
+                     build) when npm installs it. Accept it with a deps allow rule that has
+                     install_scripts: true and a reason.
+
+NOT ALLOWED          golang/cloud.google.com/go v0.37.0, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/Azure/azure-pipeline-go v0.1.8, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/aws/aws-sdk-go v1.16.23, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/dustin/go-humanize v1.0.0, added (direct)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/golang/protobuf v1.2.0, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/uuid v1.1.0, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/wire v0.2.1, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go v2.0.2+incompatible, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go/v2 v2.0.3, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/go.opencensus.io v0.19.2, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/gocloud.dev v0.13.0, added (direct)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/golang.org/x/xerrors v0.0.0-20190129162528-20feca13ea86, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/api v0.2.0, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/grpc v1.19.0, added (transitive)
+                     in api/go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/@esbuild/android-arm 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/@esbuild/linux-loong64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-android-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-android-arm64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-darwin-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-darwin-arm64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-freebsd-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-freebsd-arm64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-32 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-arm 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-arm64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-mips64le 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-ppc64le 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-riscv64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-linux-s390x 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-netbsd-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-openbsd-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-sunos-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-32 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          npm/esbuild-windows-arm64 0.15.13, added (transitive)
+                     in web/package-lock.json
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/grpcio-tools 1.48.2, added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/neuronx-cc , added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/numpy 1.21.6, added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/protobuf 3.20.3, added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/torch-neuronx , added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/transformers-neuronx , added (direct)
+                     in ml/requirements-neuron.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT CHECKED          ml/requirements-neuron.txt changed
+                     This change tells pip to look for packages somewhere new (--extra-index-url
+                     https://pip.repos.neuron.amazonaws.com), and a package of the same name there
+                     can take the place of the one you expect. Check the index by hand, or take
+                     not-checked out of deps.fail_on.
+
+Checks:
+  allow list         ran, 47 added packages: 47 checked from the lockfiles
+  install scripts    partly, 53 added or updated versions: 23 checked from the
+                     lockfiles, 6 not checked (needs --online), 24 not applicable (Go
+                     modules run no install scripts)
+  publisher changes  not run, 53 added or updated versions: 29 not checked (needs
+                     --online), 24 not applicable (the Go module proxy records no
+                     publisher)
+
+54 changes: 1 install-script, 46 not-allowed, 1 not-checked, 6 updated.
+FAIL: 48 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

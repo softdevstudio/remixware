@@ -1,0 +1,16 @@
+$ remixware deps . --base-ref origin/main --quiet
+
+Allow rules this change adds to the policy (review them: a change can allow its own packages):
+  npm/esbuild, install scripts too: needed for the new build
+  npm/esbuild-*: needed for the new build
+  npm/@esbuild/*: needed for the new build
+
+Checks:
+  allow list         ran, 23 added packages: 23 checked from the lockfiles
+  install scripts    ran, 23 added or updated versions: 23 checked from the lockfiles
+  publisher changes  not run, 23 added or updated versions: 23 not checked (needs
+                     --online)
+
+23 changes: 23 allowed.
+PASS: no changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 0

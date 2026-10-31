@@ -1,0 +1,9 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "golang/golang.org/x/*", "reason": "modules of the Go project"},
+      {"package": "golang/google.golang.org/*", "reason": "Google's Go API, gRPC and protobuf modules"},
+      {"package": "golang/cloud.google.com/*", "reason": "Google Cloud client libraries"}
+    ]
+  }
+}

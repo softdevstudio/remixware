@@ -451,4 +451,15 @@ the gate's code at the same time; this work only adds files). Plan:
    post and the quick start.
 4. Bugs found in the gate are noted here, not fixed.
 
-Status: plan pushed.
+Status: runs recorded with the released 0.3.1 binary
+(scripts/deps_case_studies.sh, test/results/case-studies/deps): TypeScript
+4139807e7 (esbuild: 23 added, 1 install-script), Hugo c7165589 (gocloud.dev:
+18 new modules, 2 direct), pytorch/serve b260776b5 (2 new pip indexes,
+not-checked), and the use example recipes. Next: site posts.
+
+Found during case studies: an unpinned requirement (`neuronx-cc`, no
+version) shows an empty version, in the text (`pypi/neuronx-cc , added`) and
+in the JSON (`"to": [""]`, numpy's `from` starts with ""); cosmetic, not
+fixed here. Not a bug, worth a line in the docs: with `deps.lockfiles` set,
+a new lockfile not on the list isn't read, so a new requirements file with
+`--extra-index-url` passes (recipes/monorepo-lockfiles.txt).

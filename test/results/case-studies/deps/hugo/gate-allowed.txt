@@ -1,0 +1,77 @@
+$ remixware deps . --base-ref ad5703a91712cd245231ba8fdbc49632c794a165 --policy ./test/results/case-studies/deps/inputs/go-project-modules.json --quiet
+
+NOT ALLOWED          golang/github.com/Azure/azure-pipeline-go v0.1.8, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/aws/aws-sdk-go v1.16.23, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/dustin/go-humanize v1.0.0, added (direct)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/golang/protobuf v1.2.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/uuid v1.1.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/wire v0.2.1, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go v2.0.2+incompatible, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go/v2 v2.0.3, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/go.opencensus.io v0.19.2, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/gocloud.dev v0.13.0, added (direct)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Allow rules this change adds to the policy (review them: a change can allow its own packages):
+  golang/golang.org/x/*: modules of the Go project
+  golang/google.golang.org/*: Google's Go API, gRPC and protobuf modules
+  golang/cloud.google.com/*: Google Cloud client libraries
+
+Checks:
+  allow list         ran, 18 added packages: 18 checked from the lockfiles
+  install scripts    not applicable, 24 added or updated versions: 24 not applicable
+                     (Go modules run no install scripts)
+  publisher changes  not applicable, 24 added or updated versions: 24 not applicable
+                     (the Go module proxy records no publisher)
+
+24 changes: 12 not-allowed, 6 allowed, 6 updated.
+FAIL: 12 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

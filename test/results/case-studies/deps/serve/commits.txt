@@ -1,0 +1,33 @@
+project: https://github.com/pytorch/serve
+base: 2551a99e495d973fc916322bed352b3a13bf9d5f
+head: b260776b55283ab6080f00fec62bfcddf766e97d
+head subject: Enable opt-6.7b benchmark on inf2 (#2400)
+head author date: 2023-06-29
+
+requirements change:
+diff --git a/requirements/neuronx.txt b/requirements/neuronx.txt
+new file mode 100644
+index 0000000..929da06
+--- /dev/null
++++ b/requirements/neuronx.txt
+@@ -0,0 +1,7 @@
++--extra-index-url https://pip.repos.neuron.amazonaws.com
++numpy==1.21.6
++protobuf==3.20.3
++grpcio-tools==1.48.2
++neuronx-cc
++torch-neuronx
++transformers-neuronx
+diff --git a/requirements/torch_neuronx_linux.txt b/requirements/torch_neuronx_linux.txt
+new file mode 100644
+index 0000000..adb26c1
+--- /dev/null
++++ b/requirements/torch_neuronx_linux.txt
+@@ -0,0 +1,7 @@
++--extra-index-url https://download.pytorch.org/whl/cpu
++-r torch_common.txt
++torch==1.13.1+cpu
++torchvision==0.14.1+cpu
++torchtext==0.14.1
++torchaudio==0.13.1+cpu
++torchdata==0.5.1

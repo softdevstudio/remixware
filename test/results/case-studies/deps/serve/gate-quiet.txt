@@ -1,0 +1,34 @@
+$ remixware deps . --base-ref 2551a99e495d973fc916322bed352b3a13bf9d5f --quiet
+
+NOT ALLOWED          pypi/neuronx-cc , added (direct)
+                     in requirements/neuronx.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          pypi/torchdata 0.5.1, added (direct)
+                     in requirements/torch_neuronx_linux.txt
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT CHECKED          requirements/neuronx.txt changed
+                     This change tells pip to look for packages somewhere new (--extra-index-url
+                     https://pip.repos.neuron.amazonaws.com), and a package of the same name there
+                     can take the place of the one you expect. Check the index by hand, or take
+                     not-checked out of deps.fail_on.
+
+NOT CHECKED          requirements/torch_neuronx_linux.txt changed
+                     This change tells pip to look for packages somewhere new (--extra-index-url
+                     https://download.pytorch.org/whl/cpu), and a package of the same name there
+                     can take the place of the one you expect. Check the index by hand, or take
+                     not-checked out of deps.fail_on.
+
+Checks:
+  allow list         ran, 2 added packages: 2 checked from the lockfiles
+  install scripts    not run, 8 added or updated versions: 8 not checked (needs
+                     --online)
+  publisher changes  not run, 8 added or updated versions: 8 not checked (needs
+                     --online)
+
+10 changes: 2 not-allowed, 2 not-checked, 6 updated.
+FAIL: 4 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

@@ -1,0 +1,128 @@
+$ remixware deps . --base-ref ad5703a91712cd245231ba8fdbc49632c794a165 --json ./test/results/case-studies/deps/hugo/gate.json
+Compared the dependencies of . with ad5703a91712cd245231ba8fdbc49632c794a165
+Lockfiles: docs/requirements.txt (1 package), docs/src/package-lock.json (0 packages), docs/themes/gohugoioTheme/package-lock.json (859 packages), docs/themes/gohugoioTheme/src/package-lock.json (666 packages), go.mod (105 packages), requirements.txt (2 packages)
+
+NOT ALLOWED          golang/cloud.google.com/go v0.37.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/Azure/azure-pipeline-go v0.1.8, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/Azure/azure-storage-blob-go v0.0.0-20190104215108-45d0c5e3638e, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/aws/aws-sdk-go v1.16.23, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/dustin/go-humanize v1.0.0, added (direct)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/golang/protobuf v1.2.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/uuid v1.1.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/google/wire v0.2.1, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go v2.0.2+incompatible, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/googleapis/gax-go/v2 v2.0.3, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/go.opencensus.io v0.19.2, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/gocloud.dev v0.13.0, added (direct)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/golang.org/x/xerrors v0.0.0-20190129162528-20feca13ea86, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/api v0.2.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          golang/google.golang.org/grpc v1.19.0, added (transitive)
+                     in go.mod
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+UPDATED              golang/github.com/BurntSushi/toml v0.0.0-20170626110600-a368813c5e64 -> v0.3.1 (direct)
+                     in go.mod
+                     At a new version.
+
+UPDATED              golang/github.com/pkg/errors v0.8.0 -> v0.8.1 (direct)
+                     in go.mod
+                     At a new version.
+
+UPDATED              golang/golang.org/x/net v0.0.0-20180906233101-161cd47e91fd -> v0.0.0-20190328230028-74de082e2cca (transitive)
+                     in go.mod
+                     At a new version.
+
+UPDATED              golang/golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f -> v0.0.0-20190227155943-e225da77a7e6 (direct)
+                     in go.mod
+                     At a new version.
+
+UPDATED              golang/golang.org/x/sys v0.0.0-20181031143558-9b800f95dbbc, v0.0.0-20181205085412-a5c9d58dba9a, v0.0.0-20190322080309-f49334f85ddc -> v0.0.0-20190402142545-baf5eb976a8c (transitive)
+                     in go.mod
+                     At a new version.
+
+UPDATED              golang/golang.org/x/text v0.3.0 -> v0.3.1-0.20180807135948-17ff2d5776d2 (direct)
+                     in go.mod
+                     At a new version.
+
+Checks:
+  allow list         ran, 18 added packages: 18 checked from the lockfiles
+  install scripts    not applicable, 24 added or updated versions: 24 not applicable
+                     (Go modules run no install scripts)
+  publisher changes  not applicable, 24 added or updated versions: 24 not applicable
+                     (the Go module proxy records no publisher)
+
+24 changes: 18 not-allowed, 6 updated.
+FAIL: 18 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

@@ -1,0 +1,9 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "npm/esbuild", "install_scripts": true, "reason": "build tool; its install script fetches the binary for this platform"},
+      {"package": "npm/esbuild-*", "reason": "esbuild's platform binaries (0.15 and earlier)"},
+      {"package": "npm/@esbuild/*", "reason": "esbuild's platform binaries"}
+    ]
+  }
+}

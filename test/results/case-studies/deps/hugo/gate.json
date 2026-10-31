@@ -1,0 +1,578 @@
+{
+  "project": ".",
+  "base": "ad5703a91712cd245231ba8fdbc49632c794a165",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "docs/requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 1,
+      "base_packages": 1,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "docs/src/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 0,
+      "base_packages": 0,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "docs/themes/gohugoioTheme/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 859,
+      "base_packages": 859,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "docs/themes/gohugoioTheme/src/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 666,
+      "base_packages": 666,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "go.mod",
+      "kind": "go.mod",
+      "head_packages": 105,
+      "base_packages": 81,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "requirements.txt",
+      "kind": "requirements.txt",
+      "head_packages": 2,
+      "base_packages": 2,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "golang/cloud.google.com/go",
+      "ecosystem": "golang",
+      "name": "cloud.google.com/go",
+      "change": "added",
+      "to": [
+        "v0.37.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/Azure/azure-pipeline-go",
+      "ecosystem": "golang",
+      "name": "github.com/Azure/azure-pipeline-go",
+      "change": "added",
+      "to": [
+        "v0.1.8"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/Azure/azure-storage-blob-go",
+      "ecosystem": "golang",
+      "name": "github.com/Azure/azure-storage-blob-go",
+      "change": "added",
+      "to": [
+        "v0.0.0-20190104215108-45d0c5e3638e"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/aws/aws-sdk-go",
+      "ecosystem": "golang",
+      "name": "github.com/aws/aws-sdk-go",
+      "change": "added",
+      "to": [
+        "v1.16.23"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/dustin/go-humanize",
+      "ecosystem": "golang",
+      "name": "github.com/dustin/go-humanize",
+      "change": "added",
+      "to": [
+        "v1.0.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/golang/protobuf",
+      "ecosystem": "golang",
+      "name": "github.com/golang/protobuf",
+      "change": "added",
+      "to": [
+        "v1.2.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/google/uuid",
+      "ecosystem": "golang",
+      "name": "github.com/google/uuid",
+      "change": "added",
+      "to": [
+        "v1.1.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/google/wire",
+      "ecosystem": "golang",
+      "name": "github.com/google/wire",
+      "change": "added",
+      "to": [
+        "v0.2.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/googleapis/gax-go",
+      "ecosystem": "golang",
+      "name": "github.com/googleapis/gax-go",
+      "change": "added",
+      "to": [
+        "v2.0.2+incompatible"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/googleapis/gax-go/v2",
+      "ecosystem": "golang",
+      "name": "github.com/googleapis/gax-go/v2",
+      "change": "added",
+      "to": [
+        "v2.0.3"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/jmespath/go-jmespath",
+      "ecosystem": "golang",
+      "name": "github.com/jmespath/go-jmespath",
+      "change": "added",
+      "to": [
+        "v0.0.0-20180206201540-c2b33e8439af"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/go.opencensus.io",
+      "ecosystem": "golang",
+      "name": "go.opencensus.io",
+      "change": "added",
+      "to": [
+        "v0.19.2"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/gocloud.dev",
+      "ecosystem": "golang",
+      "name": "gocloud.dev",
+      "change": "added",
+      "to": [
+        "v0.13.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/golang.org/x/oauth2",
+      "ecosystem": "golang",
+      "name": "golang.org/x/oauth2",
+      "change": "added",
+      "to": [
+        "v0.0.0-20190226205417-e64efc72b421"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/golang.org/x/xerrors",
+      "ecosystem": "golang",
+      "name": "golang.org/x/xerrors",
+      "change": "added",
+      "to": [
+        "v0.0.0-20190129162528-20feca13ea86"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/google.golang.org/api",
+      "ecosystem": "golang",
+      "name": "google.golang.org/api",
+      "change": "added",
+      "to": [
+        "v0.2.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/google.golang.org/genproto",
+      "ecosystem": "golang",
+      "name": "google.golang.org/genproto",
+      "change": "added",
+      "to": [
+        "v0.0.0-20190307195333-5fe7a883aa19"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/google.golang.org/grpc",
+      "ecosystem": "golang",
+      "name": "google.golang.org/grpc",
+      "change": "added",
+      "to": [
+        "v1.19.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "golang/github.com/BurntSushi/toml",
+      "ecosystem": "golang",
+      "name": "github.com/BurntSushi/toml",
+      "change": "updated",
+      "from": [
+        "v0.0.0-20170626110600-a368813c5e64"
+      ],
+      "to": [
+        "v0.3.1"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "golang/github.com/pkg/errors",
+      "ecosystem": "golang",
+      "name": "github.com/pkg/errors",
+      "change": "updated",
+      "from": [
+        "v0.8.0"
+      ],
+      "to": [
+        "v0.8.1"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "golang/golang.org/x/net",
+      "ecosystem": "golang",
+      "name": "golang.org/x/net",
+      "change": "updated",
+      "from": [
+        "v0.0.0-20180906233101-161cd47e91fd"
+      ],
+      "to": [
+        "v0.0.0-20190328230028-74de082e2cca"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "golang/golang.org/x/sync",
+      "ecosystem": "golang",
+      "name": "golang.org/x/sync",
+      "change": "updated",
+      "from": [
+        "v0.0.0-20180314180146-1d60e4601c6f"
+      ],
+      "to": [
+        "v0.0.0-20190227155943-e225da77a7e6"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "golang/golang.org/x/sys",
+      "ecosystem": "golang",
+      "name": "golang.org/x/sys",
+      "change": "updated",
+      "from": [
+        "v0.0.0-20181031143558-9b800f95dbbc",
+        "v0.0.0-20181205085412-a5c9d58dba9a",
+        "v0.0.0-20190322080309-f49334f85ddc"
+      ],
+      "to": [
+        "v0.0.0-20190402142545-baf5eb976a8c"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "golang/golang.org/x/text",
+      "ecosystem": "golang",
+      "name": "golang.org/x/text",
+      "change": "updated",
+      "from": [
+        "v0.3.0"
+      ],
+      "to": [
+        "v0.3.1-0.20180807135948-17ff2d5776d2"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "go.mod"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 18,
+      "offline": 18,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "not-applicable",
+      "packages": 24,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 24
+    },
+    {
+      "name": "publisher",
+      "status": "not-applicable",
+      "packages": 24,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 24
+    }
+  ],
+  "counts": {
+    "not-allowed": 18,
+    "updated": 6
+  }
+}
