@@ -213,7 +213,7 @@ NOT ALLOWED          pypi/grpcio-tools 1.48.2, added (direct)
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.
 
-NOT ALLOWED          pypi/neuronx-cc , added (direct)
+NOT ALLOWED          pypi/neuronx-cc unpinned, added (direct)
                      in ml/requirements-neuron.txt
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.
@@ -228,12 +228,12 @@ NOT ALLOWED          pypi/protobuf 3.20.3, added (direct)
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.
 
-NOT ALLOWED          pypi/torch-neuronx , added (direct)
+NOT ALLOWED          pypi/torch-neuronx unpinned, added (direct)
                      in ml/requirements-neuron.txt
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.
 
-NOT ALLOWED          pypi/transformers-neuronx , added (direct)
+NOT ALLOWED          pypi/transformers-neuronx unpinned, added (direct)
                      in ml/requirements-neuron.txt
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.

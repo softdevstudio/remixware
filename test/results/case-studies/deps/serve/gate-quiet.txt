@@ -1,6 +1,6 @@
 $ remixware deps . --base-ref 2551a99e495d973fc916322bed352b3a13bf9d5f --quiet
 
-NOT ALLOWED          pypi/neuronx-cc , added (direct)
+NOT ALLOWED          pypi/neuronx-cc unpinned, added (direct)
                      in requirements/neuronx.txt
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.

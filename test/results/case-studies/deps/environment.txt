@@ -1,5 +1,5 @@
-recorded: 2026-10-31T10:19:52Z
+recorded: 2026-10-31T10:36:40Z
 machine: Linux 6.18.44-fc-v185 x86_64
-remixware: remixware 0.3.1
+remixware: remixware 0.3.2
 git: git version 2.43.0
 all runs offline (no --online)

@@ -1,5 +1,5 @@
 $ (run block of deps.yml, base_ref=main)
-remixware 0.3.1
+remixware 0.3.2
 
 INSTALL SCRIPT       npm/esbuild 0.15.13, added (direct)
                      in package-lock.json

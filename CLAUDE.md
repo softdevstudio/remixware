@@ -433,27 +433,25 @@ Known gaps, not planned yet:
 Nothing is approved after 0.3.0. Ask the owner before starting anything
 new.
 
-## In progress: 0.3.2 fixes (2026-10-31)
+## Done: 0.3.2 deps fixes (2026-10-31)
 
-Asked for by the owner: two fixes in the deps gate, then release 0.3.2.
-
-1. With `deps.lockfiles` set, a lockfile-like file outside the list that
-   appears or changes is `not-checked` (fails by default), saying it's
-   outside the list and how to add it or ignore it. Files a listed
-   requirements file reads with -r/-c don't count as outside. Failing test
-   first, monorepo case included.
-2. An unpinned requirement shows `unpinned` in text and JSON (from, to,
-   issue version), never an empty string; documented in the README.
-
-Then: record-deps.sh (not the benchmark), deps_case_studies.sh on the new
-build if quoted outputs change (serve post, recipes post), VERSION 0.3.2,
-CHANGELOG, README, push; the release workflow publishes. Site: reference
-deps section and version badge.
-
-Status: both fixed in deps.go (failing-first tests in deps_fix_test.go:
-monorepo, git revision, unpinned), README updated, record-deps.sh re-run
-(47 tests, fixture output unchanged), VERSION 0.3.2 pushed. Next: watch
-CI and the release, then case studies with the released build, site.
+Asked for by the owner. With `deps.lockfiles` set, a lockfile outside the
+list that the change adds or edits is now `not-checked` (CompareDeps
+still runs findLockfiles on head; files a listed requirements file reads
+via -r/-c, recorded by readsTree, count as read; ignore skips on
+purpose). An unpinned requirement shows `unpinned` (UnpinnedVersion) in
+from/to and issue versions, mapped at the end of CompareDeps; internally
+it stays "" so "foo @ unpinned" can't collide. Tests in deps_fix_test.go
+(monorepo, git revision, unpinned), written failing first. record-deps.sh
+re-run (47 tests, fixture unchanged); benchmark not re-run. Released as
+v0.3.2: five archives plus SHA256SUMS, every latest/download link 200,
+Linux build checksum OK, prints 0.3.2. deps_case_studies.sh re-run with
+the released build: serve and monorepo recipes now show `unpinned`,
+monorepo-lockfiles has 48 changes (1 not-checked: the new
+ml/requirements-neuron.txt), 42 failing; TypeScript and Hugo unchanged.
+remixware.com: reference (requirements line, not-checked row, JSON
+from/to, deps.lockfiles row), TorchServe post's "Something We Noticed",
+recipes post's lockfiles paragraph and 0.3.2 download line, badge 0.3.2.
 
 ## Done: deps case studies (2026-10-31)
 

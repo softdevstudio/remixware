@@ -208,6 +208,11 @@ NOT ALLOWED          npm/esbuild-windows-arm64 0.15.13, added (transitive)
                      New, and not on the allow list. Add a deps allow rule with a reason to the
                      policy file, or drop it.
 
+NOT CHECKED          ml/requirements-neuron.txt changed
+                     ml/requirements-neuron.txt is new, and it isn't in the policy's
+                     deps.lockfiles, so Remixware didn't read it. Add it to deps.lockfiles to check
+                     its packages, or add it to the policy's ignore to leave it out on purpose.
+
 Settings this change alters in the policy (review them: a change can loosen its own gate):
   deps.lockfiles: (none) -> web/package-lock.json, api/go.mod, ml/requirements.txt
 
@@ -219,6 +224,6 @@ Checks:
                      --online), 24 not applicable (the Go module proxy records no
                      publisher)
 
-47 changes: 1 install-script, 40 not-allowed, 6 updated.
-FAIL: 41 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+48 changes: 1 install-script, 40 not-allowed, 1 not-checked, 6 updated.
+FAIL: 42 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
 exit code: 1
