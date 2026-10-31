@@ -433,6 +433,25 @@ Known gaps, not planned yet:
 Nothing is approved after 0.3.0. Ask the owner before starting anything
 new.
 
+## In progress: 0.3.2 fixes (2026-10-31)
+
+Asked for by the owner: two fixes in the deps gate, then release 0.3.2.
+
+1. With `deps.lockfiles` set, a lockfile-like file outside the list that
+   appears or changes is `not-checked` (fails by default), saying it's
+   outside the list and how to add it or ignore it. Files a listed
+   requirements file reads with -r/-c don't count as outside. Failing test
+   first, monorepo case included.
+2. An unpinned requirement shows `unpinned` in text and JSON (from, to,
+   issue version), never an empty string; documented in the README.
+
+Then: record-deps.sh (not the benchmark), deps_case_studies.sh on the new
+build if quoted outputs change (serve post, recipes post), VERSION 0.3.2,
+CHANGELOG, README, push; the release workflow publishes. Site: reference
+deps section and version badge.
+
+Status: plan pushed.
+
 ## Done: deps case studies (2026-10-31)
 
 `scripts/deps_case_studies.sh REMIXWARE CACHE` records the released 0.3.1
