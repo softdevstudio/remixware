@@ -416,3 +416,23 @@ Known gaps, not planned yet:
 
 Nothing is approved after 0.3.0. Ask the owner before starting anything
 new.
+
+## In progress: deps case studies
+
+Started 2026-10-31 by a separate session (an independent reviewer works on
+the gate's code at the same time; this work only adds files). Plan:
+
+1. Pick 2 or 3 real public projects whose git history has dependency
+   changes the gate catches (new transitive tree in Go, an npm package
+   with an install script, a Python index or package change). Clone
+   shallowly at the two commits, run the released binary offline, record
+   commands, hashes and output.
+2. `scripts/deps_case_studies.sh` and the recorded runs under
+   `test/results/case-studies/deps/`; every number on the site comes from
+   there.
+3. Site: case study posts (tag "case studies"), one use examples post
+   (tag "use cases") with each recipe run, links from the dependency gate
+   post and the quick start.
+4. Bugs found in the gate are noted here, not fixed.
+
+Status: plan pushed.
