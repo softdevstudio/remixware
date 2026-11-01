@@ -212,7 +212,9 @@ func (r *Registry) goFacts(module, version string) (VersionFacts, error) {
 		}
 		switch {
 		case strings.HasSuffix(rel, ".syso"):
-			return VersionFacts{NativeCode: true}, nil
+			if buildsOnMainPlatform(path.Base(rel), nil) {
+				return VersionFacts{NativeCode: true}, nil
+			}
 		case strings.HasSuffix(rel, ".go") && !strings.HasSuffix(rel, "_test.go"):
 			rc, err := f.Open()
 			if err != nil {
@@ -223,8 +225,10 @@ func (r *Registry) goFacts(module, version string) (VersionFacts, error) {
 			if err != nil {
 				return VersionFacts{}, fmt.Errorf("module %s %s: %v", module, version, err)
 			}
-			if neverBuilt(src) {
-				continue // //go:build ignore: a generator's input, not built
+			if !buildsOnMainPlatform(path.Base(rel), src) {
+				// Built only elsewhere (zsyscall_aix_ppc.go, //go:build hurd),
+				// or never (//go:build ignore, a generator's input).
+				continue
 			}
 			pf, err := parser.ParseFile(gotoken.NewFileSet(), rel, src, parser.ImportsOnly)
 			if err != nil {
@@ -258,24 +262,78 @@ func escapeModulePath(s string) (string, error) {
 	return b.String(), nil
 }
 
-// neverBuilt says whether a Go file's build constraint rules it out
-// whatever the platform: one that needs the ignore tag (generator inputs,
-// such as golang.org/x/sys's cgo -godefs files). Every other tag counts as
-// set, so a file built anywhere counts.
-func neverBuilt(src []byte) bool {
-	for _, line := range strings.Split(string(src[:min(len(src), 8<<10)]), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "package ") {
-			break
+// mainPlatforms are the platforms native code is looked for on: a cgo
+// file golang.org/x/sys builds only for AIX shouldn't flag every program
+// that imports it.
+var mainPlatforms = [][2]string{{"linux", "amd64"}, {"linux", "arm64"}, {"darwin", "amd64"}, {"darwin", "arm64"},
+	{"windows", "amd64"}, {"windows", "arm64"}}
+
+var (
+	knownOS = map[string]bool{"aix": true, "android": true, "darwin": true, "dragonfly": true, "freebsd": true,
+		"hurd": true, "illumos": true, "ios": true, "js": true, "linux": true, "nacl": true, "netbsd": true,
+		"openbsd": true, "plan9": true, "solaris": true, "wasip1": true, "windows": true, "zos": true}
+	knownArch = map[string]bool{"386": true, "amd64": true, "amd64p32": true, "arm": true, "armbe": true,
+		"arm64": true, "arm64be": true, "loong64": true, "mips": true, "mipsle": true, "mips64": true,
+		"mips64le": true, "mips64p32": true, "mips64p32le": true, "ppc": true, "ppc64": true, "ppc64le": true,
+		"riscv": true, "riscv64": true, "s390": true, "s390x": true, "sparc": true, "sparc64": true, "wasm": true}
+)
+
+// buildsOnMainPlatform says whether Go would build a file (name and, for a
+// Go file, its source) for one of mainPlatforms with cgo on: the GOOS and
+// GOARCH in its name (x_aix_ppc.go) and its build constraint must allow it.
+// Tags Remixware can't know (a project's own) count as set; ignore and
+// gccgo don't.
+func buildsOnMainPlatform(name string, src []byte) bool {
+	parts := strings.Split(strings.TrimSuffix(strings.TrimSuffix(name, path.Ext(name)), "_test"), "_")
+	var fileOS, fileArch string
+	if n := len(parts); n >= 2 {
+		last, prev := parts[n-1], parts[n-2]
+		switch {
+		case n >= 3 && knownOS[prev] && knownArch[last]:
+			fileOS, fileArch = prev, last
+		case knownOS[last]:
+			fileOS = last
+		case knownArch[last]:
+			fileArch = last
 		}
-		if !constraint.IsGoBuild(line) && !constraint.IsPlusBuild(line) {
+	}
+	var exprs []constraint.Expr
+	if src != nil {
+		for _, line := range strings.Split(string(src[:min(len(src), 8<<10)]), "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "package ") {
+				break
+			}
+			if constraint.IsGoBuild(line) || constraint.IsPlusBuild(line) {
+				if e, err := constraint.Parse(line); err == nil {
+					exprs = append(exprs, e)
+				}
+			}
+		}
+	}
+	for _, pl := range mainPlatforms {
+		goos, goarch := pl[0], pl[1]
+		if (fileOS != "" && fileOS != goos) || (fileArch != "" && fileArch != goarch) {
 			continue
 		}
-		expr, err := constraint.Parse(line)
-		if err != nil {
-			continue
+		tag := func(t string) bool {
+			switch {
+			case t == goos || t == goarch || t == "cgo" || t == "gc" || strings.HasPrefix(t, "go1."):
+				return true
+			case t == "unix":
+				return goos != "windows"
+			case t == "ignore" || t == "gccgo" || knownOS[t] || knownArch[t]:
+				return false
+			}
+			return true
 		}
-		if !expr.Eval(func(tag string) bool { return tag != "ignore" }) {
+		ok := true
+		for _, e := range exprs {
+			if !e.Eval(tag) {
+				ok = false
+			}
+		}
+		if ok {
 			return true
 		}
 	}

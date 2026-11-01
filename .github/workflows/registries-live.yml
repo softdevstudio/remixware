@@ -6,7 +6,8 @@ name: Registries live check
 # and reports what Remixware found as annotations:
 #   Go:    github.com/mattn/go-sqlite3 (cgo, native-code expected),
 #          github.com/google/uuid (pure Go, nothing expected),
-#          golang.org/x/sys (generator inputs behind //go:build ignore)
+#          golang.org/x/sys (cgo only for AIX and Hurd, and generator
+#          inputs behind //go:build ignore: not native-code)
 #   Rust:  serde_derive (a proc-macro) and libc (a build script) expected
 #          as install-script; syn (neither) not.
 on:
@@ -55,7 +56,13 @@ jobs:
               *) echo "::error::$1: $got, expected $2"; bad=1 ;;
             esac
           done
-          echo "::notice::golang/golang.org/x/sys: $(status golang/golang.org/x/sys) (generator inputs behind //go:build ignore don't count)"
+          # x/sys compiles C only for AIX and Hurd, and has cgo generator
+          # inputs behind //go:build ignore: neither counts.
+          got=$(status golang/golang.org/x/sys)
+          case "$got" in
+            *native-code*) echo "::error::golang/golang.org/x/sys: $got, expected no native-code"; bad=1 ;;
+            *) echo "::notice::golang/golang.org/x/sys: $got, no native-code, as expected" ;;
+          esac
           grep -E "^  (install scripts|native code)" "$w/out.txt" > "$w/checks.txt" || true
           while read -r line; do echo "::notice::$line"; done < "$w/checks.txt"
           exit $bad
