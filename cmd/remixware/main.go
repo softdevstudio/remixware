@@ -243,6 +243,7 @@ func cmdIndex(args []string, stdout, stderr io.Writer) error {
 }
 
 type compareOpts struct {
+	output                             outputFlags
 	indexes, from, exclude             multi
 	jsonOut, htmlOut, spdxOut          string
 	license, policy, failOn            string
@@ -275,6 +276,8 @@ func compareFlags(cmd string, stderr io.Writer) (*flag.FlagSet, *compareOpts) {
 		fs.StringVar(&o.htmlOut, "html", "", "write an HTML report to this file")
 		fs.StringVar(&o.spdxOut, "spdx", "", "write the findings as an SPDX 2.3 JSON document to this file")
 	case "check":
+		fs.StringVar(&o.output.format, "format", "text", "output: text, or github (error annotations on the copied lines, for GitHub Actions)")
+		fs.StringVar(&o.output.summary, "summary", "", "append a Markdown summary to this file (such as $GITHUB_STEP_SUMMARY)")
 		fs.StringVar(&o.failOn, "fail-on", "", "statuses that fail the check, comma separated (default: the policy's fail_on, or "+strings.Join(remixware.DefaultFailOn, ",")+")")
 		fs.StringVar(&o.jsonOut, "json", "", "write the findings as JSON to this file")
 		fs.StringVar(&o.htmlOut, "html", "", "write an HTML report to this file")
@@ -605,6 +608,9 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 	var flagFailOn []string
 	// A typo in --fail-on is found before the scan, not after it.
 	checkFlags := func(o *compareOpts) error {
+		if err := o.output.validate(); err != nil {
+			return err
+		}
 		if o.failOn == "" {
 			return nil
 		}
@@ -644,20 +650,29 @@ func cmdCheck(args []string, stdout, stderr io.Writer) (int, error) {
 		header(stdout, res)
 	}
 	fails := remixware.Failures(res, failOn)
-	for _, f := range fails {
-		printFinding(stdout, f)
-	}
 	var warns []remixware.Finding
 	for _, f := range res.Findings {
 		if f.Status == remixware.StatusReview && !containsString(failOn, f.Status) {
 			warns = append(warns, f)
 		}
 	}
-	for _, f := range warns {
-		printFinding(stdout, f)
+	if o.output.github() {
+		checkAnnotations(stdout, res.Project, fails, warns)
+	} else {
+		for _, f := range fails {
+			printFinding(stdout, f)
+		}
+		for _, f := range warns {
+			printFinding(stdout, f)
+		}
 	}
 	if err := writeReports(res, o, stderr); err != nil {
 		return exitUsage, err
+	}
+	if o.output.summary != "" {
+		if err := appendSummary(o.output.summary, checkSummary(res.Project, fails, warns, failOn, res)); err != nil {
+			return exitUsage, err
+		}
 	}
 	fmt.Fprintf(stdout, "\n%s\n", summary(res))
 	if len(fails) > 0 {

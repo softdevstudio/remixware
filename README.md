@@ -602,9 +602,11 @@ remixware index <folder>... [--out FILE] [--name N] [--version V] [--license EXP
                             [--max-common N] [--quiet]
 remixware scan [project] (--index FILE | --from FILE | --scanoss)... [--html F] [--json F] [--spdx F]
 remixware check [project] (--index FILE | --from FILE | --scanoss)... [--fail-on LIST] [--html F] [--json F]
+                          [--format text|github] [--summary F]
 remixware notice [project] (--index FILE | --from FILE | --scanoss)... [--out FILE] [--all]
 remixware deps [project] (--base FOLDER | --base-ref REV) [--online] [--fail-on LIST] [--json F]
                          [--base-policy] [--cache F] [--no-cache] [--npm-registry URL] [--pypi-url URL]
+                         [--format text|github] [--summary F]
 remixware licenses
 remixware version
 ```
@@ -621,6 +623,20 @@ after the project folder.
 
 `deps` also takes `--policy` and `--quiet` (see
 [Dependency changes](#dependency-changes)).
+
+`check` and `deps` take two flags for GitHub Actions. `--format github`
+prints each failing finding or change as an `::error` workflow command
+instead of a text block (and `check` prints `review` findings that don't
+fail as `::warning`), so they show as annotations on the pull request:
+`check` on the copied lines, `deps` on the lockfile, at the first line
+naming the package. Paths are given relative to the working folder, which
+in Actions is the checkout. `--summary FILE` appends a Markdown summary
+(the verdict, a table of findings or changes, and for `deps` what each
+check covered) to FILE; pass `"$GITHUB_STEP_SUMMARY"` to put it on the
+run's page. Tables stop at 100 rows; the JSON report has the rest. Text
+from projects, indexes and registries is cleaned first: control
+characters are replaced, so a name can't end an annotation or start
+another, and Markdown and HTML in a summary cell show as text.
 
 Exit codes: 0 when all went well, 1 when `check` found findings that break
 the policy or `deps` found changes that do, 2 for bad arguments, unreadable files and other errors. A

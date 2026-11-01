@@ -18,6 +18,7 @@ type depsOpts struct {
 	base, baseRef, policy, failOn, jsonOut string
 	cache, npmURL, pypiURL                 string
 	online, noCache, quiet, basePolicy     bool
+	output                                 outputFlags
 }
 
 func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
@@ -36,11 +37,14 @@ func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
 	fs.StringVar(&o.npmURL, "npm-registry", "", "npm registry URL for --online (default "+remixware.NPMRegistry+")")
 	fs.StringVar(&o.pypiURL, "pypi-url", "", "PyPI JSON API URL for --online (default "+remixware.PyPIURL+")")
 	fs.BoolVar(&o.quiet, "quiet", false, "print only the problems and the result")
+	fs.StringVar(&o.output.format, "format", "text", "output: text, or github (error annotations on the lockfiles, for GitHub Actions)")
+	fs.StringVar(&o.output.summary, "summary", "", "append a Markdown summary to this file (such as $GITHUB_STEP_SUMMARY)")
 	fs.Usage = func() {
 		fmt.Fprint(fs.Output(), `Usage: remixware deps [project] (--base FOLDER | --base-ref REV) [flags]
 
 Compares the packages the project's lockfiles name (go.mod and go.sum,
-package-lock.json, requirements files, poetry.lock) with those of the base, and
+package-lock.json, pnpm-lock.yaml, yarn.lock, requirements files,
+poetry.lock, uv.lock) with those of the base, and
 exits with status 1 when the change adds a package that isn't on the policy's
 deps allow list, a package that runs install scripts, or a release by a new
 publisher. Without --online it uses the lockfiles only.
@@ -64,6 +68,9 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 	project := "."
 	if len(pos) == 1 {
 		project = pos[0]
+	}
+	if err := o.output.validate(); err != nil {
+		return exitUsage, err
 	}
 	if (o.base == "") == (o.baseRef == "") {
 		fs.Usage()
@@ -161,8 +168,12 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 	if !o.quiet {
 		shown = res.Changes
 	}
-	for _, c := range shown {
-		printDepChange(stdout, c)
+	if o.output.github() {
+		depAnnotations(stdout, project, fails, failOn)
+	} else {
+		for _, c := range shown {
+			printDepChange(stdout, c)
+		}
 	}
 	fmt.Fprintln(stdout)
 	if len(res.NewAllowRules) > 0 {
@@ -189,6 +200,11 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 	printChecks(stdout, res)
 	if o.jsonOut != "" {
 		if err := writeDepsJSON(o.jsonOut, res); err != nil {
+			return exitUsage, err
+		}
+	}
+	if o.output.summary != "" {
+		if err := appendSummary(o.output.summary, depsSummaryMarkdown(project, res, fails, failOn)); err != nil {
 			return exitUsage, err
 		}
 	}
