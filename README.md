@@ -102,7 +102,21 @@ folders, where it gets none. Code with no licence at all is reported as
 
 - Several licence files all apply, except files that each name one licence,
   such as `LICENSE-MIT` and `LICENSE-APACHE`, or a short file saying the
-  project is dual licensed: those are a choice (`Apache-2.0 OR MIT`).
+  project is dual licensed: those are a choice (`Apache-2.0 OR MIT`). Not
+  when a short file names them without offering a choice (the library
+  under `LICENSE-MIT`, the documentation under `LICENSE-APACHE`): then they
+  all apply. GPL and LGPL files together are never a choice.
+- A licence text is read by its own wording. The SIL Open Font License,
+  whose grant starts like MIT's, is OFL; a BSD text whose third clause
+  reads "may not be used to endorse or promote" is BSD-3-Clause; the
+  Functional Source License is source-available; Creative Commons texts of
+  any version keep their NonCommercial, NoDerivs and ShareAlike terms. A
+  permissive text with terms of its own on top (the complete source must
+  be available, the software mustn't be used in nuclear facilities or by
+  the military) is `LicenseRef-Unrecognised`, which needs review, never
+  its base licence. `scripts/spdx-corpus.sh` reads every text of the SPDX
+  License List and checks that none is read as a licence that asks less
+  than it does (`test/results/licences/spdx-corpus.txt`).
 - A crate whose `Cargo.toml` says `license.workspace = true` takes the
   licence of its workspace, when the workspace is inside the indexed
   folder. A licence file that a manifest names counts only inside the
@@ -274,6 +288,9 @@ Checks:
   publisher changes  not run, 10 added or updated versions: 7 not checked (needs
                      --online), 3 not applicable (the Go module proxy records no
                      publisher)
+  native code        not run, 10 added or updated versions: 3 not checked (needs
+                     --online), 7 not applicable (only Go modules are checked for
+                     native code)
 
 10 changes: 1 install-script, 2 not-allowed, 3 allowed, 4 updated.
 FAIL: 3 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
@@ -348,6 +365,13 @@ the change and in the base:
   with a wheel installs without running code; one with only a source
   archive, from git or from a source archive URL or path, builds from
   source, which counts as an install script.
+- `Cargo.lock`, versions 3 and 4 and older files without a version line.
+  Crates without a `source` are the workspace's own (the root and path
+  dependencies), and the crates they depend on are direct. A crate from
+  crates.io (its git or sparse index) is a registry package; git sources
+  and other registries aren't. `Cargo.lock` doesn't record build scripts
+  or procedural macros, so those are checked with `--online`. An entry
+  using `replace` stops the command.
 
 The YAML and TOML in these files are read by small strict readers: YAML
 anchors, tags and block scalars, tabs, keys given twice, values TOML
@@ -387,19 +411,21 @@ new packages.
 | Status | Meaning |
 |---|---|
 | `not-allowed` | A package no lockfile on the base names, direct or transitive, and no allow rule names. |
-| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip or uv builds from source. |
+| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip or uv builds from source, or a crate with a build script or a procedural macro, which runs when it's compiled. |
 | `publisher-changed` | An added or updated version was published within `publisher_days` (90 by default) by someone who neither published nor maintained the version it's compared with: the base's version for an update, the release before it for a new package. Only with `--online`. |
 | `not-checked` | A lockfile Remixware doesn't read changed, or a lockfile outside `deps.lockfiles` was added or changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry), or the change deletes a lockfile and keeps its manifest. |
 | `allowed` | A new package an allow rule names. |
 | `updated` | A package at a new version, with nothing wrong found. |
 | `removed` | A package no lockfile names any more. |
+| `native-code` | An added or updated Go module compiles C code with cgo or links prebuilt `.syso` objects, on Linux, macOS or Windows. Only with `--online`. Reports without failing unless `fail_on` names it. |
 
 A package counts as new when no lockfile on the base names it under that
 name, in that ecosystem. The install-script and publisher checks look at
 every added or updated version and nothing else: what main already has
 isn't checked again. `deps` fails on `not-allowed`, `install-script`,
 `publisher-changed` and `not-checked` unless `--fail-on` or the policy's
-`deps.fail_on` says otherwise.
+`deps.fail_on` says otherwise. `native-code` only reports; add it to
+`fail_on` to fail on it.
 
 ### Offline and online checks
 
@@ -416,11 +442,29 @@ about each added or updated version from those registries: whether it runs
 install scripts, who published it and who maintained it. npm records the
 account that published each version. PyPI doesn't say who uploaded a
 release, so for PyPI the publisher is the release's maintainer and author
-metadata, which is weaker evidence. Go modules run no code when they're
-downloaded, and the Go module proxy keeps no record of publishers, so both
-checks are "not applicable" to them. Packages from other registries, git or
-local folders, and requirements that aren't pinned to one version aren't
-looked up, and the output counts them.
+metadata, which is weaker evidence.
+
+For a crate from crates.io it downloads the `.crate` file
+(`https://static.crates.io/crates`) and reads whether the crate runs code
+when it's compiled: a build script (`build.rs`, unless its `Cargo.toml`
+says `build = false`, or the file `build` names) or a procedural macro
+(`[lib] proc-macro = true`). Either is an `install-script`. crates.io
+publishers aren't checked yet, and the publisher check says so.
+
+Go modules run no code when they're built, and the Go module proxy keeps
+no record of publishers, so the install-script and publisher checks are
+"not applicable" to them. What a module can bring is native code: for each
+added or updated module, `deps` downloads its zip from the module proxy
+(`https://proxy.golang.org`) and looks for Go files that import `"C"`
+(cgo) and prebuilt `.syso` objects. Only files Go builds for Linux, macOS
+or Windows on amd64 or arm64 count: by their name (`x_aix_ppc.go`) and
+build constraint (`//go:build ignore` never counts), so golang.org/x/sys,
+which uses cgo only on AIX and GNU Hurd, isn't flagged. Test files,
+`testdata`, `vendor` and nested modules are left out. A module with native
+code gets the `native-code` status, which reports without failing unless
+`fail_on` names it. Packages from other registries, git or local folders,
+and requirements that aren't pinned to one version aren't looked up, and
+the output counts them. Downloads stop at 64 MB.
 
 What a registry says about a published version doesn't change, so answers
 are kept in a cache file (`--cache FILE`, by default
@@ -429,7 +473,9 @@ are kept in a cache file (`--cache FILE`, by default
 In CI, keep that file between runs with your CI's cache. A lookup that
 fails (the registry is down, a version isn't there, the answer isn't the
 JSON expected) ends the command with exit code 2, never a pass.
-`--npm-registry` and `--pypi-url` point the lookups at a mirror.
+`--npm-registry`, `--pypi-url`, `--crates-url` and `--go-proxy` point the
+lookups at a mirror. `.github/workflows/registries-live.yml`, run by hand,
+asks the real registries about known crates and modules.
 
 ### Allow rules and the policy
 
@@ -452,13 +498,15 @@ The `deps` object in `.remixware.json` holds the gate's settings:
 ```
 
 - `allow`: each rule names a `package` as ecosystem and name (`golang/`,
-  `npm/` or `pypi/`, then the module path or package name; `*` matches
-  anything) and gives a `reason`. A new package a rule names is `allowed`.
-  A rule doesn't accept the package's install scripts or a publisher change
-  unless it says `install_scripts: true` or `publisher_change: true`. Go
-  and npm names compare exactly, case included (`github.com/Sirupsen/logrus`
-  and `github.com/sirupsen/logrus` are different modules); PyPI names are
-  normalised as pip does (`Zope.Interface` is `zope-interface`).
+  `npm/`, `pypi/` or `cargo/`, then the module path or package name; `*`
+  matches anything) and gives a `reason`. A new package a rule names is
+  `allowed`. A rule doesn't accept the package's install scripts, a
+  publisher change or native code unless it says `install_scripts: true`,
+  `publisher_change: true` or `native_code: true`. Go and npm names compare
+  exactly, case included (`github.com/Sirupsen/logrus` and
+  `github.com/sirupsen/logrus` are different modules); PyPI names are
+  normalised as pip does (`Zope.Interface` is `zope-interface`), and crate
+  names as crates.io compares them (`Fancy_Name` is `fancy-name`).
 - `fail_on`: the statuses that fail. An empty list is an error.
 - `lockfiles`: the lockfiles to read, instead of searching for them. A
   path that's in neither the change nor the base is an error. Remixware
@@ -641,6 +689,7 @@ remixware check [project] (--index FILE | --from FILE | --scanoss)... [--fail-on
 remixware notice [project] (--index FILE | --from FILE | --scanoss)... [--out FILE] [--all]
 remixware deps [project] (--base FOLDER | --base-ref REV) [--online] [--fail-on LIST] [--json F]
                          [--base-policy] [--cache F] [--no-cache] [--npm-registry URL] [--pypi-url URL]
+                         [--crates-url URL] [--go-proxy URL]
                          [--format text|github] [--summary F]
 remixware licenses
 remixware version

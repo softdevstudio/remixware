@@ -20,6 +20,18 @@
   without offering a choice ("the library is under LICENSE-MIT, the
   documentation under LICENSE-APACHE") makes them all apply, and GPL and
   LGPL files together are never a choice.
+- `remixware deps` reads `Cargo.lock` (versions 3 and 4, and older files
+  without a version). With `--online` it downloads each added or updated
+  crate's `.crate` file and reports a build script or a procedural macro,
+  which run code when the crate is compiled, as `install-script`.
+- With `--online`, each added or updated Go module's zip comes from the Go
+  module proxy, and a module that compiles C with cgo or links `.syso`
+  objects on Linux, macOS or Windows gets the new status `native-code`.
+  It reports without failing unless `deps.fail_on` names it; the allow-rule
+  key `native_code: true` accepts it. Every run's `Checks:` block and JSON
+  have a fourth check, `native-code`.
+- `--crates-url` and `--go-proxy` point those lookups at a mirror. Allow
+  rules take `cargo/` names, compared as crates.io compares them.
 - Every text of the SPDX License List was read with the new detection
   (scripts/spdx-corpus.sh, test/results/licences/spdx-corpus.txt): of
   794, none is read as a licence that asks less than it does.

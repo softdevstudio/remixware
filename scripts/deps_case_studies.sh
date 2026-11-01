@@ -22,6 +22,9 @@
 #   react       facebook/react 7df975a (yarn.lock, yarn 1),
 #               "[react-devtools-cdt-mcp] add chrome-devtools E2E coverage"
 #   pydantic-ai pydantic/pydantic-ai ab311a5 (uv.lock), "Add BoxdSandbox"
+#   ripgrep     BurntSushi/ripgrep be739c7 (Cargo.lock), "index: add
+#               grep-index crate", and e988d4b, "deps: update everything";
+#               both also with --online (crates.io's .crate files)
 #   recipes     the use examples, run on a small git repository made from
 #               the TypeScript lockfiles and a monorepo made from all three
 set -uo pipefail
@@ -75,7 +78,7 @@ summary() {
   echo "machine: $(uname -srm)"
   echo "remixware: $("$bin" version)"
   echo "git: $(git --version)"
-  echo "all runs offline (no --online)"
+  echo "all runs offline (no --online) except the ripgrep gate-online runs, which download .crate files from static.crates.io"
 } > "$out/environment.txt"
 
 # --- TypeScript: one package.json line, esbuild and its platform packages
@@ -149,6 +152,10 @@ lockcase vite https://github.com/vitejs/vite.git 5b73935881424ed5919571036dd89d3
 lockcase babel https://github.com/babel/babel.git 7750b3d6912344e8a621a99a393cc2f5d3f4d2db yarn.lock
 lockcase react https://github.com/facebook/react.git 7df975a0c56de0e9d0d6d9c36a000185db58fc00 yarn.lock
 lockcase pydantic-ai https://github.com/pydantic/pydantic-ai.git ab311a5d093494dcb6c4005bbd40bda79738fcf0 uv.lock
+lockcase ripgrep https://github.com/BurntSushi/ripgrep.git be739c7910288905d966f87607b28435d1576295 Cargo.lock
+record ripgrep/gate-online.txt "$cache/ripgrep" deps . --base-ref "$(git -C "$cache/ripgrep" rev-parse HEAD^)" --online --no-cache --quiet
+lockcase ripgrep-update https://github.com/BurntSushi/ripgrep.git e988d4b6182dbd62d9cba636a37140d6885360dc Cargo.lock
+record ripgrep-update/gate-online.txt "$cache/ripgrep-update" deps . --base-ref "$(git -C "$cache/ripgrep-update" rev-parse HEAD^)" --online --no-cache --json "$out/ripgrep-update/gate-online.json"
 
 # --- Use examples. A small repository whose main holds the TypeScript
 # lockfiles before esbuild and a policy, and a pull request branch with
