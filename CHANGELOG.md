@@ -7,7 +7,13 @@
   of them used to be `not-checked`; now its packages go through the allow
   list, the install-script check (offline where the lockfile records it:
   pnpm 5 and 6, uv's wheels) and the registry check, like the other
-  formats. Each reader stops the command on input it can't read.
+  formats. Each reader stops the command on input it can't read, or on
+  fields that disagree with what the package manager fetches (a pnpm
+  `name` field that isn't the key's, a yarn `version` that isn't the
+  resolution's). A package counts as from the public registry only when
+  the lockfile's download is the registry's own file for that package:
+  pnpm and yarn 1 tarball paths, bare yarn `npm:` resolutions, uv files on
+  files.pythonhosted.org.
 - A lockfile that can't be read on either side, and that the change leaves
   as it is along with its `go.sum`, `package.json` or `pyproject.toml`, is
   skipped with a warning (`skipped` in the JSON) instead of stopping the
@@ -16,11 +22,13 @@
   stops it, and so does any unreadable requirements file.
 - Moving from one package manager to another in a folder (yarn to pnpm,
   Poetry to uv) is read through the new lockfile instead of being reported
-  as a deleted lockfile.
+  as a deleted lockfile, when the change adds or edits that lockfile.
 - `check` and `deps` take `--format github` (failing findings and changes
   as `::error` annotations: on the copied lines, or on the lockfile line
   naming the package) and `--summary FILE` (a Markdown summary appended to
-  FILE, for `$GITHUB_STEP_SUMMARY`).
+  FILE, for `$GITHUB_STEP_SUMMARY`). Nothing else Remixware prints can
+  start a line with `::`, so text from a policy, a lockfile or an index
+  can't forge a workflow command.
 - A GitHub Action (`uses: softdevstudio/remixware@v0.4.0`) runs `check` or
   `deps`: it downloads the release, checks SHA256SUMS, annotates the pull
   request, writes the job summary and uploads the reports. On a pull

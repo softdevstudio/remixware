@@ -72,7 +72,9 @@ func parseUVLock(data []byte) ([]lockPackage, error) {
 		reg, isReg := e.source["registry"].(string)
 		switch {
 		case isReg:
-			lp.registry = strings.TrimSuffix(reg, "/") == PyPISimple
+			// uv downloads the files the lockfile names, so they must be
+			// PyPI's too.
+			lp.registry = strings.TrimSuffix(reg, "/") == PyPISimple && uvFilesOnPyPI(e.t)
 			lp.scripts = scriptsYes
 			if wheels, ok := e.t["wheels"].([]any); ok && len(wheels) > 0 {
 				lp.scripts = scriptsNo
@@ -95,6 +97,9 @@ func parseUVLock(data []byte) ([]lockPackage, error) {
 			}
 		case e.source["git"] != nil:
 			lp.scripts = scriptsYes
+		case e.source["editable"] != nil || e.source["virtual"] != nil || e.source["directory"] != nil:
+			// A folder outside the project: built from source, not PyPI.
+			lp.scripts = scriptsYes
 		default:
 			keys := make([]string, 0, len(e.source))
 			for k := range e.source {
@@ -108,16 +113,29 @@ func parseUVLock(data []byte) ([]lockPackage, error) {
 	return out, nil
 }
 
-// uvOwn says whether a source is the project's own code: an editable or
-// virtual workspace member, or a folder given by a relative path.
+// uvOwn says whether a source is the project's own code: an editable,
+// virtual or directory source whose path stays inside the project.
 func uvOwn(src map[string]any) bool {
-	if src["editable"] != nil || src["virtual"] != nil {
-		return true
-	}
-	if d, ok := src["directory"].(string); ok {
-		return !strings.HasPrefix(d, "/") && !strings.HasPrefix(d, "..") && !strings.Contains(d, ":")
+	for _, k := range []string{"editable", "virtual", "directory"} {
+		if d, ok := src[k].(string); ok {
+			return inProject(d)
+		}
 	}
 	return false
+}
+
+// inProject says whether a path from a lockfile stays inside the project.
+func inProject(d string) bool {
+	d = strings.ReplaceAll(d, "\\", "/")
+	if strings.HasPrefix(d, "/") || strings.Contains(d, ":") {
+		return false
+	}
+	for _, part := range strings.Split(d, "/") {
+		if part == ".." {
+			return false
+		}
+	}
+	return true
 }
 
 // uvDependencyNames lists the packages a root package asks for: its
@@ -143,4 +161,30 @@ func uvDependencyNames(t map[string]any) []string {
 		}
 	}
 	return out
+}
+
+// PyPIFiles is where PyPI serves the files its simple index lists.
+const PyPIFiles = "https://files.pythonhosted.org/"
+
+// uvFilesOnPyPI says whether every wheel and source archive a package
+// entry names is on PyPI's file host.
+func uvFilesOnPyPI(t map[string]any) bool {
+	var files []any
+	if w, ok := t["wheels"].([]any); ok {
+		files = append(files, w...)
+	}
+	if sd, ok := t["sdist"]; ok {
+		files = append(files, sd)
+	}
+	for _, f := range files {
+		m, ok := f.(map[string]any)
+		if !ok {
+			return false
+		}
+		u, ok := m["url"].(string)
+		if !ok || !strings.HasPrefix(u, PyPIFiles) {
+			return false
+		}
+	}
+	return true
 }

@@ -44,6 +44,11 @@ func parseYAMLDocs(data []byte) ([]map[string]any, error) {
 	}
 	for n, raw := range strings.Split(text, "\n") {
 		if raw == "---" || strings.HasPrefix(raw, "--- ") || raw == "..." {
+			// A document can start on the --- line itself; this reader
+			// doesn't read that, so it stops rather than drop the content.
+			if rest := strings.TrimSpace(stripComment(strings.TrimPrefix(raw, "---"))); strings.HasPrefix(raw, "--- ") && rest != "" {
+				return nil, fmt.Errorf("line %d: content on the --- line, which Remixware doesn't read", n+1)
+			}
 			if err := flush(); err != nil {
 				return nil, err
 			}
@@ -222,10 +227,18 @@ func splitYAMLKey(s string) (key, rest string, isKey bool, err error) {
 		return "", "", false, nil
 	}
 	if strings.HasSuffix(s, ":") && !strings.Contains(s[:len(s)-1], ": ") {
-		return s[:len(s)-1], "", true, nil
+		// "key :" is the key "key", as YAML reads a plain scalar.
+		k := strings.TrimRight(s[:len(s)-1], " ")
+		if k == "" {
+			return "", "", false, fmt.Errorf("an empty key")
+		}
+		return k, "", true, nil
 	}
 	if i := strings.Index(s, ": "); i > 0 {
-		k := s[:i]
+		k := strings.TrimRight(s[:i], " ")
+		if k == "" {
+			return "", "", false, fmt.Errorf("an empty key")
+		}
 		if strings.Contains(k, " #") {
 			return "", "", false, nil
 		}

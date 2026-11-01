@@ -56,21 +56,51 @@ const (
 )
 
 // terminal filters what a command prints through remixware.TerminalText.
-type terminal struct{ w io.Writer }
+// terminal cleans everything a command prints: no control characters a
+// terminal acts on, and no line starting with "::", which GitHub's runner
+// would read as a workflow command (text from a policy, a lockfile or an
+// index can't forge one). The annotations Remixware writes on purpose go
+// through raw.
+type terminal struct {
+	w     io.Writer
+	start bool // at the start of a line
+}
 
-func (t terminal) Write(p []byte) (int, error) {
-	s := string(p)
-	if clean := remixware.TerminalText(s); clean != s {
-		if _, err := io.WriteString(t.w, clean); err != nil {
-			return 0, err
+func newTerminal(w io.Writer) *terminal { return &terminal{w: w, start: true} }
+
+func (t *terminal) Write(p []byte) (int, error) {
+	s := remixware.TerminalText(string(p))
+	var b strings.Builder
+	for len(s) > 0 {
+		if t.start && strings.HasPrefix(strings.TrimLeft(s, " \t"), "::") {
+			b.WriteString("> ")
 		}
-		return len(p), nil
+		i := strings.IndexByte(s, '\n')
+		if i < 0 {
+			b.WriteString(s)
+			t.start = false
+			break
+		}
+		b.WriteString(s[:i+1])
+		s = s[i+1:]
+		t.start = true
 	}
-	return t.w.Write(p)
+	if _, err := io.WriteString(t.w, b.String()); err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
+
+// raw is the writer under a terminal, for workflow commands.
+func raw(w io.Writer) io.Writer {
+	if t, ok := w.(*terminal); ok {
+		return t.w
+	}
+	return w
 }
 
 func run(args []string, stdout, stderr io.Writer) int {
-	stdout, stderr = terminal{stdout}, terminal{stderr}
+	stdout, stderr = newTerminal(stdout), newTerminal(stderr)
 	if len(args) == 0 {
 		fmt.Fprint(stderr, usage)
 		return exitUsage

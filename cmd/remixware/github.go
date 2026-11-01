@@ -55,7 +55,7 @@ func ghAnnotation(w io.Writer, level, file string, line, endLine int, title, msg
 		}
 	}
 	props = append(props, "title="+ghProp(oneLineText(title)))
-	fmt.Fprintf(w, "::%s %s::%s\n", level, strings.Join(props, ","), ghData(oneLineText(msg)))
+	fmt.Fprintf(raw(w), "::%s %s::%s\n", level, strings.Join(props, ","), ghData(oneLineText(msg)))
 }
 
 // workspacePath turns a path relative to the project folder into one
@@ -81,7 +81,7 @@ func workspacePath(project, rel string) string {
 // which renders HTML as well.
 func mdCell(s string) string {
 	s = oneLineText(s)
-	r := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "|", `\|`, "`", "&#96;",
+	r := strings.NewReplacer(`\`, `\\`, "&", "&amp;", "<", "&lt;", ">", "&gt;", "|", `\|`, "`", "&#96;",
 		"*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "~", `\~`, "#", `\#`, "!", `\!`)
 	return r.Replace(s)
 }
@@ -89,7 +89,7 @@ func mdCell(s string) string {
 // mdCode puts text in a code span for a table cell.
 func mdCode(s string) string {
 	s = oneLineText(s)
-	s = strings.NewReplacer("|", `\|`, "`", "'").Replace(s)
+	s = strings.NewReplacer(`\`, "/", "|", `\|`, "`", "'").Replace(s)
 	return "`" + s + "`"
 }
 

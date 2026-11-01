@@ -176,9 +176,13 @@ runs:
             if [ -n "$IN_INDEX_FOLDERS" ]; then
               folders=()
               while IFS= read -r f; do [ -n "$f" ] && folders+=("$f"); done <<< "$IN_INDEX_FOLDERS"
-              made="$RUNNER_TEMP/remixware-action.rmx"
-              "$RMX_BIN" index "${folders[@]}" --out "$made" --quiet || fail "remixware index failed for: ${folders[*]}"
-              args+=(--index "$made")
+              # ${#folders[@]} first: an empty array is an error under set -u
+              # in bash 3.2.
+              if [ "${#folders[@]}" -gt 0 ]; then
+                made="$RUNNER_TEMP/remixware-action.rmx"
+                "$RMX_BIN" index "${folders[@]}" --out "$made" --quiet || fail "remixware index failed for: ${folders[*]}"
+                args+=(--index "$made")
+              fi
             fi
             while IFS= read -r f; do [ -n "$f" ] && args+=(--index "$f"); done <<< "$IN_INDEX"
             while IFS= read -r f; do [ -n "$f" ] && args+=(--from "$f"); done <<< "$IN_FROM"

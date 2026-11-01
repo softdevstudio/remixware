@@ -12,6 +12,27 @@ import (
 // own and the address yarn v1 writes for it.
 var npmRegistries = []string{NPMRegistry + "/", "https://registry.yarnpkg.com/"}
 
+// npmTarballFor says whether a URL is the npm registry's tarball of that
+// package and version: <registry>/<name>/-/<basename>-<version>.tgz.
+func npmTarballFor(u, name, version string) bool {
+	if i := strings.IndexAny(u, "#?"); i >= 0 {
+		u = u[:i]
+	}
+	for _, r := range npmRegistries {
+		if !strings.HasPrefix(u, r) {
+			continue
+		}
+		p := strings.Replace(strings.TrimPrefix(u, r), "%2f", "/", 1)
+		p = strings.Replace(p, "%2F", "/", 1)
+		base := name
+		if i := strings.LastIndex(name, "/"); i >= 0 {
+			base = name[i+1:]
+		}
+		return p == name+"/-/"+base+"-"+strings.TrimPrefix(version, "v")+".tgz"
+	}
+	return false
+}
+
 func onNPMRegistry(url string) bool {
 	for _, r := range npmRegistries {
 		if strings.HasPrefix(url, r) {
@@ -167,32 +188,57 @@ func pnpmDoc(doc map[string]any) ([]lockPackage, error) {
 		if _, isDir := res["directory"]; isDir || res["type"] == "directory" {
 			continue // a folder in the project
 		}
-		name, version, err := pnpmKey(key, major)
-		if err != nil {
-			return nil, err
-		}
-		if n, ok := e["name"].(string); ok && n != "" {
-			name = n
-		}
-		if v, ok := e["version"].(string); ok && v != "" {
-			version = v
+		// pnpm names a package by its key and builds the registry URL from
+		// it. Keys for git and tarball packages (github.com/o/r/<commit>,
+		// '@host/x.tgz', name@https://...) don't hold a version; those
+		// entries carry name and version fields, and aren't registry ones.
+		kname, kver, kerr := pnpmKey(key, major)
+		regKey := kerr == nil && npmVersion.MatchString(kver) && (major == 9 || strings.HasPrefix(key, "/"))
+		fname, _ := e["name"].(string)
+		fver, _ := e["version"].(string)
+		var name, version string
+		if regKey {
+			name, version = kname, kver
+			if fname != "" && fname != kname {
+				return nil, fmt.Errorf("package %q has the name field %q, which its key doesn't", key, fname)
+			}
+			if fver != "" && fver != kver {
+				return nil, fmt.Errorf("package %q has the version field %q, which its key doesn't", key, fver)
+			}
+		} else {
+			name, version = fname, fver
+			if name == "" && kerr == nil {
+				name = kname
+			}
+			if name == "" || version == "" {
+				return nil, fmt.Errorf("package %q isn't name@version and has no name and version fields", key)
+			}
 		}
 		registry := false
+		typ, hasType := res["type"]
 		switch {
-		case res["type"] == "git" || res["repo"] != nil || res["commit"] != nil:
+		case hasType:
+			// git, binary, variations...: each type has its own fetcher.
+		case res["repo"] != nil || res["commit"] != nil:
 		case res["tarball"] != nil:
 			tb, _ := res["tarball"].(string)
-			registry = onNPMRegistry(tb)
+			registry = npmTarballFor(tb, name, version)
 		case res["integrity"] != nil:
 			registry = true
 		default:
 			return nil, fmt.Errorf("package %q has a resolution Remixware doesn't know", key)
 		}
+		_ = typ
+		registry = registry && regKey
 		scripts := scriptsUnknown
 		if rb, ok := e["requiresBuild"]; ok {
-			scripts = scriptsNo
-			if rb == "true" {
+			switch rb {
+			case "true", "True", "TRUE":
 				scripts = scriptsYes
+			case "false", "False", "FALSE":
+				scripts = scriptsNo
+			default:
+				return nil, fmt.Errorf("package %q has requiresBuild %v, which isn't true or false", key, rb)
 			}
 		} else if major < 9 {
 			scripts = scriptsNo
@@ -307,18 +353,33 @@ func parseYarnBerry(data []byte) ([]lockPackage, error) {
 	for _, en := range entries {
 		registry := false
 		scripts := scriptsUnknown
+		res := en.e["resolution"].(string)
+		// yarn fetches the locator in resolution; for a registry package
+		// the version is in it, and the version field must agree.
+		resVersion := ""
 		switch en.protocol {
 		case "npm":
-			registry = true
+			// Only a bare npm:<version> comes from the registry; anything
+			// after it (::__archiveUrl=...) is fetched from elsewhere.
+			_, ref, _ := npmNameAt(res)
+			if v := strings.TrimPrefix(ref, "npm:"); npmVersion.MatchString(v) {
+				registry, resVersion = true, v
+			}
 		case "patch":
 			// patch:name@npm%3A1.2.3#<patch>: yarn's own compat patch or a
 			// patch file in the project, applied to a registry package.
-			registry = berryPatchOnNPM(en.e["resolution"].(string))
+			resVersion, registry = berryPatchOnNPM(res, en.name)
 		case "file", "http", "https", "git", "git+ssh", "git+https", "git+http", "github", "ssh":
 		case "exec":
 			scripts = scriptsYes // runs a script to make the package
 		default:
 			return nil, fmt.Errorf("entry %q uses the %s: protocol, which Remixware doesn't know", en.key, en.protocol)
+		}
+		if resVersion != "" {
+			if en.version != "" && en.version != resVersion {
+				return nil, fmt.Errorf("entry %q has version %s, but its resolution is %s", en.key, en.version, res)
+			}
+			en.version = resVersion
 		}
 		p, err := jsPackage(en.name, en.version, registry, scripts)
 		if err != nil {
@@ -330,12 +391,13 @@ func parseYarnBerry(data []byte) ([]lockPackage, error) {
 	return out, nil
 }
 
-// berryPatchOnNPM says whether a patch: resolution patches a package from
-// the npm registry ("name@patch:name@npm%3A1.2.3#...").
-func berryPatchOnNPM(res string) bool {
+// berryPatchOnNPM says whether a patch: resolution patches that package
+// from the npm registry ("name@patch:name@npm%3A1.2.3#..."), and at which
+// version.
+func berryPatchOnNPM(res, name string) (string, bool) {
 	_, ref, ok := npmNameAt(res)
 	if !ok || !strings.HasPrefix(ref, "patch:") {
-		return false
+		return "", false
 	}
 	inner := strings.TrimPrefix(ref, "patch:")
 	if i := strings.Index(inner, "#"); i >= 0 {
@@ -343,10 +405,14 @@ func berryPatchOnNPM(res string) bool {
 	}
 	inner, err := url.PathUnescape(inner)
 	if err != nil {
-		return false
+		return "", false
 	}
-	_, base, ok := npmNameAt(inner)
-	return ok && strings.HasPrefix(base, "npm:") && npmVersion.MatchString(strings.TrimPrefix(base, "npm:"))
+	iname, base, ok := npmNameAt(inner)
+	v := strings.TrimPrefix(base, "npm:")
+	if !ok || iname != name || !strings.HasPrefix(base, "npm:") || !npmVersion.MatchString(v) {
+		return "", false
+	}
+	return v, true
 }
 
 // --- yarn v1 ----------------------------------------------------------------
@@ -452,7 +518,7 @@ func parseYarnV1(data, packageJSON []byte) ([]lockPackage, error) {
 	seen := map[string]bool{}
 	for _, e := range entries {
 		var name, real string
-		local := false
+		localDescs := 0
 		isDirect := false
 		for _, d := range e.descriptors {
 			dn, rng, ok := npmNameAt(d)
@@ -471,7 +537,7 @@ func parseYarnV1(data, packageJSON []byte) ([]lockPackage, error) {
 				}
 			}
 			if strings.HasPrefix(rng, "file:") || strings.HasPrefix(rng, "link:") {
-				local = true
+				localDescs++
 			}
 			if real == "" {
 				name, real = dn, r
@@ -480,7 +546,11 @@ func parseYarnV1(data, packageJSON []byte) ([]lockPackage, error) {
 			}
 		}
 		_ = name
-		if local {
+		// yarn 1 installs every descriptor of an entry from its resolved
+		// URL. The entry is the project's own folder only when all of them
+		// are file: or link: and nothing is downloaded.
+		remote := strings.Contains(e.resolved, "://")
+		if localDescs == len(e.descriptors) && !remote {
 			continue
 		}
 		if e.version == "" {
@@ -491,7 +561,7 @@ func parseYarnV1(data, packageJSON []byte) ([]lockPackage, error) {
 			continue
 		}
 		seen[key] = true
-		p, err := jsPackage(real, e.version, onNPMRegistry(e.resolved), scriptsUnknown)
+		p, err := jsPackage(real, e.version, npmTarballFor(e.resolved, real, e.version), scriptsUnknown)
 		if err != nil {
 			return nil, fmt.Errorf("line %d: %v", e.line, err)
 		}

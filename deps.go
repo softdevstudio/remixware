@@ -402,7 +402,7 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 				Issues: []DepIssue{{Status: DepNotChecked, Reason: "lockfile changed and wasn't read"}}})
 		}
 		if bs.has[l] && !hs.has[l] {
-			if manifest := lockManifest(l); manifest != "" && !hasSiblingLockfile(hs, l) {
+			if manifest := lockManifest(l); manifest != "" && !hasSiblingLockfile(hs, bs, l, skipped) {
 				m := path.Join(path.Dir(l), manifest)
 				if _, ok, err := head.ReadFile(m); err != nil {
 					return nil, err
@@ -711,13 +711,21 @@ func lockManifest(l string) string {
 	return ""
 }
 
-// hasSiblingLockfile says whether the side has another lockfile in l's
-// folder that pins the same manifest: npm-shrinkwrap.json for
-// package-lock.json, or pnpm-lock.yaml after a move from yarn, uv.lock
-// after a move from Poetry. Its packages are the ones checked.
-func hasSiblingLockfile(s *depSide, l string) bool {
-	for o := range s.has {
-		if o != l && path.Dir(o) == path.Dir(l) && lockManifest(o) == lockManifest(l) {
+// hasSiblingLockfile says whether the change adds or edits another
+// lockfile in l's folder that pins the same manifest and that the gate read:
+// npm-shrinkwrap.json for package-lock.json, or pnpm-lock.yaml after a move
+// from yarn, uv.lock after a move from Poetry. Its packages are the ones
+// checked. A stale lockfile the change leaves alone doesn't count (the
+// package manager that used l doesn't read it), nor does a skipped one.
+func hasSiblingLockfile(hs, bs *depSide, l string, skipped map[string]string) bool {
+	for o := range hs.has {
+		if o == l || path.Dir(o) != path.Dir(l) || lockManifest(o) != lockManifest(l) {
+			continue
+		}
+		if skipped[o] != "" || hs.errs[o] != nil {
+			continue
+		}
+		if !bs.has[o] || !bytes.Equal(hs.raw[o], bs.raw[o]) {
 			return true
 		}
 	}

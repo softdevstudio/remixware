@@ -586,7 +586,7 @@ func TestNewLockfilesInTheGate(t *testing.T) {
 		"yarn1": {{"yarn.lock": "a@^1:\n  version \"1.0.1\"\n  resolved \"https://pkgs.example.net/a-1.0.1.tgz\"\n"},
 			{"yarn.lock": "a@^1:\n  version \"1.0.0\"\n  resolved \"https://registry.yarnpkg.com/a/-/a-1.0.0.tgz\"\n"}},
 		"uv": {{"uv.lock": "version = 1\n\n[[package]]\nname = \"a\"\nversion = \"1.0.1\"\nsource = { registry = \"https://mirror.example.net/simple\" }\n"},
-			{"uv.lock": "version = 1\n\n[[package]]\nname = \"a\"\nversion = \"1.0.0\"\nsource = { registry = \"https://pypi.org/simple\" }\nwheels = [{ url = \"a.whl\" }]\n"}},
+			{"uv.lock": "version = 1\n\n[[package]]\nname = \"a\"\nversion = \"1.0.0\"\nsource = { registry = \"https://pypi.org/simple\" }\nwheels = [{ url = \"https://files.pythonhosted.org/packages/a-1.0.0-py3-none-any.whl\" }]\n"}},
 	}
 	for name, hb := range moved {
 		res := compare(t, hb[0], hb[1], nil, nil)
@@ -657,4 +657,14 @@ func TestUnreadableLockfileUnchanged(t *testing.T) {
 		map[string]string{"yarn.lock": fixture, "package.json": `{"dependencies": {"x": "1"}}`},
 		map[string]string{"yarn.lock": fixture, "package.json": `{}`})
 	stops("an unreadable requirements file", map[string]string{"requirements.txt": "@@ junk\n"}, map[string]string{"requirements.txt": "@@ junk\n"})
+}
+
+func TestUVSourceOutsideProject(t *testing.T) {
+	lock := "version = 1\n\n[[package]]\nname = \"app\"\nversion = \"0.1.0\"\nsource = { editable = \".\" }\n\n" +
+		"[[package]]\nname = \"other\"\nversion = \"1.0.0\"\nsource = { editable = \"../other\" }\n\n" +
+		"[[package]]\nname = \"abs\"\nversion = \"1.0.0\"\nsource = { virtual = \"/opt/abs\" }\n"
+	m := pkgMap(t)(parseUVLock([]byte(lock)))
+	if len(m) != 2 || m["other@1.0.0"].registry || m["other@1.0.0"].scripts != scriptsYes || m["abs@1.0.0"].scripts != scriptsYes {
+		t.Errorf("sources outside the project: %+v", m)
+	}
 }

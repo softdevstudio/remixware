@@ -35,13 +35,18 @@ type tomlReader struct {
 	// defined tables, by dotted path with array positions, so [a] twice is
 	// an error but [[a]] twice is two tables.
 	defined map[string]bool
+	// inline holds the keys given a value with "=" (key in its table, by
+	// the table's address): a table header or a dotted key can't extend
+	// those, as TOML says, and an [[array]] header can't add to an inline
+	// array.
+	inline map[string]bool
 }
 
 func parseTOML(data []byte) (map[string]any, error) {
 	if !utf8.Valid(data) {
 		return nil, fmt.Errorf("not UTF-8")
 	}
-	r := &tomlReader{s: strings.ReplaceAll(string(data), "\r\n", "\n"), line: 1, defined: map[string]bool{}}
+	r := &tomlReader{s: strings.ReplaceAll(string(data), "\r\n", "\n"), line: 1, defined: map[string]bool{}, inline: map[string]bool{}}
 	root := map[string]any{}
 	cur := root
 	for {
@@ -203,7 +208,7 @@ func (r *tomlReader) header(root map[string]any) (map[string]any, error) {
 			v = []any{}
 		}
 		arr, isArr := v.([]any)
-		if !isArr || r.defined["inline:"+path+"."+last] {
+		if !isArr || r.inline[r.inlineKey(t, last)] {
 			return nil, fmt.Errorf("[[%s]] after %s was given a value", strings.Join(parts, "."), last)
 		}
 		nt := map[string]any{}
@@ -224,7 +229,7 @@ func (r *tomlReader) header(root map[string]any) (map[string]any, error) {
 		return nt, nil
 	}
 	nt, isTable := v.(map[string]any)
-	if !isTable || r.defined["inline:"+full] {
+	if !isTable || r.inline[r.inlineKey(t, last)] {
 		return nil, fmt.Errorf("[%s] names a key that already has a value", strings.Join(parts, "."))
 	}
 	return nt, nil
@@ -233,7 +238,12 @@ func (r *tomlReader) header(root map[string]any) (map[string]any, error) {
 // arrayPos tells tables in different elements of an array of tables apart.
 func (r *tomlReader) arrayPos(t map[string]any) string { return fmt.Sprintf("@%p", t) }
 
+func (r *tomlReader) inlineKey(t map[string]any, k string) string { return fmt.Sprintf("%p/%s", t, k) }
+
 func (r *tomlReader) descend(t map[string]any, p string) (map[string]any, error) {
+	if r.inline[r.inlineKey(t, p)] {
+		return nil, fmt.Errorf("%s was given a value with =, which a table header can't extend", p)
+	}
 	v, ok := t[p]
 	if !ok {
 		nt := map[string]any{}
@@ -280,7 +290,7 @@ func (r *tomlReader) keyValue(t map[string]any, depth int) error {
 			continue
 		}
 		nt, isTable := next.(map[string]any)
-		if !isTable {
+		if !isTable || r.inline[r.inlineKey(t, p)] {
 			return r.errf("%s already has a value", p)
 		}
 		t = nt
@@ -290,6 +300,7 @@ func (r *tomlReader) keyValue(t map[string]any, depth int) error {
 		return r.errf("%s given twice", strings.Join(parts, "."))
 	}
 	t[last] = v
+	r.inline[r.inlineKey(t, last)] = true
 	return nil
 }
 

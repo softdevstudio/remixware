@@ -32,8 +32,9 @@ the project is compared with it. Use `index` instead for `.rmx` files you
 keep, `from` for SCANOSS results files, or `scanoss: "true"` to ask the
 SCANOSS service. Each annotation sits on the copied lines and names the
 source, its licence and what's missing. Before it reaches the job summary,
-annotations or log, text from the project or an index is cleaned, so a
-file or component name can't forge a workflow command or add Markdown.
+annotations or log, text from the project, its policy or an index is
+cleaned, so a file name, a component name or an allow rule's reason can't
+forge a workflow command or add Markdown.
 
 ## Dependency changes: `deps`
 
@@ -54,7 +55,10 @@ jobs:
 
 On a pull request, the base is `origin/<base branch>`. The action fetches
 it (one commit) when the checkout doesn't have it, so the default
-`fetch-depth: 1` works. The policy comes from the base branch
+`fetch-depth: 1` works (it uses the checkout's credentials, so keep
+`actions/checkout`'s default `persist-credentials` on a private
+repository, or fetch the base yourself and set `base-ref`). The policy
+comes from the base branch
 (`base-policy: true`), so a pull request can't allow its own packages.
 Outside a pull request, set `base-ref` (for example `origin/main` after
 fetching it). Each failing change is annotated on the lockfile line that
