@@ -28,7 +28,7 @@ jobs:
       - name: Ask the registries
         shell: bash
         run: |
-          set -u
+          set +e -u
           bin="$RUNNER_TEMP/remixware"
           w="$RUNNER_TEMP/live"
           mkdir -p "$w/base" "$w/head"
