@@ -228,14 +228,14 @@ func splitYAMLKey(s string) (key, rest string, isKey bool, err error) {
 	}
 	if strings.HasSuffix(s, ":") && !strings.Contains(s[:len(s)-1], ": ") {
 		// "key :" is the key "key", as YAML reads a plain scalar.
-		k := strings.TrimRight(s[:len(s)-1], " ")
+		k := strings.TrimRight(s[:len(s)-1], " \t")
 		if k == "" {
 			return "", "", false, fmt.Errorf("an empty key")
 		}
 		return k, "", true, nil
 	}
 	if i := strings.Index(s, ": "); i > 0 {
-		k := strings.TrimRight(s[:i], " ")
+		k := strings.TrimRight(s[:i], " \t")
 		if k == "" {
 			return "", "", false, fmt.Errorf("an empty key")
 		}

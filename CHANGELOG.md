@@ -22,7 +22,7 @@
   stops it, and so does any unreadable requirements file.
 - Moving from one package manager to another in a folder (yarn to pnpm,
   Poetry to uv) is read through the new lockfile instead of being reported
-  as a deleted lockfile, when the change adds or edits that lockfile.
+  as a deleted lockfile, when the change adds that lockfile.
 - `check` and `deps` take `--format github` (failing findings and changes
   as `::error` annotations: on the copied lines, or on the lockfile line
   naming the package) and `--summary FILE` (a Markdown summary appended to

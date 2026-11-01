@@ -14,6 +14,7 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
+	"unicode"
 
 	"github.com/softdevstudio/remixware"
 )
@@ -72,13 +73,18 @@ func (t *terminal) Write(p []byte) (int, error) {
 	s := remixware.TerminalText(string(p))
 	var b strings.Builder
 	for len(s) > 0 {
-		if t.start && strings.HasPrefix(strings.TrimLeft(s, " \t"), "::") {
+		// The runner trims any Unicode space before looking for "::"; a
+		// line whose first other character is ':' gets "> " in front.
+		lead := strings.TrimLeftFunc(s, unicode.IsSpace)
+		if t.start && strings.HasPrefix(lead, ":") {
 			b.WriteString("> ")
 		}
 		i := strings.IndexByte(s, '\n')
 		if i < 0 {
 			b.WriteString(s)
-			t.start = false
+			// Spaces alone don't end the line's start: the next write
+			// may hold the colon.
+			t.start = t.start && lead == ""
 			break
 		}
 		b.WriteString(s[:i+1])

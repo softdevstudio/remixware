@@ -373,9 +373,10 @@ touches is reported as `not-checked`, which fails by default. A
 `package.json` or `pyproject.toml` without a lockfile isn't read: commit
 your lockfiles. A change that deletes a lockfile but keeps the
 `package.json` or `pyproject.toml` next to it, with no other lockfile for
-that manifest in the folder that the change adds or edits, is
+that manifest in the folder that the change adds, is
 `not-checked`, since the next install picks whatever the manifest allows
-(a stale lockfile of another package manager left alone doesn't count).
+(a lockfile of another package manager that was already there doesn't
+count, even when the change edits it).
 Moving from one package manager to another (yarn to pnpm, Poetry to uv)
 is read through the new lockfile, and
 packages are compared by ecosystem and name, so the move alone reports no
@@ -670,8 +671,8 @@ check covered) to FILE; pass `"$GITHUB_STEP_SUMMARY"` to put it on the
 run's page. Tables stop at 100 rows; the JSON report has the rest. Text
 from projects, policies, lockfiles, indexes and registries is cleaned
 first: control characters are replaced, so a name can't end an annotation
-or start another; any other line Remixware prints that would start with
-`::` gets `> ` in front, so it can't be read as a workflow command; and
+or start another; any other line Remixware prints whose first character other than
+spaces is `:` gets `> ` in front, so it can't be read as a workflow command; and
 Markdown and HTML in a summary cell (backslashes too) show as text.
 
 Exit codes: 0 when all went well, 1 when `check` found findings that break

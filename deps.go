@@ -711,12 +711,12 @@ func lockManifest(l string) string {
 	return ""
 }
 
-// hasSiblingLockfile says whether the change adds or edits another
+// hasSiblingLockfile says whether the change adds another
 // lockfile in l's folder that pins the same manifest and that the gate read:
 // npm-shrinkwrap.json for package-lock.json, or pnpm-lock.yaml after a move
 // from yarn, uv.lock after a move from Poetry. Its packages are the ones
-// checked. A stale lockfile the change leaves alone doesn't count (the
-// package manager that used l doesn't read it), nor does a skipped one.
+// checked. A lockfile that was already there doesn't count, edited or not
+// (the package manager that used l doesn't read it), nor does a skipped one.
 func hasSiblingLockfile(hs, bs *depSide, l string, skipped map[string]string) bool {
 	for o := range hs.has {
 		if o == l || path.Dir(o) != path.Dir(l) || lockManifest(o) != lockManifest(l) {
@@ -725,7 +725,7 @@ func hasSiblingLockfile(hs, bs *depSide, l string, skipped map[string]string) bo
 		if skipped[o] != "" || hs.errs[o] != nil {
 			continue
 		}
-		if !bs.has[o] || !bytes.Equal(hs.raw[o], bs.raw[o]) {
+		if !bs.has[o] {
 			return true
 		}
 	}

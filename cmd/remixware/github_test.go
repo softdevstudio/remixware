@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/softdevstudio/remixware"
 )
@@ -142,5 +143,23 @@ func TestGitHubOutputCleansText(t *testing.T) {
 	// GitHub reads a command only at the start of a line.
 	if lines := strings.Split(strings.TrimSuffix(b.String(), "\n"), "\n"); len(lines) != 1 {
 		t.Errorf("a component name started another line: %q", b.String())
+	}
+}
+
+// TestTerminalGuardAcrossWrites: a line split over several writes can't
+// start a workflow command either.
+func TestTerminalGuardAcrossWrites(t *testing.T) {
+	var b bytes.Buffer
+	w := newTerminal(&b)
+	for _, s := range []string{"ok\n", "  ", "　", "::error::x\n", ":", ":warning::y\n", "a :: b\n"} {
+		w.Write([]byte(s))
+	}
+	for _, line := range strings.Split(b.String(), "\n") {
+		if strings.HasPrefix(strings.TrimLeftFunc(line, unicode.IsSpace), ":") {
+			t.Errorf("line reads as a command: %q", line)
+		}
+	}
+	if !strings.Contains(b.String(), "a :: b\n") {
+		t.Errorf("ordinary text changed: %q", b.String())
 	}
 }

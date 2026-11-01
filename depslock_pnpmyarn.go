@@ -206,8 +206,14 @@ func pnpmDoc(doc map[string]any) ([]lockPackage, error) {
 				return nil, fmt.Errorf("package %q has the version field %q, which its key doesn't", key, fver)
 			}
 		} else {
+			// pnpm names the package by its key whenever the key holds a
+			// name (always in lockfile 9); only source-address keys of
+			// lockfiles 5 and 6 leave it to the field.
 			name, version = fname, fver
-			if name == "" && kerr == nil {
+			if kerr == nil && npmName.MatchString(kname) && (major == 9 || strings.HasPrefix(key, "/")) {
+				if fname != "" && fname != kname {
+					return nil, fmt.Errorf("package %q has the name field %q, which its key doesn't", key, fname)
+				}
 				name = kname
 			}
 			if name == "" || version == "" {
