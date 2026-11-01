@@ -460,6 +460,19 @@ rules and settings already on main count.
 
 ### In a pull request
 
+The GitHub Action runs the gate on each pull request, annotates the
+lockfile lines that break the policy and writes the job summary (see
+[ACTION.md](ACTION.md)):
+
+```yaml
+      - uses: actions/checkout@v4
+      - uses: softdevstudio/remixware@v0.4.0
+        with:
+          command: deps
+```
+
+Without the action:
+
 ```yaml
 on: pull_request
 jobs:
@@ -672,6 +685,18 @@ answer or refused.
   `notice` lists what's left to finish.
 
 ## In CI
+
+With the GitHub Action, failing findings are annotated on the copied lines
+and the reports are uploaded (see [ACTION.md](ACTION.md)):
+
+```yaml
+- uses: actions/checkout@v4
+- uses: softdevstudio/remixware@v0.4.0
+  with:
+    index-folders: vendor
+```
+
+Without it:
 
 ```yaml
 - name: Licence check

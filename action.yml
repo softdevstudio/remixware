@@ -1,0 +1,240 @@
+name: Remixware
+description: Fail a pull request that copies open source code without its licence terms, or brings in dependencies no one allowed.
+author: SoftDevStudio.com
+branding:
+  icon: git-pull-request
+  color: purple
+
+inputs:
+  command:
+    description: "check (copied code and its licences) or deps (dependency changes against the base branch)."
+    required: false
+    default: check
+  path:
+    description: Project folder to check, relative to the workspace.
+    required: false
+    default: "."
+  index:
+    description: "check: index files (.rmx) to compare with, one per line."
+    required: false
+    default: ""
+  index-folders:
+    description: "check: folders to index first (one per line), such as vendored code or a checkout of a library; the index is made in the runner's temp folder."
+    required: false
+    default: ""
+  from:
+    description: "check: results files from the SCANOSS scanner or remixware scan --json, one per line."
+    required: false
+    default: ""
+  scanoss:
+    description: "check: also ask the SCANOSS service (sends fingerprints of the project's files, never the code). Set SCANOSS_API_KEY in env for a key."
+    required: false
+    default: "false"
+  base-ref:
+    description: "deps: git revision to compare with. Empty on a pull request means the base branch (origin/<base>, fetched when missing); elsewhere it must be set."
+    required: false
+    default: ""
+  base-policy:
+    description: "deps: use the base's .remixware.json, so a pull request can't allow its own packages."
+    required: false
+    default: "true"
+  online:
+    description: "deps: also ask the npm registry and PyPI (install scripts, publisher changes)."
+    required: false
+    default: "false"
+  policy:
+    description: Policy file. Empty uses .remixware.json in the project, if there is one.
+    required: false
+    default: ""
+  fail-on:
+    description: Statuses that fail, comma separated. Empty uses the policy's, or the defaults.
+    required: false
+    default: ""
+  args:
+    description: More options for the command, as one string (for example `--exclude testdata --min-lines 8`).
+    required: false
+    default: ""
+  out:
+    description: Folder for the reports (check writes remixware.json and remixware.html, deps writes deps.json).
+    required: false
+    default: remixware-report
+  upload:
+    description: Upload the report folder as a workflow artifact.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Name of the uploaded artifact.
+    required: false
+    default: remixware-report
+  fail:
+    description: Fail the step when the policy is broken. Set to false to report only.
+    required: false
+    default: "true"
+  version:
+    description: "Remixware release to use (v0.4.0 or later), or latest. Empty means the release this action is pinned to (softdevstudio/remixware@v0.4.0 runs remixware 0.4.0), else the latest."
+    required: false
+    default: ""
+  remixware-path:
+    description: Use this remixware binary instead of downloading one (for testing the action itself).
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: pass or fail
+    value: ${{ steps.run.outputs.result }}
+  exit-code:
+    description: "The command's exit code (0 pass, 1 policy broken, 2 usage or input error)"
+    value: ${{ steps.run.outputs.exit-code }}
+  version:
+    description: The remixware release the action ran (a vX.Y.Z tag, latest, or local)
+    value: ${{ steps.install.outputs.version }}
+  report:
+    description: Folder holding the reports
+    value: ${{ inputs.out }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install remixware
+      id: install
+      shell: bash
+      env:
+        RMX_VERSION: ${{ inputs.version }}
+        RMX_PATH: ${{ inputs.remixware-path }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        set -euo pipefail
+        # github.action_ref is empty in some runners; the env variable is the fallback.
+        ACTION_REF="${ACTION_REF:-${GITHUB_ACTION_REF:-}}"
+        if [ -z "$RMX_VERSION" ]; then
+          if [[ "$ACTION_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then RMX_VERSION="$ACTION_REF"; else RMX_VERSION=latest; fi
+        fi
+        if [ -n "$RMX_PATH" ]; then
+          echo "bin=$RMX_PATH" >> "$GITHUB_OUTPUT"
+          echo "version=local" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        case "$RUNNER_OS" in
+          Linux) os=linux ;; macOS) os=darwin ;; Windows) os=windows ;;
+          *) echo "::error::remixware has no build for $RUNNER_OS"; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch=amd64 ;; ARM64) arch=arm64 ;;
+          *) echo "::error::remixware has no build for $RUNNER_ARCH"; exit 1 ;;
+        esac
+        if [ "$os" = windows ] && [ "$arch" != amd64 ]; then echo "::error::remixware has no Windows $arch build"; exit 1; fi
+        ext=tar.gz; [ "$os" = windows ] && ext=zip
+        name="remixware_${os}_${arch}.${ext}"
+        if [ "$RMX_VERSION" = latest ]; then
+          base="https://github.com/softdevstudio/remixware/releases/latest/download"
+        else
+          base="https://github.com/softdevstudio/remixware/releases/download/${RMX_VERSION}"
+        fi
+        dir="$RUNNER_TEMP/remixware-bin"
+        mkdir -p "$dir"
+        cd "$dir"
+        curl -fsSL --retry 3 -o "$name" "$base/$name" || { echo "::error::could not download $base/$name"; exit 1; }
+        curl -fsSL --retry 3 -o SHA256SUMS "$base/SHA256SUMS" || { echo "::error::could not download SHA256SUMS"; exit 1; }
+        want=$(awk -v n="$name" '$2==n || $2=="*"n {print $1}' SHA256SUMS)
+        if command -v sha256sum >/dev/null; then got=$(sha256sum "$name" | cut -d' ' -f1); else got=$(shasum -a 256 "$name" | cut -d' ' -f1); fi
+        if [ -z "$want" ] || [ "$want" != "$got" ]; then echo "::error::$name does not match SHA256SUMS"; exit 1; fi
+        if [ "$ext" = zip ]; then unzip -oq "$name"; bin="$dir/remixware.exe"; else tar -xzf "$name"; bin="$dir/remixware"; fi
+        "$bin" version
+        echo "bin=$bin" >> "$GITHUB_OUTPUT"
+        echo "version=$RMX_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Run remixware
+      id: run
+      shell: bash
+      env:
+        RMX_BIN: ${{ steps.install.outputs.bin }}
+        IN_COMMAND: ${{ inputs.command }}
+        IN_PATH: ${{ inputs.path }}
+        IN_INDEX: ${{ inputs.index }}
+        IN_INDEX_FOLDERS: ${{ inputs.index-folders }}
+        IN_FROM: ${{ inputs.from }}
+        IN_SCANOSS: ${{ inputs.scanoss }}
+        IN_BASE_REF: ${{ inputs.base-ref }}
+        IN_BASE_POLICY: ${{ inputs.base-policy }}
+        IN_ONLINE: ${{ inputs.online }}
+        IN_POLICY: ${{ inputs.policy }}
+        IN_FAIL_ON: ${{ inputs.fail-on }}
+        IN_ARGS: ${{ inputs.args }}
+        IN_OUT: ${{ inputs.out }}
+        PR_BASE: ${{ github.base_ref }}
+      run: |
+        # The runner starts bash with -e; remixware exiting 1 must not end
+        # the step before the exit code is recorded.
+        set +e -uf
+        fail() { echo "::error::$1"; echo "exit-code=2" >> "$GITHUB_OUTPUT"; echo "result=fail" >> "$GITHUB_OUTPUT"; exit 0; }
+        mkdir -p "$IN_OUT"
+        args=()
+        case "$IN_COMMAND" in
+          check)
+            args=(check "$IN_PATH" --json "$IN_OUT/remixware.json" --html "$IN_OUT/remixware.html")
+            if [ -n "$IN_INDEX_FOLDERS" ]; then
+              folders=()
+              while IFS= read -r f; do [ -n "$f" ] && folders+=("$f"); done <<< "$IN_INDEX_FOLDERS"
+              made="$RUNNER_TEMP/remixware-action.rmx"
+              "$RMX_BIN" index "${folders[@]}" --out "$made" --quiet || fail "remixware index failed for: ${folders[*]}"
+              args+=(--index "$made")
+            fi
+            while IFS= read -r f; do [ -n "$f" ] && args+=(--index "$f"); done <<< "$IN_INDEX"
+            while IFS= read -r f; do [ -n "$f" ] && args+=(--from "$f"); done <<< "$IN_FROM"
+            if [ "$IN_SCANOSS" = true ]; then args+=(--scanoss); fi
+            ;;
+          deps)
+            ref="$IN_BASE_REF"
+            if [ -z "$ref" ]; then
+              [ -n "$PR_BASE" ] || fail "deps needs base-ref outside a pull request (for example base-ref: origin/main)"
+              ref="origin/$PR_BASE"
+              if ! git rev-parse --verify --quiet "$ref^{commit}" > /dev/null; then
+                git fetch --no-tags --depth=1 origin "+refs/heads/$PR_BASE:refs/remotes/origin/$PR_BASE" \
+                  || fail "could not fetch the base branch $PR_BASE"
+              fi
+            fi
+            args=(deps "$IN_PATH" --base-ref "$ref" --json "$IN_OUT/deps.json")
+            if [ "$IN_BASE_POLICY" = true ] && [ -z "$IN_POLICY" ]; then args+=(--base-policy); fi
+            if [ "$IN_ONLINE" = true ]; then args+=(--online); fi
+            ;;
+          *) fail "command must be check or deps, not $IN_COMMAND" ;;
+        esac
+        if [ -n "$IN_POLICY" ]; then args+=(--policy "$IN_POLICY"); fi
+        if [ -n "$IN_FAIL_ON" ]; then args+=(--fail-on "$IN_FAIL_ON"); fi
+        args+=(--format github)
+        if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then args+=(--summary "$GITHUB_STEP_SUMMARY"); fi
+        # IN_ARGS is split on spaces on purpose: it is a list of options.
+        # set -f above keeps a * in it from being expanded as a file pattern.
+        # shellcheck disable=SC2206
+        if [ -n "$IN_ARGS" ]; then args+=($IN_ARGS); fi
+        "$RMX_BIN" "${args[@]}"
+        code=$?
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        if [ $code = 0 ]; then echo "result=pass" >> "$GITHUB_OUTPUT"; else echo "result=fail" >> "$GITHUB_OUTPUT"; fi
+        exit 0
+
+    - name: Upload the report
+      if: ${{ always() && inputs.upload == 'true' && (steps.run.outputs.exit-code == '0' || steps.run.outputs.exit-code == '1') }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ inputs.out }}/remixware.json
+          ${{ inputs.out }}/remixware.html
+          ${{ inputs.out }}/deps.json
+        if-no-files-found: ignore
+
+    - name: Verdict
+      shell: bash
+      env:
+        CODE: ${{ steps.run.outputs.exit-code }}
+        FAIL: ${{ inputs.fail }}
+        CMD: ${{ inputs.command }}
+      run: |
+        case "$CODE" in
+          0) echo "remixware $CMD passed" ;;
+          1) if [ "$FAIL" = true ]; then echo "::error::remixware $CMD: the policy is broken, see the annotations and the job summary"; exit 1; fi
+             echo "remixware $CMD found problems (fail: false, so the step passes)" ;;
+          *) echo "::error::remixware $CMD could not run (exit $CODE)"; exit "${CODE:-2}" ;;
+        esac

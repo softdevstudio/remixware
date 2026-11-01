@@ -1,0 +1,176 @@
+name: Action test
+
+# Runs the GitHub Action in this repo (action.yml) with a remixware built
+# from this commit: check on the fixture projects (one breaks the policy,
+# one passes) and deps on a throwaway git repository holding the deps
+# fixture's base as a commit and its head as the change. The download job
+# uses a published release instead; start it by hand after a release.
+on:
+  push:
+    branches: [main]
+    paths: [action.yml, .github/workflows/action-test.yml, "cmd/**", "*.go", "testdata/projects/**", "testdata/deps/**"]
+  pull_request:
+    paths: [action.yml, .github/workflows/action-test.yml, "cmd/**", "*.go", "testdata/projects/**", "testdata/deps/**"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag the download job pins (vX.Y.Z); empty means the latest release
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  local:
+    if: github.event_name != 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build remixware
+        shell: bash
+        run: |
+          ext=""; [ "$RUNNER_OS" = Windows ] && ext=.exe
+          go build -o "$RUNNER_TEMP/remixware$ext" ./cmd/remixware
+          echo "RMX_BIN=$RUNNER_TEMP/remixware$ext" >> "$GITHUB_ENV"
+
+      - name: check, a project with copied GPL code fails
+        id: shop
+        uses: ./
+        with:
+          path: testdata/projects/shopfront
+          index-folders: testdata/upstream
+          fail: "false"
+          artifact-name: shop-${{ matrix.os }}
+          remixware-path: ${{ env.RMX_BIN }}
+      - name: check, a clean project passes
+        id: clean
+        uses: ./
+        with:
+          path: testdata/projects/clean
+          index-folders: testdata/upstream
+          out: clean-report
+          upload: "false"
+          remixware-path: ${{ env.RMX_BIN }}
+      - name: check, the failure fails the step with fail left on
+        id: shopfail
+        continue-on-error: true
+        uses: ./
+        with:
+          path: testdata/projects/shopfront
+          index-folders: testdata/upstream
+          upload: "false"
+          remixware-path: ${{ env.RMX_BIN }}
+
+      - name: Make a repository with the deps fixture's base committed
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$RUNNER_TEMP/depsrepo"
+          mkdir -p "$repo"
+          cp -R testdata/deps/base/. "$repo/"
+          git -C "$repo" init -q -b main
+          git -C "$repo" -c user.name=t -c user.email=t@example.com add -A
+          git -C "$repo" -c user.name=t -c user.email=t@example.com commit -qm base
+          cp -R testdata/deps/head/. "$repo/"
+          echo "DEPS_REPO=$repo" >> "$GITHUB_ENV"
+      - name: deps, the fixture change breaks the policy
+        id: deps
+        uses: ./
+        with:
+          command: deps
+          path: ${{ env.DEPS_REPO }}
+          base-ref: main
+          fail: "false"
+          artifact-name: deps-${{ matrix.os }}
+          remixware-path: ${{ env.RMX_BIN }}
+      - name: deps, failing only on install scripts
+        id: depsscripts
+        uses: ./
+        with:
+          command: deps
+          path: ${{ env.DEPS_REPO }}
+          base-ref: main
+          fail-on: publisher-changed
+          upload: "false"
+          remixware-path: ${{ env.RMX_BIN }}
+      - name: deps without base-ref outside a pull request is an error
+        id: depsnoref
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: ./
+        with:
+          command: deps
+          path: ${{ env.DEPS_REPO }}
+          upload: "false"
+          remixware-path: ${{ env.RMX_BIN }}
+
+      - name: Check the results
+        shell: bash
+        run: |
+          set -u
+          bad=0
+          want() { if [ "$2" != "$3" ]; then echo "::error::$1: got $2, want $3"; bad=1; fi; }
+          want "shopfront result" "${{ steps.shop.outputs.result }}" fail
+          want "shopfront exit" "${{ steps.shop.outputs.exit-code }}" 1
+          want "clean result" "${{ steps.clean.outputs.result }}" pass
+          want "shopfront with fail on" "${{ steps.shopfail.outcome }}" failure
+          want "deps result" "${{ steps.deps.outputs.result }}" fail
+          want "deps exit" "${{ steps.deps.outputs.exit-code }}" 1
+          want "deps fail-on publisher-changed" "${{ steps.depsscripts.outputs.result }}" pass
+          if [ "${{ github.event_name }}" != pull_request ]; then
+            want "deps without base-ref" "${{ steps.depsnoref.outcome }}" failure
+            want "deps without base-ref exit" "${{ steps.depsnoref.outputs.exit-code }}" 2
+          fi
+          [ -s remixware-report/remixware.json ] || { echo "::error::no check report"; bad=1; }
+          [ -s remixware-report/deps.json ] || { echo "::error::no deps report"; bad=1; }
+          grep -q '"status": "conflict"' remixware-report/remixware.json || { echo "::error::the check report has no conflict"; bad=1; }
+          grep -q '"status": "install-script"' remixware-report/deps.json || { echo "::error::the deps report has no install-script"; bad=1; }
+          exit $bad
+
+  # Downloads a published release through the action: pinned to a tag and
+  # latest. Run by hand after a release.
+  download:
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        pin: [tag, latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pick the version
+        shell: bash
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+          PIN: ${{ matrix.pin }}
+        run: |
+          v=latest
+          if [ "$PIN" = tag ]; then
+            v="$TAG"
+            [ -n "$v" ] || v="v$(cat VERSION)"
+          fi
+          echo "RMX_VERSION=$v" >> "$GITHUB_ENV"
+      - name: check with the released binary
+        id: shop
+        uses: ./
+        with:
+          path: testdata/projects/shopfront
+          index-folders: testdata/upstream
+          fail: "false"
+          upload: "false"
+          version: ${{ env.RMX_VERSION }}
+      - name: Check the result
+        shell: bash
+        run: |
+          echo "ran ${{ steps.shop.outputs.version }}"
+          [ "${{ steps.shop.outputs.result }}" = fail ] && [ "${{ steps.shop.outputs.exit-code }}" = 1 ] \
+            || { echo "::error::released check: ${{ steps.shop.outputs.result }} ${{ steps.shop.outputs.exit-code }}"; exit 1; }

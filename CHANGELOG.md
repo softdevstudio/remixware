@@ -15,6 +15,11 @@
   as `::error` annotations: on the copied lines, or on the lockfile line
   naming the package) and `--summary FILE` (a Markdown summary appended to
   FILE, for `$GITHUB_STEP_SUMMARY`).
+- A GitHub Action (`uses: softdevstudio/remixware@v0.4.0`) runs `check` or
+  `deps`: it downloads the release, checks SHA256SUMS, annotates the pull
+  request, writes the job summary and uploads the reports. On a pull
+  request, `deps` compares with the base branch and its policy by default.
+  See ACTION.md.
 - The install-script reason for Python packages says "the installer"
   rather than pip, since uv builds them too.
 
