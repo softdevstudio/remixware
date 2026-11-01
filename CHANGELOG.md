@@ -8,6 +8,12 @@
   list, the install-script check (offline where the lockfile records it:
   pnpm 5 and 6, uv's wheels) and the registry check, like the other
   formats. Each reader stops the command on input it can't read.
+- A lockfile that can't be read on either side, and that the change leaves
+  as it is along with its `go.sum`, `package.json` or `pyproject.toml`, is
+  skipped with a warning (`skipped` in the JSON) instead of stopping the
+  command: test fixtures such as vite's two-line `yarn.lock` stopped the
+  gate on the project's first run. A changed unreadable lockfile still
+  stops it, and so does any unreadable requirements file.
 - Moving from one package manager to another in a folder (yarn to pnpm,
   Poetry to uv) is read through the new lockfile instead of being reported
   as a deleted lockfile.

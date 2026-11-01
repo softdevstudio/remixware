@@ -160,6 +160,11 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 		res.Base = shownPath(res.Base)
 	}
 	res.Project = shownPath(res.Project)
+	for _, l := range res.Lockfiles {
+		if l.Skipped != "" {
+			fmt.Fprintf(stderr, "remixware: warning: skipped %s, %s\n", remixware.TerminalText(l.Path), remixware.TerminalText(l.Skipped))
+		}
+	}
 	if !o.quiet {
 		depsHeader(stdout, res)
 	}
@@ -250,6 +255,8 @@ func depsHeader(w io.Writer, res *remixware.DepsResult) {
 		switch {
 		case l.Kind == "unsupported":
 			parts = append(parts, l.Path+" (not read)")
+		case l.Skipped != "":
+			parts = append(parts, l.Path+" (skipped: unchanged and unreadable)")
 		case !l.InHead:
 			parts = append(parts, fmt.Sprintf("%s (removed; %s before)", l.Path, plural2(l.BasePackages, "package")))
 		case !l.InBase:

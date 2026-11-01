@@ -16,6 +16,12 @@
 #   typescript  microsoft/TypeScript 4139807e7, "Add build via esbuild"
 #   hugo        gohugoio/hugo c7165589, "Add a "deploy" command"
 #   serve       pytorch/serve b260776b5, "Enable opt-6.7b benchmark on inf2"
+#   vite        vitejs/vite 5b73935 (pnpm-lock.yaml 9), "chore: migrate to Oxlint"
+#   babel       babel/babel 7750b3d6 (yarn.lock, yarn 4), "Update dependency
+#               glob to v14 [SECURITY]"
+#   react       facebook/react 7df975a (yarn.lock, yarn 1),
+#               "[react-devtools-cdt-mcp] add chrome-devtools E2E coverage"
+#   pydantic-ai pydantic/pydantic-ai ab311a5 (uv.lock), "Add BoxdSandbox"
 #   recipes     the use examples, run on a small git repository made from
 #               the TypeScript lockfiles and a monorepo made from all three
 set -uo pipefail
@@ -116,6 +122,34 @@ record serve/gate.txt "$cache/serve" deps . --base-ref "$serve_base" --json "$ou
 record serve/gate-quiet.txt "$cache/serve" deps . --base-ref "$serve_base" --quiet
 summary "$out/serve/gate.json" > "$out/serve/summary.txt"
 
+# lockcase NAME URL HEAD LOCKFILE [POLICY]: a case study whose change is
+# in one lockfile (pnpm, yarn or uv): the commits, the gate's text, quiet
+# and JSON output, and with POLICY (a file in inputs) the gate with that
+# allow list.
+lockcase() {
+  local name="$1" url="$2" head="$3" lock="$4" policy="${5:-}" base
+  base="$(fetch "$name" "$url" "$head")" || exit 2
+  mkdir -p "$out/$name"
+  { echo "project: ${url%.git}"; echo "base: $base"; echo "head: $head"
+    echo "head subject: $(git -C "$cache/$name" log -1 --format=%s "$head")"
+    echo "head author date: $(git -C "$cache/$name" log -1 --format=%as "$head")"
+    echo "head commit date: $(git -C "$cache/$name" log -1 --format=%cs "$head")"
+    echo "$lock lines: $(git -C "$cache/$name" show "$base:$lock" | wc -l) -> $(git -C "$cache/$name" show "$head:$lock" | wc -l)"
+    echo; echo "files changed:"; git -C "$cache/$name" diff --stat "$base" "$head" | tail -15
+  } > "$out/$name/commits.txt"
+  record "$name/gate.txt" "$cache/$name" deps . --base-ref "$base" --json "$out/$name/gate.json"
+  record "$name/gate-quiet.txt" "$cache/$name" deps . --base-ref "$base" --quiet
+  if [ -n "$policy" ]; then
+    record "$name/gate-allowed.txt" "$cache/$name" deps . --base-ref "$base" --policy "$inputs/$policy" --quiet
+  fi
+  summary "$out/$name/gate.json" > "$out/$name/summary.txt"
+}
+
+lockcase vite https://github.com/vitejs/vite.git 5b73935881424ed5919571036dd89d3868590f92 pnpm-lock.yaml oxlint.json
+lockcase babel https://github.com/babel/babel.git 7750b3d6912344e8a621a99a393cc2f5d3f4d2db yarn.lock
+lockcase react https://github.com/facebook/react.git 7df975a0c56de0e9d0d6d9c36a000185db58fc00 yarn.lock
+lockcase pydantic-ai https://github.com/pydantic/pydantic-ai.git ab311a5d093494dcb6c4005bbd40bda79738fcf0 uv.lock
+
 # --- Use examples. A small repository whose main holds the TypeScript
 # lockfiles before esbuild and a policy, and a pull request branch with
 # the lockfiles after it.
@@ -192,6 +226,13 @@ git -C "$cache/serve" show "$serve_head:requirements/neuronx.txt" > "$mono/ml/re
 record recipes/monorepo.txt "$mono" deps . --base "$mono-base" --quiet
 record recipes/monorepo-allowed.txt "$mono" deps . --base "$mono-base" --policy "$inputs/monorepo.json" --quiet
 record recipes/monorepo-lockfiles.txt "$mono" deps . --base "$mono-base" --policy "$inputs/monorepo-lockfiles.json" --quiet
+
+# 6. --format github and --summary on the vite change, as the GitHub
+# Action runs them: the annotations, and the step summary in Markdown.
+vite_base="$(git -C "$cache/vite" rev-parse HEAD^)"
+record recipes/github.txt "$cache/vite" deps . --base-ref "$vite_base" --format github --quiet --summary "$rec/github-summary.md"
+rm -f "$rec/github-summary.md"
+(cd "$cache/vite" && "$bin" deps . --base-ref "$vite_base" --summary "$rec/github-summary.md" > /dev/null 2>&1)
 
 # Paths of the cache don't belong in the record.
 grep -rl "$cache" "$out" | while read -r f; do sed -i "s#$cache/#CACHE/#g; s#$root/#./#g" "$f"; done

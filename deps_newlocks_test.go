@@ -619,3 +619,42 @@ func TestSwitchPackageManager(t *testing.T) {
 		t.Errorf("poetry to uv, same packages: %+v", res.Changes)
 	}
 }
+
+// TestUnreadableLockfileUnchanged: a lockfile that can't be read on either
+// side and that the change leaves alone (a test fixture) is skipped; one
+// the change touches, or whose package.json changes, still stops the
+// command, and so does an unreadable requirements file.
+func TestUnreadableLockfileUnchanged(t *testing.T) {
+	fixture := "foo@1.0.0:\n"
+	base := map[string]string{"pnpm-lock.yaml": genLock("pnpm9", []string{"a@1.0.0"})["pnpm-lock.yaml"],
+		"test/fixtures/yarn.lock": fixture}
+	head := map[string]string{"pnpm-lock.yaml": genLock("pnpm9", []string{"a@1.0.0", "b@1.0.0"})["pnpm-lock.yaml"],
+		"test/fixtures/yarn.lock": fixture}
+	res := compare(t, head, base, nil, nil)
+	if len(res.Changes) != 1 || res.Changes[0].Package != "npm/b" {
+		t.Errorf("changes: %+v", res.Changes)
+	}
+	skipped := ""
+	for _, l := range res.Lockfiles {
+		if l.Path == "test/fixtures/yarn.lock" {
+			skipped = l.Skipped
+		}
+	}
+	if !strings.Contains(skipped, "unchanged") || !strings.Contains(skipped, "no version") {
+		t.Errorf("skipped: %q", skipped)
+	}
+	stops := func(name string, head, base map[string]string) {
+		t.Helper()
+		if _, err := CompareDeps(tree(t, head), tree(t, base), DepsOptions{}); err == nil {
+			t.Errorf("%s: no error", name)
+		}
+	}
+	h2 := map[string]string{"test/fixtures/yarn.lock": fixture + "\n"}
+	stops("an unreadable lockfile the change edits", h2, map[string]string{"test/fixtures/yarn.lock": fixture})
+	stops("readable on the base, unreadable in the change", map[string]string{"yarn.lock": fixture},
+		map[string]string{"yarn.lock": genLock("yarn1", []string{"a@1.0.0"})["yarn.lock"]})
+	stops("the same unreadable yarn.lock, package.json changed",
+		map[string]string{"yarn.lock": fixture, "package.json": `{"dependencies": {"x": "1"}}`},
+		map[string]string{"yarn.lock": fixture, "package.json": `{}`})
+	stops("an unreadable requirements file", map[string]string{"requirements.txt": "@@ junk\n"}, map[string]string{"requirements.txt": "@@ junk\n"})
+}

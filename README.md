@@ -349,7 +349,14 @@ out of the project stops the command.
 
 A lockfile Remixware can't make sense of stops the command with exit code
 2, on either side: a gate that skipped a broken lockfile would pass
-whatever it hides. A lockfile kind it doesn't read (`bun.lock`,
+whatever it hides. The one exception is a lockfile that can't be read on
+either side and that the change leaves byte for byte as it is, together
+with the file its reader also reads (`go.sum`, `package.json`,
+`pyproject.toml`): a test fixture such as vite's two-line `yarn.lock`. It
+is skipped with a warning, listed under `Lockfiles` and in the JSON as
+`skipped`, and its packages count on neither side, which can only make
+more packages new. Requirements files are never skipped this way, since
+their `-r` and `-c` lines can take in files that did change. A lockfile kind it doesn't read (`bun.lock`,
 `Pipfile.lock`, `pdm.lock`, `Cargo.lock` and others) that the change
 touches is reported as `not-checked`, which fails by default. A
 `package.json` or `pyproject.toml` without a lockfile isn't read: commit
@@ -497,7 +504,8 @@ publisher checks against the registries.
 
 `--json FILE` writes the result for other tools: `project`, `base`,
 `online`, `lockfiles` (each with `path`, `kind`, `head_packages`,
-`base_packages`, `in_head`, `in_base`), `changes` (each with `package`,
+`base_packages`, `in_head`, `in_base`, and `skipped` with the reason when
+a lockfile was skipped), `changes` (each with `package`,
 `ecosystem`, `name`, `change` (added, updated, removed or unread),
 `from`, `to` (the versions on the base and the change; a requirement
 with no version is `unpinned`, a range is shown as written, such as

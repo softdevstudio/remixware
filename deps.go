@@ -150,6 +150,10 @@ type DepLockfile struct {
 	BasePackages int    `json:"base_packages"`
 	InHead       bool   `json:"in_head"`
 	InBase       bool   `json:"in_base"`
+	// Skipped is why a lockfile wasn't read: it can't be read on either
+	// side and the change leaves it and the files its reader uses as they
+	// are (a test fixture, say), so it can't hide anything the change adds.
+	Skipped string `json:"skipped,omitempty"`
 }
 
 // DepChange is one package that was added, updated or removed, or a
@@ -271,7 +275,8 @@ func (r readsTree) read(rel string) ([]byte, bool, error) {
 }
 
 type depSide struct {
-	reads   map[string]bool // every file the readers read, includes too
+	reads   map[string]bool  // every file the readers read, includes too
+	errs    map[string]error // lockfiles that couldn't be read
 	pkgs    map[pkgKey]*pkgEntry
 	count   map[string]int // packages per lockfile
 	raw     map[string][]byte
@@ -280,7 +285,7 @@ type depSide struct {
 }
 
 func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
-	s := &depSide{reads: map[string]bool{}, pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{},
+	s := &depSide{reads: map[string]bool{}, errs: map[string]error{}, pkgs: map[pkgKey]*pkgEntry{}, count: map[string]int{}, raw: map[string][]byte{},
 		has: map[string]bool{}, sources: map[string][]string{}}
 	rt := readsTree{depTree: t.t, reads: s.reads}
 	for _, rel := range lockfiles {
@@ -296,9 +301,11 @@ func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
 			s.raw[rel] = data
 			continue
 		}
+		s.raw[rel] = data
 		pkgs, sources, err := readLockfile(rt, rel, data)
 		if err != nil {
-			return nil, err
+			s.errs[rel] = err
+			continue
 		}
 		s.sources[rel] = sources
 		s.count[rel] = len(pkgs)
@@ -373,6 +380,10 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	skipped, err := unreadLockfiles(head, base, hs, bs, lockfiles)
+	if err != nil {
+		return nil, err
+	}
 	res := &DepsResult{Project: head.Label(), Base: base.Label(), Online: opt.Registry != nil, Counts: map[string]int{}}
 	for _, l := range lockfiles {
 		if !hs.has[l] && !bs.has[l] {
@@ -383,7 +394,7 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 		}
 		kind := lockfileKind(l)
 		res.Lockfiles = append(res.Lockfiles, DepLockfile{Path: l, Kind: kind, HeadPackages: hs.count[l],
-			BasePackages: bs.count[l], InHead: hs.has[l], InBase: bs.has[l]})
+			BasePackages: bs.count[l], InHead: hs.has[l], InBase: bs.has[l], Skipped: skipped[l]})
 		if kind == kindUnsupported && hs.has[l] && (!bs.has[l] || !bytes.Equal(hs.raw[l], bs.raw[l])) {
 			res.Changes = append(res.Changes, DepChange{Change: "unread", Lockfiles: []string{l}, Status: DepNotChecked,
 				Reason: "This lockfile changed, and Remixware doesn't read " + pathBase(l) +
@@ -638,6 +649,53 @@ func policyChanges(pol, base *Policy) []string {
 		out = append(out, "ignore: "+show(base.Ignore)+" -> "+show(pol.Ignore))
 	}
 	return out
+}
+
+// unreadLockfiles decides what a lockfile that can't be read means. A
+// changed one stops the command: the gate can't pass what it can't read.
+// One that can't be read on either side, whose bytes and whose reader's
+// sibling file (go.sum, package.json, pyproject.toml) the change leaves as
+// they are, is skipped: its packages count on neither side, which can only
+// make more packages new, never fewer. Requirements files are never
+// skipped, since -r and -c can take in files that did change.
+func unreadLockfiles(head, base DepsTree, hs, bs *depSide, lockfiles []string) (map[string]string, error) {
+	skipped := map[string]string{}
+	for _, l := range lockfiles {
+		herr, berr := hs.errs[l], bs.errs[l]
+		if herr == nil && berr == nil {
+			continue
+		}
+		same := herr != nil && berr != nil && lockfileKind(l) != kindRequirement && bytes.Equal(hs.raw[l], bs.raw[l])
+		if same {
+			if sib := lockSibling(l); sib != "" {
+				hd, hok, err1 := head.t.read(sib)
+				bd, bok, err2 := base.t.read(sib)
+				same = err1 == nil && err2 == nil && hok == bok && bytes.Equal(hd, bd)
+			}
+		}
+		if !same {
+			if herr != nil {
+				return nil, herr
+			}
+			return nil, berr
+		}
+		skipped[l] = "unchanged, and can't be read: " + strings.TrimPrefix(herr.Error(), l+" at "+head.Label()+": ")
+	}
+	return skipped, nil
+}
+
+// lockSibling is the other file a lockfile's reader reads, or "".
+func lockSibling(l string) string {
+	dir := path.Dir(l)
+	switch lockfileKind(l) {
+	case kindGoMod:
+		return path.Join(dir, "go.sum")
+	case kindNPM, kindYarn:
+		return path.Join(dir, "package.json")
+	case kindPoetry:
+		return path.Join(dir, "pyproject.toml")
+	}
+	return ""
 }
 
 // lockManifest is the file a lockfile pins the packages of, when an

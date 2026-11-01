@@ -299,6 +299,15 @@ func depsSummaryMarkdown(project string, res *remixware.DepsResult, fails []remi
 		}
 		b.WriteString("\n")
 	}
+	var skipped []string
+	for _, l := range res.Lockfiles {
+		if l.Skipped != "" {
+			skipped = append(skipped, "- "+mdCode(workspacePath(project, l.Path))+": "+mdCell(l.Skipped))
+		}
+	}
+	if len(skipped) > 0 {
+		b.WriteString("Lockfiles skipped (the change leaves them as they are, and they can't be read):\n\n" + strings.Join(skipped, "\n") + "\n\n")
+	}
 	b.WriteString("Checks:\n\n")
 	for _, c := range res.Checks {
 		fmt.Fprintf(&b, "- %s: %s\n", mdCell(checkLabels[c.Name]), mdCell(checkText(c, res.Online)))

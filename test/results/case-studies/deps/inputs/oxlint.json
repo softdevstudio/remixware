@@ -1,0 +1,10 @@
+{
+  "deps": {
+    "allow": [
+      {"package": "npm/oxlint", "reason": "Linter, replaces ESLint; dev only, reviewed in the migration PR."},
+      {"package": "npm/oxlint-tsgolint", "reason": "Type-aware rules for oxlint; dev only."},
+      {"package": "npm/@oxlint/binding-*", "reason": "oxlint's prebuilt binary for each platform; npm installs only the one that matches."},
+      {"package": "npm/@oxlint-tsgolint/*", "reason": "oxlint-tsgolint's prebuilt binary for each platform."}
+    ]
+  }
+}
