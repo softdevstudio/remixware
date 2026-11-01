@@ -326,6 +326,9 @@ func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
 				if p.scripts > old.scripts {
 					old.scripts = p.scripts
 				}
+				if p.source != old.source && !containsString(strings.Split(old.source, " | "), p.source) {
+					old.source += " | " + p.source
+				}
 				old.registry = old.registry && p.registry
 				e.versions[p.version] = old
 			} else {
@@ -515,7 +518,28 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 		default:
 			newVers := sortedVersions(h.versions, b.versions)
 			if len(newVers) == 0 {
-				continue
+				// The same versions, but one now comes from somewhere else: a
+				// git crate at another repository or commit, or a crates.io
+				// crate patched to a fork ([patch.crates-io] keeps the version).
+				var moved []string
+				for v, hp := range h.versions {
+					if bp := b.versions[v]; hp.source != bp.source {
+						moved = append(moved, v)
+					}
+				}
+				if len(moved) == 0 {
+					continue
+				}
+				sort.Strings(moved)
+				c.Change, c.Status, c.To, c.From = "updated", DepUpdated, moved, moved
+				c.Direct, c.Lockfiles = h.direct, sortedKeys(h.lockfiles)
+				c.Reason = "The same version, from another source."
+				for _, v := range moved {
+					c.Issues = append(c.Issues, DepIssue{Status: DepNotChecked, Version: v,
+						Reason: fmt.Sprintf("Version %s now comes from %s instead of %s. Remixware can't tell what changed: check the source by hand, or take not-checked out of deps.fail_on.",
+							v, oneLine(h.versions[v].source), oneLine(b.versions[v].source))})
+				}
+				break
 			}
 			c.Change, c.Status, c.To, c.From = "updated", DepUpdated, newVers, sortedVersions(b.versions, nil)
 			c.Direct, c.Lockfiles = h.direct, sortedKeys(h.lockfiles)
@@ -876,6 +900,8 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 			why := "Runs code when it's installed (an install script, or a build from source)."
 			if k.eco == EcoNPM {
 				why = "Runs an install script (preinstall, install or postinstall, or a node-gyp build) when npm installs it."
+			} else if k.eco == EcoCargo && !p.registry {
+				why = "Comes from git or another registry, so Remixware can't read whether it has a build script or is a procedural macro; building it may run its code."
 			} else if k.eco == EcoCargo {
 				why = "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine."
 			} else if k.eco == EcoPyPI {

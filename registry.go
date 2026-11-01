@@ -21,6 +21,10 @@ import (
 // What a registry says about a published version doesn't change, so the
 // answers are cached in a file and never asked for again.
 
+// buildReadingVersion changes whenever registry_build.go reads crates or
+// modules differently, so cached readings from before are asked for again.
+const buildReadingVersion = "1"
+
 // PyPIURL is PyPI's JSON API.
 const PyPIURL = "https://pypi.org/pypi"
 
@@ -174,6 +178,12 @@ func (r *Registry) cacheKey(eco, name, version string) string {
 	}
 	if base = strings.TrimSuffix(base, "/"); base != "" && base != def {
 		key = base + " " + key
+	}
+	if eco == EcoCargo || eco == EcoGo {
+		// These answers are Remixware's own reading of the archive, not a
+		// registry's record: a change to how it reads them must not be
+		// hidden by an old cache.
+		key += "#build" + buildReadingVersion
 	}
 	return key
 }

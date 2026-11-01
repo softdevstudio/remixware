@@ -328,6 +328,11 @@ func needsNotice(expr string) bool {
 		switch l := lookupLicense(id); {
 		case l.Cat == CatPermissive, l.Cat == CatWeakCopyleft, l.Cat == CatCopyleft, l.Cat == CatNetworkCopyleft, l.ID == "JSON":
 			return true
+		case l.ID == LicenseUnrecognised:
+			// A licence text Remixware couldn't place (a permissive grant
+			// with terms on top, a variant it doesn't list): at the least,
+			// its notice and text go with the copy, as any licence's would.
+			return true
 		}
 	}
 	return false

@@ -153,6 +153,7 @@ func TestCrateBuildSurfaceOnline(t *testing.T) {
 		"build = false":     {map[string]string{"Cargo.toml": "[package]\nname = \"x\"\nbuild = false\n", "build.rs": ""}, false},
 		"build elsewhere":   {map[string]string{"Cargo.toml": "[package]\nname = \"x\"\nbuild = \"tools/gen.rs\"\n"}, true},
 		"proc-macro":        {map[string]string{"Cargo.toml": plain + "\n[lib]\nproc-macro = true\n"}, true},
+		"Build.rs":          {map[string]string{"Cargo.toml": plain, "Build.rs": ""}, true},
 		"a nested build.rs": {map[string]string{"Cargo.toml": plain, "examples/build.rs": ""}, false},
 	}
 	i := 0

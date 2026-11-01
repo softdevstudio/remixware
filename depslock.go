@@ -30,9 +30,10 @@ type lockPackage struct {
 	eco, name, version string
 	direct             bool
 	lockfile           string
-	scripts            int8 // scriptsUnknown, scriptsNo or scriptsYes
-	registry           bool // comes from the ecosystem's public registry
-	pinned             bool // version is one exact release
+	scripts            int8   // scriptsUnknown, scriptsNo or scriptsYes
+	registry           bool   // comes from the ecosystem's public registry
+	pinned             bool   // version is one exact release
+	source             string // where the lockfile says it comes from, when it says (Cargo.lock)
 }
 
 const (

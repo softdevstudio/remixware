@@ -8,8 +8,9 @@ name: Registries live check
 #          github.com/google/uuid (pure Go, nothing expected),
 #          golang.org/x/sys (cgo only for AIX and Hurd, and generator
 #          inputs behind //go:build ignore: not native-code)
-#   Rust:  serde_derive (a proc-macro) and libc (a build script) expected
-#          as install-script; syn (neither) not.
+#   Rust:  serde_derive (a proc-macro), libc (a build script) and
+#          openssl-src 300.3.1+3.3.1 (a build script, a version with build
+#          metadata) expected as install-script; syn (neither) not.
 on:
   workflow_dispatch:
 
@@ -40,7 +41,9 @@ jobs:
           printf 'github.com/google/uuid v1.6.0 %s\ngithub.com/mattn/go-sqlite3 v1.14.24 %s\ngolang.org/x/sys v0.26.0 %s\n' "$h" "$h" "$h" > "$w/head/go.sum"
           crate() { printf '\n[[package]]\nname = "%s"\nversion = "%s"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\nchecksum = "aa"\n' "$1" "$2"; }
           { printf 'version = 4\n\n[[package]]\nname = "app"\nversion = "0.1.0"\ndependencies = [\n "syn",\n]\n'; crate syn 2.0.77; } > "$w/base/Cargo.lock"
-          { printf 'version = 4\n\n[[package]]\nname = "app"\nversion = "0.1.0"\ndependencies = [\n "syn",\n "serde_derive",\n "libc",\n]\n'; crate syn 2.0.79; crate serde_derive 1.0.210; crate libc 0.2.159; } > "$w/head/Cargo.lock"
+          { printf 'version = 4\n\n[[package]]\nname = "app"\nversion = "0.1.0"\ndependencies = [\n "syn",\n "serde_derive",\n "libc",\n]\n'; crate syn 2.0.79; crate serde_derive 1.0.210; crate libc 0.2.159; } > "$w/head/Cargo.lock.tmp"
+          { cat "$w/head/Cargo.lock.tmp"; crate openssl-src 300.3.1+3.3.1; } > "$w/head/Cargo.lock"
+          rm "$w/head/Cargo.lock.tmp"
           "$bin" deps "$w/head" --base "$w/base" --online --no-cache --json "$w/deps.json" > "$w/out.txt" 2> "$w/err.txt"
           echo "exit code: $?"
           cat "$w/out.txt" "$w/err.txt"
@@ -48,7 +51,8 @@ jobs:
           # The change's status and every issue it has, as "status:issue,issue".
           status() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); c=next((c for c in d['changes'] if c['package']==sys.argv[2]), None); print('missing' if c is None else c['status']+':'+','.join(i['status'] for i in c.get('issues') or []))" "$w/deps.json" "$1"; }
           for want in "golang/github.com/mattn/go-sqlite3 native-code" "golang/github.com/google/uuid updated" \
-                      "cargo/serde_derive install-script" "cargo/libc install-script" "cargo/syn updated"; do
+                      "cargo/serde_derive install-script" "cargo/libc install-script" "cargo/openssl-src install-script" \
+                      "cargo/syn updated"; do
             set -- $want
             got=$(status "$1")
             case "$got" in

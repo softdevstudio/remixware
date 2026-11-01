@@ -3,7 +3,6 @@ package remixware
 import (
 	"archive/tar"
 	"archive/zip"
-	"bufio"
 	"bytes"
 	"compress/gzip"
 	"fmt"
@@ -32,7 +31,7 @@ const GoProxyURL = "https://proxy.golang.org"
 // from one.
 const (
 	maxArchive     = 64 << 20
-	maxArchiveFile = 1 << 20
+	maxArchiveFile = 16 << 20
 )
 
 func (r *Registry) getBytes(u string) ([]byte, error) {
@@ -79,7 +78,10 @@ func (r *Registry) crateFacts(name, version string) (VersionFacts, error) {
 	if !crateName.MatchString(name) || !crateVersion.MatchString(version) {
 		return VersionFacts{}, fmt.Errorf("crate %s %s: not a name and version crates.io has", name, version)
 	}
-	data, err := r.getBytes(fmt.Sprintf("%s/%s/%s-%s.crate", base, name, name, version))
+	// Build metadata ("300.3.1+3.3.1") is written %2B, so no server can take
+	// the + for a space.
+	ev := strings.ReplaceAll(version, "+", "%2B")
+	data, err := r.getBytes(fmt.Sprintf("%s/%s/%s-%s.crate", base, name, name, ev))
 	if err != nil {
 		return VersionFacts{}, err
 	}
@@ -99,13 +101,17 @@ func (r *Registry) crateFacts(name, version string) (VersionFacts, error) {
 		if err != nil {
 			return VersionFacts{}, fmt.Errorf("crate %s %s: %v", name, version, err)
 		}
-		switch h.Name {
-		case root + "build.rs":
+		switch {
+		case strings.EqualFold(h.Name, root+"build.rs"):
+			// Cargo finds Build.rs too on a filesystem that ignores case.
 			hasBuildRS = true
-		case root + "Cargo.toml":
-			manifest, err = io.ReadAll(io.LimitReader(tr, maxArchiveFile))
+		case h.Name == root+"Cargo.toml":
+			manifest, err = io.ReadAll(io.LimitReader(tr, maxArchiveFile+1))
 			if err != nil {
 				return VersionFacts{}, fmt.Errorf("crate %s %s: %v", name, version, err)
+			}
+			if len(manifest) > maxArchiveFile {
+				return VersionFacts{}, fmt.Errorf("crate %s %s: Cargo.toml is larger than %d MB", name, version, maxArchiveFile>>20)
 			}
 		}
 	}
@@ -120,33 +126,51 @@ func (r *Registry) crateFacts(name, version string) (VersionFacts, error) {
 // crateManifestBuild reads what a published Cargo.toml says about building:
 // build is "yes" for build = "<file>" or build = true, "no" for
 // build = false, "" when the manifest doesn't say; procMacro is
-// [lib] proc-macro = true. Published manifests are normalised by Cargo,
-// one key per line.
+// proc-macro = true in [lib]. The manifest is read as TOML, so comments,
+// inline tables and dotted keys count as Cargo reads them. One the TOML
+// reader can't read is searched line by line instead, and any proc-macro
+// or build key there counts as yes: the safe side.
 func crateManifestBuild(m string) (build string, procMacro bool) {
-	section := ""
-	sc := bufio.NewScanner(strings.NewReader(m))
-	sc.Buffer(make([]byte, 64<<10), maxArchiveFile)
-	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
-		if strings.HasPrefix(line, "[") {
-			section = strings.Trim(line, "[] ")
+	if doc, err := parseTOML([]byte(m)); err == nil {
+		if pkg, ok := doc["package"].(map[string]any); ok {
+			switch v := pkg["build"].(type) {
+			case tomlRaw:
+				if v == "false" {
+					build = "no"
+				} else {
+					build = "yes"
+				}
+			case nil:
+			default:
+				build = "yes" // a file name
+			}
+		}
+		if lib, ok := doc["lib"].(map[string]any); ok {
+			for _, k := range []string{"proc-macro", "proc_macro"} {
+				if v, ok := lib[k].(tomlRaw); ok && v == "true" {
+					procMacro = true
+				}
+			}
+		}
+		return build, procMacro
+	}
+	for _, line := range strings.Split(m, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		k, v, ok := strings.Cut(line, "=")
-		if !ok {
-			continue
+		low := strings.ReplaceAll(line, "_", "-")
+		if strings.Contains(low, "proc-macro") && strings.Contains(low, "true") {
+			procMacro = true
 		}
-		k = strings.Trim(strings.TrimSpace(k), `"'`)
-		v = strings.TrimSpace(v)
-		switch {
-		case section == "package" && k == "build":
-			if v == "false" {
-				build = "no"
+		if k, v, ok := strings.Cut(line, "="); ok && strings.HasSuffix(strings.TrimSpace(strings.Trim(k, " \"'")), "build") {
+			if strings.HasPrefix(strings.TrimSpace(v), "false") {
+				if build == "" {
+					build = "no"
+				}
 			} else {
 				build = "yes"
 			}
-		case section == "lib" && (k == "proc-macro" || k == "proc_macro"):
-			procMacro = v == "true"
 		}
 	}
 	return build, procMacro
@@ -211,7 +235,9 @@ func (r *Registry) goFacts(module, version string) (VersionFacts, error) {
 			continue
 		}
 		switch {
-		case strings.HasSuffix(rel, ".syso"):
+		case strings.HasSuffix(rel, ".syso"), strings.HasSuffix(rel, ".swig"), strings.HasSuffix(rel, ".swigcxx"):
+			// Prebuilt objects; SWIG files make go build run SWIG and the
+			// C or C++ compiler.
 			if buildsOnMainPlatform(path.Base(rel), nil) {
 				return VersionFacts{NativeCode: true}, nil
 			}
@@ -220,10 +246,15 @@ func (r *Registry) goFacts(module, version string) (VersionFacts, error) {
 			if err != nil {
 				return VersionFacts{}, fmt.Errorf("module %s %s: %v", module, version, err)
 			}
-			src, err := io.ReadAll(io.LimitReader(rc, maxArchiveFile))
+			src, err := io.ReadAll(io.LimitReader(rc, maxArchiveFile+1))
 			rc.Close()
 			if err != nil {
 				return VersionFacts{}, fmt.Errorf("module %s %s: %v", module, version, err)
+			}
+			if len(src) > maxArchiveFile {
+				// A cut file can't be read for its imports, and skipping it
+				// could miss cgo.
+				return VersionFacts{}, fmt.Errorf("module %s %s: %s is larger than %d MB", module, version, rel, maxArchiveFile>>20)
 			}
 			if !buildsOnMainPlatform(path.Base(rel), src) {
 				// Built only elsewhere (zsyscall_aix_ppc.go, //go:build hurd),
@@ -284,7 +315,9 @@ var (
 // Tags Remixware can't know (a project's own) count as set; ignore and
 // gccgo don't.
 func buildsOnMainPlatform(name string, src []byte) bool {
-	parts := strings.Split(strings.TrimSuffix(strings.TrimSuffix(name, path.Ext(name)), "_test"), "_")
+	// As go/build reads a name: up to its first dot, without _test.
+	base, _, _ := strings.Cut(name, ".")
+	parts := strings.Split(strings.TrimSuffix(base, "_test"), "_")
 	var fileOS, fileArch string
 	if n := len(parts); n >= 2 {
 		last, prev := parts[n-1], parts[n-2]
@@ -297,20 +330,7 @@ func buildsOnMainPlatform(name string, src []byte) bool {
 			fileArch = last
 		}
 	}
-	var exprs []constraint.Expr
-	if src != nil {
-		for _, line := range strings.Split(string(src[:min(len(src), 8<<10)]), "\n") {
-			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "package ") {
-				break
-			}
-			if constraint.IsGoBuild(line) || constraint.IsPlusBuild(line) {
-				if e, err := constraint.Parse(line); err == nil {
-					exprs = append(exprs, e)
-				}
-			}
-		}
-	}
+	exprs := buildConstraints(src)
 	for _, pl := range mainPlatforms {
 		goos, goarch := pl[0], pl[1]
 		if (fileOS != "" && fileOS != goos) || (fileArch != "" && fileArch != goarch) {
@@ -338,4 +358,60 @@ func buildsOnMainPlatform(name string, src []byte) bool {
 		}
 	}
 	return false
+}
+
+// buildConstraints reads a Go file's build constraints as go/build does:
+// from the line comments before the package clause (not from inside a
+// /* */ block), the //go:build line alone when there is one, otherwise
+// every // +build line.
+func buildConstraints(src []byte) []constraint.Expr {
+	if src == nil {
+		return nil
+	}
+	var goBuild constraint.Expr
+	var plus []constraint.Expr
+	inBlock := false
+	for _, line := range strings.Split(string(src), "\n") {
+		line = strings.TrimSpace(line)
+		if inBlock {
+			if i := strings.Index(line, "*/"); i >= 0 {
+				inBlock = false
+				if strings.TrimSpace(line[i+2:]) != "" {
+					break // code after the comment: the header is over
+				}
+			}
+			continue
+		}
+		switch {
+		case line == "":
+			continue
+		case strings.HasPrefix(line, "/*"):
+			if i := strings.Index(line[2:], "*/"); i < 0 {
+				inBlock = true
+			} else if strings.TrimSpace(line[2+i+2:]) != "" {
+				return keepBuild(goBuild, plus)
+			}
+			continue
+		case strings.HasPrefix(line, "//"):
+			if constraint.IsGoBuild(line) && goBuild == nil {
+				if e, err := constraint.Parse(line); err == nil {
+					goBuild = e
+				}
+			} else if constraint.IsPlusBuild(line) {
+				if e, err := constraint.Parse(line); err == nil {
+					plus = append(plus, e)
+				}
+			}
+			continue
+		}
+		break // the package clause, or anything else, ends the header
+	}
+	return keepBuild(goBuild, plus)
+}
+
+func keepBuild(goBuild constraint.Expr, plus []constraint.Expr) []constraint.Expr {
+	if goBuild != nil {
+		return []constraint.Expr{goBuild}
+	}
+	return plus
 }

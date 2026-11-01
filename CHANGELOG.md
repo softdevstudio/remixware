@@ -11,19 +11,29 @@
   source-available, Sleepycat (read as BSD-3-Clause) as copyleft, and
   Creative Commons texts of any version keep their NonCommercial,
   NoDerivs and ShareAlike terms. A permissive text with terms of its own
-  on top (the complete source must be available, as in TOSL and TMate, or
-  a field of use is ruled out, as in the BSD No-Nuclear variants) is left
-  for review instead of being read as its base licence, and so is a grant
-  that keeps its notice in other words (TU-Berlin-2.0, read as 0BSD).
+  on top (the complete source must be made available, as in TOSL and
+  TMate, or the software isn't licensed for nuclear or military
+  facilities) is `LicenseRef-Unrecognised` instead of its base licence,
+  and so is a grant that keeps its notice in other words (TU-Berlin-2.0,
+  read as 0BSD).
+- A copy under an unrecognised licence now needs its notice as well as a
+  review: until the notice is kept it's `attribution-missing`, which
+  fails `check`. Before, it was only `review`, which passes by default.
 - Licence files named after licences (LICENSE-MIT, LICENSE-APACHE) are a
   choice only when nothing says otherwise: a short file that names them
-  without offering a choice ("the library is under LICENSE-MIT, the
-  documentation under LICENSE-APACHE") makes them all apply, and GPL and
-  LGPL files together are never a choice.
+  for different parts ("src/ is under LICENSE-MIT. cli/ is under
+  LICENSE-GPL.") makes them all apply, and GPL and LGPL files together are
+  never a choice. A short file offering them for the whole project with
+  "or" ("licensed under the MIT license (LICENSE-MIT) or the Apache License
+  2.0 (LICENSE-APACHE)") is read as the choice it is, not as a licence of
+  its own.
 - `remixware deps` reads `Cargo.lock` (versions 3 and 4, and older files
   without a version). With `--online` it downloads each added or updated
   crate's `.crate` file and reports a build script or a procedural macro,
-  which run code when the crate is compiled, as `install-script`.
+  which run code when the crate is compiled, as `install-script`. Crates
+  from git or another registry count as `install-script`, since they
+  can't be looked up, and a crate whose source changes at the same
+  version is `not-checked`.
 - With `--online`, each added or updated Go module's zip comes from the Go
   module proxy, and a module that compiles C with cgo or links `.syso`
   objects on Linux, macOS or Windows gets the new status `native-code`.

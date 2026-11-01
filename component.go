@@ -795,24 +795,59 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 }
 
 // namesOtherLicenceFiles says whether a short text that isn't a licence
-// names two or more of the other licence files without offering them as a
-// choice.
+// names two or more of the other licence files as applying to different
+// parts: in separate sentences ("src/ is under LICENSE-MIT. cli/ is under
+// LICENSE-GPL."), whatever else the text says, or in one sentence without
+// "or" between them and without offering a choice.
 func namesOtherLicenceFiles(t, self string, paths []string) bool {
 	if t = strings.TrimSpace(t); t == "" || len(t) > 2000 || strings.ContainsRune(t, 0) {
 		return false
 	}
 	low := strings.ToLower(t)
-	n := 0
+	type mention struct{ at, end int }
+	var ms []mention
 	for _, p := range paths {
-		if p != self && wordIndex(low, strings.ToLower(filepath.Base(p))) >= 0 {
-			n++
+		if p == self {
+			continue
+		}
+		b := strings.ToLower(filepath.Base(p))
+		if i := wordIndex(low, b); i >= 0 {
+			ms = append(ms, mention{i, i + len(b)})
 		}
 	}
-	if n < 2 {
+	if len(ms) < 2 {
+		return false
+	}
+	sort.Slice(ms, func(i, j int) bool { return ms[i].at < ms[j].at })
+	joinedByOr := true
+	for i := 1; i < len(ms); i++ {
+		if ms[i].at < ms[i-1].end {
+			return false
+		}
+		between := low[ms[i-1].end:ms[i].at]
+		if sentenceBreak(between) {
+			return true
+		}
+		if !strings.Contains(" "+normText(between)+" ", " or ") {
+			joinedByOr = false
+		}
+	}
+	if joinedByOr {
 		return false
 	}
 	norm := " " + normText(low) + " "
 	return !offersChoice(norm) && !choiceIn(norm)
+}
+
+// sentenceBreak says whether text holds the end of a sentence: ". ", ";"
+// or a blank line. A dot inside a file name doesn't end one.
+func sentenceBreak(s string) bool {
+	for _, sep := range []string{". ", ".\n", ";", "\n\n", "\r\n\r\n"} {
+		if strings.Contains(s, sep) {
+			return true
+		}
+	}
+	return false
 }
 
 // pathsByBase returns the path in paths whose base name is base.
@@ -832,7 +867,10 @@ func pathsByBase(paths []string, base string) string {
 // read as a licence text of its own, since it may add terms. A file whose
 // text is a licence is never a pointer.
 func licenseFilePointer(t, self string, paths []string) []string {
-	if t = strings.TrimSpace(t); t == "" || len(t) > 1000 || strings.ContainsRune(t, 0) || DetectLicense(t) != "" {
+	// A file whose text is a licence is never a pointer; a sentence under
+	// 300 characters that names licences ("the MIT license (LICENSE-MIT)")
+	// isn't a licence text, the shortest of which run longer.
+	if t = strings.TrimSpace(t); t == "" || len(t) > 1000 || strings.ContainsRune(t, 0) || (len(t) >= 300 && DetectLicense(t) != "") {
 		return nil
 	}
 	low := strings.ToLower(t)
@@ -862,10 +900,15 @@ func licenseFilePointer(t, self string, paths []string) []string {
 		if ms[i].at < ms[i-1].end {
 			return nil
 		}
-		switch normText(low[ms[i-1].end:ms[i].at]) {
-		case " or ":
+		between := normText(low[ms[i-1].end:ms[i].at])
+		switch {
+		case between == " or ":
 			or = true
-		case " ":
+		case between == " ":
+		case strings.HasPrefix(between, " or ") && !strings.Contains(between, " and ") && !sentenceBreak(low[ms[i-1].end:ms[i].at]):
+			// "the MIT license (LICENSE-MIT) or the Apache License 2.0
+			// (LICENSE-APACHE)": the licences' names around the files.
+			or = true
 		default:
 			return nil
 		}
@@ -886,9 +929,24 @@ func licenseFilePointer(t, self string, paths []string) []string {
 			end = ms[len(ms)-1].end + i
 		}
 	}
+	// And the sentence offers them as a choice for the whole: "either"
+	// before the files ("either way" is no choice), "at your option", "your
+	// choice", "whichever", "choose", or the project "licensed under" them.
+	// "Every file is under COPYING.one or COPYING.two" is per file, not a
+	// choice.
 	before, sentence := normText(low[start:ms[0].at]), normText(low[start:end])
 	either := strings.Contains(before, " either ") && !strings.Contains(before, " either way ")
-	if !either && !strings.Contains(sentence, " at your option ") && !strings.Contains(sentence, " your choice ") {
+	choice := either
+	for _, w := range []string{" at your option ", " your choice ", " whichever ", " choose ", " licensed under ",
+		" available under ", " distributed under ", " released under "} {
+		choice = choice || strings.Contains(sentence, w)
+	}
+	for _, w := range []string{" every file ", " each file ", " some files ", " either way "} {
+		if strings.Contains(sentence, w) {
+			choice = false
+		}
+	}
+	if !choice {
 		return nil
 	}
 	named := make([]string, len(ms))

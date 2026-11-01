@@ -103,18 +103,22 @@ folders, where it gets none. Code with no licence at all is reported as
 - Several licence files all apply, except files that each name one licence,
   such as `LICENSE-MIT` and `LICENSE-APACHE`, or a short file saying the
   project is dual licensed: those are a choice (`Apache-2.0 OR MIT`). Not
-  when a short file names them without offering a choice (the library
-  under `LICENSE-MIT`, the documentation under `LICENSE-APACHE`): then they
-  all apply. GPL and LGPL files together are never a choice.
+  when a short file names them for different parts (in separate
+  sentences, or joined by anything but "or"): then they all apply. A short
+  file that joins them with "or" and offers them for the whole project
+  ("licensed under", "either", "at your option", "whichever") makes them a
+  choice. GPL and LGPL files together are never a choice.
 - A licence text is read by its own wording. The SIL Open Font License,
   whose grant starts like MIT's, is OFL; a BSD text whose third clause
   reads "may not be used to endorse or promote" is BSD-3-Clause; the
   Functional Source License is source-available; Creative Commons texts of
   any version keep their NonCommercial, NoDerivs and ShareAlike terms. A
   permissive text with terms of its own on top (the complete source must
-  be available, the software mustn't be used in nuclear facilities or by
-  the military) is `LicenseRef-Unrecognised`, which needs review, never
-  its base licence. `scripts/spdx-corpus.sh` reads every text of the SPDX
+  be made available, or the software isn't licensed for use in nuclear or
+  military facilities) is `LicenseRef-Unrecognised`, never its base
+  licence. A copy under an unrecognised licence needs review and its
+  notice: until the notice is kept, it's `attribution-missing`, which
+  fails `check`. `scripts/spdx-corpus.sh` reads every text of the SPDX
   License List and checks that none is read as a licence that asks less
   than it does (`test/results/licences/spdx-corpus.txt`).
 - A crate whose `Cargo.toml` says `license.workspace = true` takes the
@@ -368,10 +372,14 @@ the change and in the base:
 - `Cargo.lock`, versions 3 and 4 and older files without a version line.
   Crates without a `source` are the workspace's own (the root and path
   dependencies), and the crates they depend on are direct. A crate from
-  crates.io (its git or sparse index) is a registry package; git sources
-  and other registries aren't. `Cargo.lock` doesn't record build scripts
-  or procedural macros, so those are checked with `--online`. An entry
-  using `replace` stops the command.
+  crates.io (its git or sparse index) is a registry package. A crate from
+  git or another registry can't be looked up, so it counts as an
+  `install-script` (it may have a build script), as pip's VCS requirements
+  do. A crate whose version stays but whose source changes (another git
+  repository or commit, or a crates.io crate patched to a fork) is
+  `not-checked`. `Cargo.lock` doesn't record build scripts or procedural
+  macros, so for crates.io crates those are checked with `--online`. An
+  entry using `replace` stops the command.
 
 The YAML and TOML in these files are read by small strict readers: YAML
 anchors, tags and block scalars, tabs, keys given twice, values TOML
@@ -446,9 +454,11 @@ metadata, which is weaker evidence.
 
 For a crate from crates.io it downloads the `.crate` file
 (`https://static.crates.io/crates`) and reads whether the crate runs code
-when it's compiled: a build script (`build.rs`, unless its `Cargo.toml`
-says `build = false`, or the file `build` names) or a procedural macro
-(`[lib] proc-macro = true`). Either is an `install-script`. crates.io
+when it's compiled: a build script (`build.rs` in any case, unless its
+`Cargo.toml` says `build = false`, or the file `build` names) or a
+procedural macro (`proc-macro = true` in `[lib]`). The `Cargo.toml` is
+read as TOML, so comments, inline tables and dotted keys count as Cargo
+reads them. Either is an `install-script`. crates.io
 publishers aren't checked yet, and the publisher check says so.
 
 Go modules run no code when they're built, and the Go module proxy keeps
@@ -457,14 +467,19 @@ no record of publishers, so the install-script and publisher checks are
 added or updated module, `deps` downloads its zip from the module proxy
 (`https://proxy.golang.org`) and looks for Go files that import `"C"`
 (cgo) and prebuilt `.syso` objects. Only files Go builds for Linux, macOS
-or Windows on amd64 or arm64 count: by their name (`x_aix_ppc.go`) and
-build constraint (`//go:build ignore` never counts), so golang.org/x/sys,
-which uses cgo only on AIX and GNU Hurd, isn't flagged. Test files,
-`testdata`, `vendor` and nested modules are left out. A module with native
+or Windows on amd64 or arm64 count, read as `go build` reads them: the
+GOOS and GOARCH in the name up to its first dot (`x_aix_ppc.go`), and the
+`//go:build` line (or, without one, the `// +build` lines) in the comments
+before the package clause; `//go:build ignore` never counts. So
+golang.org/x/sys, which uses cgo only on AIX and GNU Hurd, isn't flagged.
+SWIG files (`.swig`, `.swigcxx`) count too. Test files, `testdata`,
+`vendor` and nested modules are left out. A module with native
 code gets the `native-code` status, which reports without failing unless
 `fail_on` names it. Packages from other registries, git or local folders,
 and requirements that aren't pinned to one version aren't looked up, and
-the output counts them. Downloads stop at 64 MB.
+the output counts them. A module zip or `.crate` file over 64 MB, or a file
+in one over 16 MB, ends the command with exit code 2 rather than being
+read in part.
 
 What a registry says about a published version doesn't change, so answers
 are kept in a cache file (`--cache FILE`, by default

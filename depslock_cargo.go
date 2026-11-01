@@ -27,8 +27,9 @@ var (
 // dependencies are the direct ones. A crate from crates.io (its git or
 // sparse index) is a registry package; git sources and other registries
 // aren't. Cargo.lock doesn't say which crates have a build script or are
-// procedural macros, which run code when they're compiled, so install
-// scripts are left to --online.
+// procedural macros, which run code when they're compiled: for crates.io
+// crates that's left to --online; crates from git or another registry
+// count as running code, since they can't be looked up.
 func parseCargoLock(data []byte) ([]lockPackage, error) {
 	doc, err := parseTOML(data)
 	if err != nil {
@@ -129,8 +130,16 @@ func parseCargoLock(data []byte) ([]lockPackage, error) {
 			!strings.HasPrefix(e.source, "sparse+") {
 			return nil, fmt.Errorf("package %s has a source Remixware doesn't know: %q", e.name, short(e.source))
 		}
+		// A crate from git or another registry can't be looked up, and
+		// building it may run its build script: it counts as running code,
+		// as pip's VCS requirements do. crates.io crates are looked up with
+		// --online.
+		scripts := scriptsUnknown
+		if !registry {
+			scripts = scriptsYes
+		}
 		out = append(out, lockPackage{eco: EcoCargo, name: e.name, version: e.version, direct: direct[e.name],
-			registry: registry, pinned: true, scripts: scriptsUnknown})
+			registry: registry, pinned: true, scripts: scripts, source: e.source})
 	}
 	return out, nil
 }
