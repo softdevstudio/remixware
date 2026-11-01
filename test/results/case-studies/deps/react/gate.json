@@ -5,9 +5,9 @@
   "lockfiles": [
     {
       "path": "compiler/Cargo.lock",
-      "kind": "unsupported",
-      "head_packages": 0,
-      "base_packages": 0,
+      "kind": "Cargo.lock",
+      "head_packages": 49,
+      "base_packages": 49,
       "in_head": true,
       "in_base": true
     },
@@ -444,6 +444,15 @@
       "not_run": {
         "needs --online": 1
       }
+    },
+    {
+      "name": "native-code",
+      "status": "not-applicable",
+      "packages": 1,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 1
     }
   ],
   "counts": {

@@ -10,6 +10,8 @@ Checks:
   install scripts    ran, 1 added or updated version: 1 checked from the lockfiles
   publisher changes  not run, 1 added or updated version: 1 not checked (needs
                      --online)
+  native code        not applicable, 1 added or updated version: 1 not applicable (only
+                     Go modules are checked for native code)
 
 1 change: 1 not-allowed.
 FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).

@@ -3,4 +3,4 @@ changes: 23
 counts: install-script 1, not-allowed 22
 added: 23 (direct 1)
 install scripts: npm/esbuild
-checks: allow-list ran; install-scripts ran; publisher not-run
+checks: allow-list ran; install-scripts ran; publisher not-run; native-code not-applicable

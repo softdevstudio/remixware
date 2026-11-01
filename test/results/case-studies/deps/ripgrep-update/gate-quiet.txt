@@ -1,0 +1,19 @@
+$ remixware deps . --base-ref d5b85d44057ff729a89be9c6549958c45d95aa99 --quiet
+
+NOT ALLOWED          cargo/zmij 1.0.23, added (transitive)
+                     in Cargo.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 1 added package: 1 checked from the lockfiles
+  install scripts    not run, 29 added or updated versions: 29 not checked (needs
+                     --online)
+  publisher changes  not run, 29 added or updated versions: 29 not checked (crates.io
+                     publishers aren't checked yet)
+  native code        not applicable, 29 added or updated versions: 29 not applicable
+                     (only Go modules are checked for native code)
+
+32 changes: 1 not-allowed, 28 updated, 3 removed.
+FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

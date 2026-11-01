@@ -569,6 +569,18 @@
       "online": 0,
       "cached": 0,
       "not_applicable": 24
+    },
+    {
+      "name": "native-code",
+      "status": "not-run",
+      "packages": 24,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 24
+      }
     }
   ],
   "counts": {

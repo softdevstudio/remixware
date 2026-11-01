@@ -82,4 +82,5 @@ Checks:
 - allow list: ran, 27 added packages: 27 checked from the lockfiles
 - install scripts: not run, 27 added or updated versions: 27 not checked (needs --online)
 - publisher changes: not run, 27 added or updated versions: 27 not checked (needs --online)
+- native code: not applicable, 27 added or updated versions: 27 not applicable (only Go modules are checked for native code)
 

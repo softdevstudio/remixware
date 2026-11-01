@@ -1,5 +1,5 @@
-recorded: 2026-11-01T04:08:51Z
+recorded: 2026-11-01T05:26:49Z
 machine: Linux 6.18.44-fc-v185 x86_64
-remixware: remixware 0.4.0
+remixware: remixware 0.5.0
 git: git version 2.43.0
-all runs offline (no --online)
+all runs offline (no --online) except the ripgrep gate-online runs, which download .crate files from static.crates.io

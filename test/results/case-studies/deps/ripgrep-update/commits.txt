@@ -1,0 +1,11 @@
+project: https://github.com/BurntSushi/ripgrep
+base: d5b85d44057ff729a89be9c6549958c45d95aa99
+head: e988d4b6182dbd62d9cba636a37140d6885360dc
+head subject: deps: update everything
+head author date: 2026-07-15
+head commit date: 2026-07-15
+Cargo.lock lines: 570 -> 554
+
+files changed:
+ Cargo.lock | 138 +++++++++++++++++++++++++++----------------------------------
+ 1 file changed, 61 insertions(+), 77 deletions(-)

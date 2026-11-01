@@ -1,0 +1,735 @@
+{
+  "project": ".",
+  "base": "d5b85d44057ff729a89be9c6549958c45d95aa99",
+  "online": true,
+  "lockfiles": [
+    {
+      "path": "Cargo.lock",
+      "kind": "Cargo.lock",
+      "head_packages": 49,
+      "base_packages": 51,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "fuzz/Cargo.lock",
+      "kind": "Cargo.lock",
+      "head_packages": 19,
+      "base_packages": 19,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "cargo/anyhow",
+      "ecosystem": "cargo",
+      "name": "anyhow",
+      "change": "updated",
+      "from": [
+        "1.0.100"
+      ],
+      "to": [
+        "1.0.103"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "1.0.103",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/crossbeam-deque",
+      "ecosystem": "cargo",
+      "name": "crossbeam-deque",
+      "change": "updated",
+      "from": [
+        "0.8.6"
+      ],
+      "to": [
+        "0.8.7"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.8.7",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/crossbeam-epoch",
+      "ecosystem": "cargo",
+      "name": "crossbeam-epoch",
+      "change": "updated",
+      "from": [
+        "0.9.18"
+      ],
+      "to": [
+        "0.9.20"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.9.20",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/crossbeam-utils",
+      "ecosystem": "cargo",
+      "name": "crossbeam-utils",
+      "change": "updated",
+      "from": [
+        "0.8.21"
+      ],
+      "to": [
+        "0.8.22"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.8.22",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/getrandom",
+      "ecosystem": "cargo",
+      "name": "getrandom",
+      "change": "updated",
+      "from": [
+        "0.3.4"
+      ],
+      "to": [
+        "0.4.3"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.4.3",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/libc",
+      "ecosystem": "cargo",
+      "name": "libc",
+      "change": "updated",
+      "from": [
+        "0.2.152",
+        "0.2.177"
+      ],
+      "to": [
+        "0.2.186"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "0.2.186",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/proc-macro2",
+      "ecosystem": "cargo",
+      "name": "proc-macro2",
+      "change": "updated",
+      "from": [
+        "1.0.101",
+        "1.0.78"
+      ],
+      "to": [
+        "1.0.106"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "1.0.106",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/quote",
+      "ecosystem": "cargo",
+      "name": "quote",
+      "change": "updated",
+      "from": [
+        "1.0.35",
+        "1.0.41"
+      ],
+      "to": [
+        "1.0.46"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "1.0.46",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/serde_json",
+      "ecosystem": "cargo",
+      "name": "serde_json",
+      "change": "updated",
+      "from": [
+        "1.0.145"
+      ],
+      "to": [
+        "1.0.150"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "At a new version.",
+      "issues": [
+        {
+          "status": "install-script",
+          "version": "1.0.150",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/zmij",
+      "ecosystem": "cargo",
+      "name": "zmij",
+      "change": "added",
+      "to": [
+        "1.0.23"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "install-script",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        },
+        {
+          "status": "install-script",
+          "version": "1.0.23",
+          "reason": "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine. Accept it with a deps allow rule that has install_scripts: true and a reason."
+        }
+      ]
+    },
+    {
+      "package": "cargo/aho-corasick",
+      "ecosystem": "cargo",
+      "name": "aho-corasick",
+      "change": "updated",
+      "from": [
+        "1.1.2",
+        "1.1.3"
+      ],
+      "to": [
+        "1.1.4"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/bstr",
+      "ecosystem": "cargo",
+      "name": "bstr",
+      "change": "updated",
+      "from": [
+        "1.12.0",
+        "1.9.0"
+      ],
+      "to": [
+        "1.13.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/cc",
+      "ecosystem": "cargo",
+      "name": "cc",
+      "change": "updated",
+      "from": [
+        "1.0.83",
+        "1.2.41"
+      ],
+      "to": [
+        "1.2.67"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/crossbeam-channel",
+      "ecosystem": "cargo",
+      "name": "crossbeam-channel",
+      "change": "updated",
+      "from": [
+        "0.5.15"
+      ],
+      "to": [
+        "0.5.16"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/find-msvc-tools",
+      "ecosystem": "cargo",
+      "name": "find-msvc-tools",
+      "change": "updated",
+      "from": [
+        "0.1.4"
+      ],
+      "to": [
+        "0.1.9"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/itoa",
+      "ecosystem": "cargo",
+      "name": "itoa",
+      "change": "updated",
+      "from": [
+        "1.0.15"
+      ],
+      "to": [
+        "1.0.18"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/jobserver",
+      "ecosystem": "cargo",
+      "name": "jobserver",
+      "change": "updated",
+      "from": [
+        "0.1.27",
+        "0.1.34"
+      ],
+      "to": [
+        "0.1.35"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/lexopt",
+      "ecosystem": "cargo",
+      "name": "lexopt",
+      "change": "updated",
+      "from": [
+        "0.3.1"
+      ],
+      "to": [
+        "0.3.2"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/log",
+      "ecosystem": "cargo",
+      "name": "log",
+      "change": "updated",
+      "from": [
+        "0.4.20",
+        "0.4.28"
+      ],
+      "to": [
+        "0.4.33"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/memchr",
+      "ecosystem": "cargo",
+      "name": "memchr",
+      "change": "updated",
+      "from": [
+        "2.7.1",
+        "2.7.6"
+      ],
+      "to": [
+        "2.8.3"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/memmap2",
+      "ecosystem": "cargo",
+      "name": "memmap2",
+      "change": "updated",
+      "from": [
+        "0.9.9"
+      ],
+      "to": [
+        "0.9.11"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/pkg-config",
+      "ecosystem": "cargo",
+      "name": "pkg-config",
+      "change": "updated",
+      "from": [
+        "0.3.32"
+      ],
+      "to": [
+        "0.3.33"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/r-efi",
+      "ecosystem": "cargo",
+      "name": "r-efi",
+      "change": "updated",
+      "from": [
+        "5.3.0"
+      ],
+      "to": [
+        "6.0.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/regex",
+      "ecosystem": "cargo",
+      "name": "regex",
+      "change": "updated",
+      "from": [
+        "1.12.2"
+      ],
+      "to": [
+        "1.13.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/regex-automata",
+      "ecosystem": "cargo",
+      "name": "regex-automata",
+      "change": "updated",
+      "from": [
+        "0.4.13",
+        "0.4.4"
+      ],
+      "to": [
+        "0.4.15"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/regex-syntax",
+      "ecosystem": "cargo",
+      "name": "regex-syntax",
+      "change": "updated",
+      "from": [
+        "0.8.2",
+        "0.8.8"
+      ],
+      "to": [
+        "0.8.11"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/shlex",
+      "ecosystem": "cargo",
+      "name": "shlex",
+      "change": "updated",
+      "from": [
+        "1.3.0"
+      ],
+      "to": [
+        "2.0.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/syn",
+      "ecosystem": "cargo",
+      "name": "syn",
+      "change": "updated",
+      "from": [
+        "2.0.107",
+        "2.0.48"
+      ],
+      "to": [
+        "2.0.119"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/unicode-ident",
+      "ecosystem": "cargo",
+      "name": "unicode-ident",
+      "change": "updated",
+      "from": [
+        "1.0.12",
+        "1.0.20"
+      ],
+      "to": [
+        "1.0.24"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock",
+        "fuzz/Cargo.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "cargo/ryu",
+      "ecosystem": "cargo",
+      "name": "ryu",
+      "change": "removed",
+      "from": [
+        "1.0.20"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "cargo/wasip2",
+      "ecosystem": "cargo",
+      "name": "wasip2",
+      "change": "removed",
+      "from": [
+        "1.0.1+wasi-0.2.4"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "cargo/wit-bindgen",
+      "ecosystem": "cargo",
+      "name": "wit-bindgen",
+      "change": "removed",
+      "from": [
+        "0.46.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 1,
+      "offline": 1,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "ran",
+      "packages": 29,
+      "offline": 0,
+      "online": 29,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 29,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "crates.io publishers aren't checked yet": 29
+      }
+    },
+    {
+      "name": "native-code",
+      "status": "not-applicable",
+      "packages": 29,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 29
+    }
+  ],
+  "counts": {
+    "install-script": 10,
+    "removed": 3,
+    "updated": 19
+  }
+}

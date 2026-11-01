@@ -8,7 +8,8 @@ commit and its parent and compares the two with `--base-ref`. All runs are
 offline (no `--online`): a publisher check measures "recent" from today,
 so it says nothing useful about a release from years ago. Nothing here is
 the projects' code, only what Remixware printed. `environment.txt` names
-the binary (the released one, from releases/latest).
+the binary (the released one, from releases/latest). The ripgrep
+`gate-online.txt` runs download `.crate` files from static.crates.io.
 
 Each folder has `commits.txt` (project, base and head hashes, the manifest
 diff), `gate.txt` and `gate.json` (the full run), `gate-quiet.txt`, and a
@@ -32,6 +33,12 @@ command and ends with the exit code.
   chrome-devtools E2E coverage".
 - `pydantic-ai/`: pydantic/pydantic-ai ab311a5 (uv.lock), "Add
   BoxdSandbox".
+- `ripgrep/`: BurntSushi/ripgrep be739c7 (Cargo.lock), "index: add
+  grep-index crate": 2 new crates. `gate-online.txt` reruns it with
+  `--online`: both have build scripts.
+- `ripgrep-update/`: ripgrep e988d4b, "deps: update everything": 28 crates
+  updated, 1 added, 3 removed; `gate-online.txt` finds 10 of the added or
+  updated versions running code when they're compiled.
 - `recipes/`: the use examples. A small git repository whose main holds
   TypeScript's lockfiles before esbuild and `inputs/demo-main.json` as its
   policy, a branch with the lockfiles after (`add-esbuild`) and one that

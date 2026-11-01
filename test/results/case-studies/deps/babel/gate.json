@@ -149,6 +149,15 @@
       "not_run": {
         "needs --online": 5
       }
+    },
+    {
+      "name": "native-code",
+      "status": "not-applicable",
+      "packages": 5,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 5
     }
   ],
   "counts": {

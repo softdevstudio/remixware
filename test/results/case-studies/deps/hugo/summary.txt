@@ -3,4 +3,4 @@ changes: 24
 counts: not-allowed 18, updated 6
 added: 18 (direct 2)
 install scripts: 
-checks: allow-list ran; install-scripts not-applicable; publisher not-applicable
+checks: allow-list ran; install-scripts not-applicable; publisher not-applicable; native-code not-run

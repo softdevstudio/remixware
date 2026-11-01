@@ -12,3 +12,4 @@ $ jq -r '.checks[] | "\(.name): \(.status)"' deps.json
 allow-list: ran
 install-scripts: ran
 publisher: not-run
+native-code: not-applicable

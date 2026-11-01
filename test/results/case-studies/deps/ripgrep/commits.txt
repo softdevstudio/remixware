@@ -1,0 +1,18 @@
+project: https://github.com/BurntSushi/ripgrep
+base: d958105d412b6a1ad014cb0e5832a9b029fa4977
+head: be739c7910288905d966f87607b28435d1576295
+head subject: index: add grep-index crate
+head author date: 2026-07-20
+head commit date: 2026-07-20
+Cargo.lock lines: 554 -> 580
+
+files changed:
+ Cargo.lock                  |   26 ++
+ Cargo.toml                  |    1 +
+ crates/index/Cargo.toml     |   23 +
+ crates/index/LICENSE-MIT    |   21 +
+ crates/index/README.md      |  100 +++++
+ crates/index/UNLICENSE      |   24 ++
+ crates/index/src/lib.rs     |    1 +
+ crates/index/src/literal.rs | 1000 +++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 1196 insertions(+)

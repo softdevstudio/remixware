@@ -3,4 +3,4 @@ changes: 1
 counts: not-allowed 1
 added: 1 (direct 1)
 install scripts: 
-checks: allow-list ran; install-scripts ran; publisher not-run
+checks: allow-list ran; install-scripts ran; publisher not-run; native-code not-applicable

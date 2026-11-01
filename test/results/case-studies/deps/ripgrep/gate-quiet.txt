@@ -1,0 +1,24 @@
+$ remixware deps . --base-ref d958105d412b6a1ad014cb0e5832a9b029fa4977 --quiet
+
+NOT ALLOWED          cargo/fst 0.4.7, added (direct)
+                     in Cargo.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+NOT ALLOWED          cargo/redb 4.1.0, added (direct)
+                     in Cargo.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 2 added packages: 2 checked from the lockfiles
+  install scripts    not run, 2 added or updated versions: 2 not checked (needs
+                     --online)
+  publisher changes  not run, 2 added or updated versions: 2 not checked (crates.io
+                     publishers aren't checked yet)
+  native code        not applicable, 2 added or updated versions: 2 not applicable
+                     (only Go modules are checked for native code)
+
+2 changes: 2 not-allowed.
+FAIL: 2 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

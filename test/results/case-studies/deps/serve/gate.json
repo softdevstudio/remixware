@@ -649,6 +649,15 @@
       "not_run": {
         "needs --online": 8
       }
+    },
+    {
+      "name": "native-code",
+      "status": "not-applicable",
+      "packages": 8,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 8
     }
   ],
   "counts": {

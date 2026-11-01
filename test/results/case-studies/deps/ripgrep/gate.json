@@ -1,0 +1,114 @@
+{
+  "project": ".",
+  "base": "d958105d412b6a1ad014cb0e5832a9b029fa4977",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "Cargo.lock",
+      "kind": "Cargo.lock",
+      "head_packages": 51,
+      "base_packages": 49,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "fuzz/Cargo.lock",
+      "kind": "Cargo.lock",
+      "head_packages": 19,
+      "base_packages": 19,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "cargo/fst",
+      "ecosystem": "cargo",
+      "name": "fst",
+      "change": "added",
+      "to": [
+        "0.4.7"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "cargo/redb",
+      "ecosystem": "cargo",
+      "name": "redb",
+      "change": "added",
+      "to": [
+        "4.1.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "Cargo.lock"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 2,
+      "offline": 2,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "not-run",
+      "packages": 2,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 2
+      }
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 2,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "crates.io publishers aren't checked yet": 2
+      }
+    },
+    {
+      "name": "native-code",
+      "status": "not-applicable",
+      "packages": 2,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 2
+    }
+  ],
+  "counts": {
+    "not-allowed": 2
+  }
+}

@@ -143,6 +143,8 @@ Checks:
                      --online)
   publisher changes  not run, 27 added or updated versions: 27 not checked (needs
                      --online)
+  native code        not applicable, 27 added or updated versions: 27 not applicable
+                     (only Go modules are checked for native code)
 
 67 changes: 27 not-allowed, 40 removed.
 FAIL: 27 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).

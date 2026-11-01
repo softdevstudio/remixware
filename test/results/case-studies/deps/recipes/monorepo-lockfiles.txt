@@ -223,6 +223,9 @@ Checks:
   publisher changes  not run, 47 added or updated versions: 23 not checked (needs
                      --online), 24 not applicable (the Go module proxy records no
                      publisher)
+  native code        not run, 47 added or updated versions: 24 not checked (needs
+                     --online), 23 not applicable (only Go modules are checked for
+                     native code)
 
 48 changes: 1 install-script, 40 not-allowed, 1 not-checked, 6 updated.
 FAIL: 42 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
