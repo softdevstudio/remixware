@@ -225,15 +225,26 @@ Design decisions:
   no toolchain download).
 
 Steps:
-1. [ ] TOML value reader + uv.lock reader; tests (fixtures, broken input)
-2. [ ] YAML subset reader + pnpm-lock.yaml (5, 6, 9) and yarn berry; tests
-3. [ ] yarn.lock v1 reader; tests
-4. [ ] wire the kinds; testdata/deps fixtures; promise test across all
-       formats; README and reference text
-5. [ ] --format github and --summary for check and deps; tests
-6. [ ] action.yml, ACTION.md, action test workflow
+1. [x] TOML value reader + uv.lock reader; tests (fixtures, broken input)
+2. [x] YAML subset reader + pnpm-lock.yaml (5, 6, 9) and yarn berry; tests
+3. [x] yarn.lock v1 reader; tests
+4. [x] wire the kinds; promise test across all formats (10 formats: 800
+       new unallowed failed, 1600 safe sets passed, 240 install scripts
+       failed, 800 broken lockfiles stopped; it found stray lines in TOML
+       arrays read as values); README text. A switch between lockfiles that
+       pin the same manifest is read through the new one.
+5. [x] --format github and --summary for check and deps; tests
+6. [x] action.yml, ACTION.md, action test workflow (passed on Linux,
+       macOS and Windows, run 41269703662)
 7. [ ] deps case studies rerun with a pnpm, a yarn and a uv repo (none
-       not-checked); independent review; fixes; record-deps.sh
+       not-checked); independent review; fixes; record-deps.sh.
+       Cases in scripts/deps_case_studies.sh: vite 5b73935 (pnpm 9, Oxlint:
+       2 direct + 33 platform packages new), babel 7750b3d6 (berry, glob 14
+       security update: 1 new transitive), react 7df975a (yarn 1,
+       chrome-devtools-mcp new), pydantic-ai ab311a5 (uv, boxd new, wheel
+       so no build). vite's two-line fixture yarn.lock files stopped the
+       gate; an unreadable lockfile unchanged on both sides (with its
+       sibling file) is now skipped with a warning.
 8. [ ] release 0.4.0; check assets; site post, reference, quick start;
        softdevstudio.com note; softdev-plan.md
 
