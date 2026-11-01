@@ -236,8 +236,18 @@ Steps:
 5. [x] --format github and --summary for check and deps; tests
 6. [x] action.yml, ACTION.md, action test workflow (passed on Linux,
        macOS and Windows, run 41269703662)
-7. [ ] deps case studies rerun with a pnpm, a yarn and a uv repo (none
+7. [x] deps case studies rerun with a pnpm, a yarn and a uv repo (none
        not-checked); independent review; fixes; record-deps.sh.
+       Review (independent agent, two rounds): 16 defects, then 4 ways
+       around the fixes, all fixed with failing-first tests in
+       review_040_test.go and review_040b_test.go (both packages): names
+       from fields instead of keys, versions from fields instead of
+       resolutions, other hosts and archive URLs counted as the registry,
+       requiresBuild misread, a file: descriptor hiding an entry, a ---
+       line dropped, a stale sibling hiding a deleted lockfile, workflow
+       commands forged from policy reasons and lockfile errors, backslashes
+       breaking summary cells. record-deps.sh: 48 tests, promise numbers
+       as above.
        Cases in scripts/deps_case_studies.sh: vite 5b73935 (pnpm 9, Oxlint:
        2 direct + 33 platform packages new), babel 7750b3d6 (berry, glob 14
        security update: 1 new transitive), react 7df975a (yarn 1,

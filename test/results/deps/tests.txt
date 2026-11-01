@@ -1,21 +1,21 @@
 === RUN   TestDepsUnlistedLockfileNotChecked
---- PASS: TestDepsUnlistedLockfileNotChecked (0.22s)
+--- PASS: TestDepsUnlistedLockfileNotChecked (0.03s)
 === RUN   TestDepsUnlistedLockfileGit
---- PASS: TestDepsUnlistedLockfileGit (0.14s)
+--- PASS: TestDepsUnlistedLockfileGit (0.04s)
 === RUN   TestDepsUnpinnedVersionShown
---- PASS: TestDepsUnpinnedVersionShown (0.02s)
+--- PASS: TestDepsUnpinnedVersionShown (0.01s)
 === RUN   TestDepsReviewNPMKeysAreExact
---- PASS: TestDepsReviewNPMKeysAreExact (0.02s)
+--- PASS: TestDepsReviewNPMKeysAreExact (0.00s)
 === RUN   TestDepsReviewPoetryHeaderSpaces
---- PASS: TestDepsReviewPoetryHeaderSpaces (0.02s)
+--- PASS: TestDepsReviewPoetryHeaderSpaces (0.00s)
 === RUN   TestDepsReviewPoetryMultilineString
---- PASS: TestDepsReviewPoetryMultilineString (0.01s)
+--- PASS: TestDepsReviewPoetryMultilineString (0.00s)
 === RUN   TestDepsReviewPoetryInlineSource
---- PASS: TestDepsReviewPoetryInlineSource (0.01s)
+--- PASS: TestDepsReviewPoetryInlineSource (0.00s)
 === RUN   TestDepsReviewRequirementsCommentBackslashLikePip
 --- PASS: TestDepsReviewRequirementsCommentBackslashLikePip (0.00s)
 === RUN   TestDepsReviewRequirementsPythonLineBreaks
---- PASS: TestDepsReviewRequirementsPythonLineBreaks (0.05s)
+--- PASS: TestDepsReviewRequirementsPythonLineBreaks (0.01s)
 === RUN   TestDepsReviewConstraintsIndex
 --- PASS: TestDepsReviewConstraintsIndex (0.00s)
 === RUN   TestDepsReviewRequirementsNames
@@ -23,29 +23,29 @@
 === RUN   TestDepsReviewGoWork
 --- PASS: TestDepsReviewGoWork (0.00s)
 === RUN   TestDepsReviewSymlinkedLockfile
---- PASS: TestDepsReviewSymlinkedLockfile (0.02s)
+--- PASS: TestDepsReviewSymlinkedLockfile (0.00s)
 === RUN   TestDepsReviewLockfileRemovedManifestKept
---- PASS: TestDepsReviewLockfileRemovedManifestKept (0.02s)
+--- PASS: TestDepsReviewLockfileRemovedManifestKept (0.00s)
 === RUN   TestDepsReviewPolicySettingChangesShown
---- PASS: TestDepsReviewPolicySettingChangesShown (0.02s)
+--- PASS: TestDepsReviewPolicySettingChangesShown (0.00s)
 === RUN   TestDepsReviewRegistryCacheKeyedByRegistry
 --- PASS: TestDepsReviewRegistryCacheKeyedByRegistry (0.01s)
 === RUN   TestDepsReviewRequirementsVCSBuildsFromSource
---- PASS: TestDepsReviewRequirementsVCSBuildsFromSource (0.02s)
+--- PASS: TestDepsReviewRequirementsVCSBuildsFromSource (0.00s)
 === RUN   TestDepsReviewGitSymlinkedLockfile
---- PASS: TestDepsReviewGitSymlinkedLockfile (0.11s)
+--- PASS: TestDepsReviewGitSymlinkedLockfile (0.04s)
 === RUN   TestParseGoMod
 --- PASS: TestParseGoMod (0.00s)
 === RUN   TestParseNPMLock
 --- PASS: TestParseNPMLock (0.00s)
 === RUN   TestParseRequirements
---- PASS: TestParseRequirements (0.02s)
+--- PASS: TestParseRequirements (0.00s)
 === RUN   TestParsePoetryLock
 --- PASS: TestParsePoetryLock (0.00s)
 === RUN   TestDepsUnchangedPasses
 --- PASS: TestDepsUnchangedPasses (0.00s)
 === RUN   TestDepsNewPackageNeedsAllowRule
---- PASS: TestDepsNewPackageNeedsAllowRule (0.03s)
+--- PASS: TestDepsNewPackageNeedsAllowRule (0.01s)
 === RUN   TestDepsTransitiveGoModuleNeedsAllowRule
 --- PASS: TestDepsTransitiveGoModuleNeedsAllowRule (0.00s)
 === RUN   TestDepsPyPINamesNormalised
@@ -53,48 +53,50 @@
 === RUN   TestDepsUpdatedAndRemoved
 --- PASS: TestDepsUpdatedAndRemoved (0.00s)
 === RUN   TestDepsInstallScriptOffline
---- PASS: TestDepsInstallScriptOffline (0.02s)
+--- PASS: TestDepsInstallScriptOffline (0.00s)
 === RUN   TestDepsOfflineNeverClaimsOnline
---- PASS: TestDepsOfflineNeverClaimsOnline (0.01s)
+--- PASS: TestDepsOfflineNeverClaimsOnline (0.00s)
 === RUN   TestDepsUnreadLockfile
---- PASS: TestDepsUnreadLockfile (0.02s)
+--- PASS: TestDepsUnreadLockfile (0.00s)
 === RUN   TestDepsMalformedLockfileFails
---- PASS: TestDepsMalformedLockfileFails (0.08s)
+--- PASS: TestDepsMalformedLockfileFails (0.01s)
 === RUN   TestDepsLockfileSearch
---- PASS: TestDepsLockfileSearch (0.07s)
+--- PASS: TestDepsLockfileSearch (0.01s)
 === RUN   TestDepsPolicyValidation
---- PASS: TestDepsPolicyValidation (0.02s)
+--- PASS: TestDepsPolicyValidation (0.00s)
 === RUN   TestDepsGitRevision
---- PASS: TestDepsGitRevision (0.15s)
+--- PASS: TestDepsGitRevision (0.04s)
 === RUN   TestDepsOnlinePublisherChange
---- PASS: TestDepsOnlinePublisherChange (0.04s)
+--- PASS: TestDepsOnlinePublisherChange (0.01s)
 === RUN   TestDepsOnlineErrorsFail
---- PASS: TestDepsOnlineErrorsFail (0.02s)
+--- PASS: TestDepsOnlineErrorsFail (0.01s)
 === RUN   TestDepsOnlinePyPI
---- PASS: TestDepsOnlinePyPI (0.01s)
+--- PASS: TestDepsOnlinePyPI (0.00s)
 === RUN   TestDepsGatePromise
-    deps_test.go:942: promise: 400 new packages not on the allow list, 400 failed; 800 unchanged or allowed sets, 800 passed; 80 new install scripts, 80 failed; 400 broken lockfiles, 400 stopped with an error
---- PASS: TestDepsGatePromise (12.52s)
+    deps_test.go:997: promise: 800 new packages not on the allow list, 800 failed; 1600 unchanged or allowed sets, 1600 passed; 240 new install scripts, 240 failed; 800 broken lockfiles, 800 stopped with an error
+--- PASS: TestDepsGatePromise (6.89s)
 === RUN   TestDepsPipIndexChange
---- PASS: TestDepsPipIndexChange (0.02s)
+--- PASS: TestDepsPipIndexChange (0.00s)
 === RUN   TestDepsMovedOffRegistry
---- PASS: TestDepsMovedOffRegistry (0.02s)
+--- PASS: TestDepsMovedOffRegistry (0.00s)
 === RUN   TestIncludeDepsScansVendor
---- PASS: TestIncludeDepsScansVendor (0.34s)
+--- PASS: TestIncludeDepsScansVendor (0.17s)
 PASS
-ok  	github.com/softdevstudio/remixware	15.205s
+ok  	github.com/softdevstudio/remixware	8.380s
+=== RUN   TestDepsFormatGitHub
+--- PASS: TestDepsFormatGitHub (0.01s)
 === RUN   TestDepsFixture
---- PASS: TestDepsFixture (0.05s)
+--- PASS: TestDepsFixture (0.01s)
 === RUN   TestDepsUsageErrors
 --- PASS: TestDepsUsageErrors (0.00s)
 === RUN   TestDepsMalformedLockfileExits2
---- PASS: TestDepsMalformedLockfileExits2 (0.07s)
+--- PASS: TestDepsMalformedLockfileExits2 (0.02s)
 === RUN   TestDepsOnline
 --- PASS: TestDepsOnline (0.01s)
 === RUN   TestDepsBaseRef
---- PASS: TestDepsBaseRef (0.25s)
+--- PASS: TestDepsBaseRef (0.08s)
 === RUN   TestDepsChangeCantAllowItself
---- PASS: TestDepsChangeCantAllowItself (0.04s)
+--- PASS: TestDepsChangeCantAllowItself (0.01s)
 PASS
-ok  	github.com/softdevstudio/remixware/cmd/remixware	1.501s
+ok  	github.com/softdevstudio/remixware/cmd/remixware	1.163s
 ?   	github.com/softdevstudio/remixware/scripts/bench	[no test files]
