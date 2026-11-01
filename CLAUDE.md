@@ -174,7 +174,7 @@ content and config values only; never touch the theme).
   file only claims, and never let an index make a scan skip a project file.
   A change to the index layout bumps `indexFormat`.
 
-## Next: 0.4.0, read pnpm, yarn and uv lockfiles; GitHub Action (in progress)
+## Done: 0.4.0, read pnpm, yarn and uv lockfiles; GitHub Action (released 2026-11-01)
 
 Approved by YK on 2026-11-01 as item 3, Phase A of softdev-plan.md in
 photozeitgeist/jollyroger.biz. Phase B (licence misreads, Cargo.lock and
@@ -255,8 +255,17 @@ Steps:
        so no build). vite's two-line fixture yarn.lock files stopped the
        gate; an unreadable lockfile unchanged on both sides (with its
        sibling file) is now skipped with a warning.
-8. [ ] release 0.4.0; check assets; site post, reference, quick start;
+8. [x] release 0.4.0; check assets; site post, reference, quick start;
        softdevstudio.com note; softdev-plan.md
+       (v0.4.0 tag on 8b11303, release run 41271776000; five archives and
+       SHA256SUMS answer 200 on latest/download, the Linux build's checksum
+       matches and it prints 0.4.0 and fails the fixture change; Action
+       download job passed pinned and latest, run 41271927153; case studies
+       re-recorded with the release; remixware.com fc4a0d4, Cloudflare
+       Pages check green; softdevstudio.com note bb2dfb2)
+
+All steps done. Phase B (licence misreads, Cargo.lock, Go install-surface
+checks) waits for YK.
 
 ## State
 
@@ -426,6 +435,17 @@ copied again from test/results/gallery (only version and time changed).
 ## Gaps and to-do
 
 Known gaps, not planned yet:
+
+- 0.4.0 readers: pnpm 9 and yarn record no install scripts (checked only
+  with --online). Yarn 1 takes direct packages from the root package.json
+  only, so a workspace's own dependency shows as transitive. `.npmrc` and
+  `.yarnrc.yml` scoped registries aren't read: integrity-only pnpm and
+  bare berry `npm:` packages count as the public registry. pnpm 5/6 can
+  write a `tarball:` with an unusual file name for a registry package; that
+  reads as off the registry (a false not-checked on update, never a pass).
+  Berry stops when a `version` field differs from its resolution's. The
+  Action's pull-request path (empty base-ref, base branch fetched) isn't
+  exercised by action-test.yml, which runs on push.
 
 - Dependency gate (0.3.0): yarn.lock, pnpm-lock.yaml, Pipfile.lock,
   uv.lock, Cargo.lock and other lockfiles aren't read (a change to one is
