@@ -375,7 +375,8 @@ the change and in the base:
   crates.io (its git or sparse index) is a registry package. A crate from
   git or another registry can't be looked up, so it counts as an
   `install-script` (it may have a build script), as pip's VCS requirements
-  do. A crate whose version stays but whose source changes (another git
+  do: a Cargo workspace with a git dependency fails on each change to it
+  until an allow rule with `install_scripts: true` names it. A crate whose version stays but whose source changes (another git
   repository or commit, or a crates.io crate patched to a fork) is
   `not-checked`. `Cargo.lock` doesn't record build scripts or procedural
   macros, so for crates.io crates those are checked with `--online`. An

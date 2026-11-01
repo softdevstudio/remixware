@@ -225,14 +225,30 @@ Design decisions:
 - Version 0.5.0.
 
 Steps:
-1. [ ] licence fixes with tests (testdata/licences); TestSPDXCorpus and
-       scripts/spdx-corpus.sh; record results
-2. [ ] Cargo.lock reader; wire the kind; promise test; tests
-3. [ ] online build surface: crates (.crate) and Go (module zip),
-       native-code status and allow key; fake-registry tests
-4. [ ] README, reference text; case studies (a Rust project's
-       Cargo.lock change; a Go change adding a cgo module)
-5. [ ] independent review agent; fixes; record-deps.sh, licence results
+1. [x] licence fixes with tests (testdata/licences); TestSPDXCorpus and
+       scripts/spdx-corpus.sh (794 texts, 0 more lenient); record results
+       (benchmark: go-difflib now BSD-3-Clause; nothing else moved)
+2. [x] Cargo.lock reader; wire the kind; promise test (11 formats, 880
+       cases each way); tests
+3. [x] online build surface: crates (.crate) and Go (module zip),
+       native-code status and allow key; fake-registry tests;
+       .github/workflows/registries-live.yml (run by hand: these sessions
+       can't reach proxy.golang.org) passed against the real registries,
+       run 41276248448 (go-sqlite3 native, x/sys not: its cgo is AIX/Hurd
+       only; libc, serde_derive, zstd-sys install-script; syn, openssl-src
+       not)
+4. [x] README; ripgrep case studies in deps_case_studies.sh (be739c7 adds
+       fst and redb, both with build scripts; e988d4b updates 29 crates, 10
+       run build code); the Go case is the live workflow
+5. [x] independent review agent, two rounds: 14 defects, then 6; all
+       fixed with failing-first tests (review_050_test.go,
+       review_050b_test.go). Among them: unrecognised licences let copies
+       pass check without a notice (now attribution-missing until kept);
+       same-version crate source changes unseen (now not-checked); git
+       crates unchecked (now install-script); Cargo.toml read line by line
+       (now TOML); Go file names, //go:build vs +build, block comments and
+       SWIG read unlike go/build; per-file wording read as a choice.
+       record-results.sh re-run twice: no number moved but go-difflib.
 6. [ ] release 0.5.0; check assets; site post and reference; softdevstudio
        note; softdev-plan.md
 
@@ -498,6 +514,14 @@ copied again from test/results/gallery (only version and time changed).
 
 Known gaps, not planned yet:
 
+- 0.5.0: the usual Rust COPYRIGHT file ("Licensed under the Apache
+  License ... <LICENSE-APACHE> or the MIT license <LICENSE-MIT>, at your
+  option") is read as an Apache-2.0 text itself, so the crate comes out
+  Apache-2.0 alone (stricter; 0.4 did the same). A Go file over 16 MB or a
+  module zip over 64 MB stops --online (exit 2). Licence texts with added
+  terms in wording outside the probed clauses read as their base licence;
+  the SPDX corpus promise covers SPDX texts only. crates.io publishers
+  aren't checked.
 - 0.4.0 readers: pnpm 9 and yarn record no install scripts (checked only
   with --online). Yarn 1 takes direct packages from the root package.json
   only, so a workspace's own dependency shows as transitive. `.npmrc` and

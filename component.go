@@ -770,7 +770,13 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 			lgpl = lgpl || strings.HasPrefix(id, "LGPL-")
 		}
 	}
-	if len(partsDiffer) > 0 || (gpl && lgpl) {
+	switch {
+	case gpl && lgpl:
+		// Never a choice, whatever a pointer says.
+		for i := range option {
+			option[i] = false
+		}
+	case len(partsDiffer) > 0:
 		for i := range option {
 			if !chosen[pathsByBase(paths, froms[i])] {
 				option[i] = false
@@ -826,6 +832,11 @@ func namesOtherLicenceFiles(t, self string, paths []string) bool {
 		}
 		between := low[ms[i-1].end:ms[i].at]
 		if sentenceBreak(between) {
+			// "... under LICENSE-MIT. Alternatively, ... under
+			// LICENSE-APACHE." offers a choice over two sentences.
+			if strings.Contains(between, "alternatively") {
+				continue
+			}
 			return true
 		}
 		if !strings.Contains(" "+normText(between)+" ", " or ") {
@@ -941,7 +952,10 @@ func licenseFilePointer(t, self string, paths []string) []string {
 		" available under ", " distributed under ", " released under "} {
 		choice = choice || strings.Contains(sentence, w)
 	}
-	for _, w := range []string{" every file ", " each file ", " some files ", " either way "} {
+	// Wording that ties the licences to files or headers says each file
+	// has one: not a choice.
+	for _, w := range []string{" every file ", " each file ", " some files ", " either way ", " files ", " individual ",
+		" header ", " headers ", " as stated ", " each "} {
 		if strings.Contains(sentence, w) {
 			choice = false
 		}

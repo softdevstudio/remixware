@@ -327,7 +327,11 @@ func readSide(t DepsTree, lockfiles []string) (*depSide, error) {
 					old.scripts = p.scripts
 				}
 				if p.source != old.source && !containsString(strings.Split(old.source, " | "), p.source) {
-					old.source += " | " + p.source
+					// Kept sorted, so the same sources in another lockfile
+					// order compare equal.
+					srcs := append(strings.Split(old.source, " | "), p.source)
+					sort.Strings(srcs)
+					old.source = strings.Join(srcs, " | ")
 				}
 				old.registry = old.registry && p.registry
 				e.versions[p.version] = old
@@ -497,6 +501,7 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 	for _, k := range keys {
 		h, b := hs.pkgs[k], bs.pkgs[k]
 		c := DepChange{Package: k.eco + "/" + k.name, Ecosystem: k.eco, Name: k.name}
+		var moved []string // versions on both sides whose source changed
 		switch {
 		case h == nil:
 			c.Change, c.Status, c.From = "removed", DepRemoved, sortedVersions(b.versions, nil)
@@ -517,35 +522,34 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 			}
 		default:
 			newVers := sortedVersions(h.versions, b.versions)
+			// Versions both sides have, one now from somewhere else: a git
+			// crate at another repository or commit, or a crates.io crate
+			// patched to a fork ([patch.crates-io] keeps the version).
+			for v, hp := range h.versions {
+				if bp, ok := b.versions[v]; ok && hp.source != bp.source {
+					moved = append(moved, v)
+				}
+			}
+			sort.Strings(moved)
+			if len(newVers) == 0 && len(moved) == 0 {
+				continue
+			}
 			if len(newVers) == 0 {
-				// The same versions, but one now comes from somewhere else: a
-				// git crate at another repository or commit, or a crates.io
-				// crate patched to a fork ([patch.crates-io] keeps the version).
-				var moved []string
-				for v, hp := range h.versions {
-					if bp := b.versions[v]; hp.source != bp.source {
-						moved = append(moved, v)
-					}
-				}
-				if len(moved) == 0 {
-					continue
-				}
-				sort.Strings(moved)
 				c.Change, c.Status, c.To, c.From = "updated", DepUpdated, moved, moved
 				c.Direct, c.Lockfiles = h.direct, sortedKeys(h.lockfiles)
 				c.Reason = "The same version, from another source."
-				for _, v := range moved {
-					c.Issues = append(c.Issues, DepIssue{Status: DepNotChecked, Version: v,
-						Reason: fmt.Sprintf("Version %s now comes from %s instead of %s. Remixware can't tell what changed: check the source by hand, or take not-checked out of deps.fail_on.",
-							v, oneLine(h.versions[v].source), oneLine(b.versions[v].source))})
-				}
 				break
 			}
 			c.Change, c.Status, c.To, c.From = "updated", DepUpdated, newVers, sortedVersions(b.versions, nil)
 			c.Direct, c.Lockfiles = h.direct, sortedKeys(h.lockfiles)
 			c.Reason = "At a new version."
 		}
-		if c.Change == "updated" {
+		for _, v := range moved {
+			c.Issues = append(c.Issues, DepIssue{Status: DepNotChecked, Version: v,
+				Reason: fmt.Sprintf("Version %s now comes from %s instead of %s. Remixware can't tell what changed: check the source by hand, or take not-checked out of deps.fail_on.",
+					v, oneLine(h.versions[v].source), oneLine(b.versions[v].source))})
+		}
+		if c.Change == "updated" && len(newVersOf(h, b)) > 0 {
 			fromRegistry := true
 			for _, bp := range b.versions {
 				fromRegistry = fromRegistry && bp.registry
@@ -559,7 +563,15 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 			}
 		}
 		if c.Change != "removed" {
-			for _, v := range c.To {
+			// The new versions, and the ones that moved: a moved version is
+			// another package in all but name.
+			checks := append([]string(nil), c.To...)
+			for _, v := range moved {
+				if !containsString(checks, v) {
+					checks = append(checks, v)
+				}
+			}
+			for _, v := range checks {
 				if err := ev.check(&c, k, h.versions[v], b); err != nil {
 					return nil, err
 				}
@@ -985,4 +997,13 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 		Reason: fmt.Sprintf("Published %s by %s, who neither published nor maintained %s %s. Check the release before taking it, then accept it with a deps allow rule that has publisher_change: true.",
 			when, facts.Publisher, k.name, strings.Join(known, ", "))})
 	return nil
+}
+
+// newVersOf lists the versions head has and base doesn't, for a package on
+// both sides.
+func newVersOf(h, b *pkgEntry) []string {
+	if h == nil || b == nil {
+		return nil
+	}
+	return sortedVersions(h.versions, b.versions)
 }

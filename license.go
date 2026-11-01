@@ -789,15 +789,15 @@ func DetectLicense(text string) string {
 // addsTerms says whether a licence text asks for more than permissive
 // licences do, in the clauses that do it: that the complete source be made
 // available (TOSL, TMate: "must be accompanied by information on how to
-// obtain complete source code"), or that the software isn't licensed for a
+// obtain complete source code"; FDK-AAC: "make available ... copies of the
+// complete source code"), or that the software isn't licensed for a
 // field of use (the BSD No-Nuclear and No-Military licences: "not
 // designed, licensed or intended for use in ... any nuclear facility").
 // A disclaimer that leaves "licensed" out (BSD-3-Clause-No-Nuclear-
 // Warranty) restricts nothing. t is the normalised text without its
 // copyright lines, so a holder's name can't trip it.
 func addsTerms(t string) bool {
-	for _, w := range []string{" obtain complete source code ", " obtain the complete source code ",
-		" licensed or intended for use in ", " not licensed for use in "} {
+	for _, w := range []string{" complete source code ", " licensed or intended for use in ", " not licensed for use in "} {
 		if strings.Contains(t, w) {
 			return true
 		}

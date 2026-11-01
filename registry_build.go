@@ -369,8 +369,8 @@ func buildConstraints(src []byte) []constraint.Expr {
 		return nil
 	}
 	var goBuild constraint.Expr
-	var plus []constraint.Expr
-	inBlock := false
+	var plus, pending []constraint.Expr
+	inBlock, afterBlock := false, false
 	for _, line := range strings.Split(string(src), "\n") {
 		line = strings.TrimSpace(line)
 		if inBlock {
@@ -384,8 +384,11 @@ func buildConstraints(src []byte) []constraint.Expr {
 		}
 		switch {
 		case line == "":
+			// A // +build line counts only with a blank line after it.
+			plus, pending = append(plus, pending...), nil
 			continue
 		case strings.HasPrefix(line, "/*"):
+			afterBlock = true
 			if i := strings.Index(line[2:], "*/"); i < 0 {
 				inBlock = true
 			} else if strings.TrimSpace(line[2+i+2:]) != "" {
@@ -397,9 +400,10 @@ func buildConstraints(src []byte) []constraint.Expr {
 				if e, err := constraint.Parse(line); err == nil {
 					goBuild = e
 				}
-			} else if constraint.IsPlusBuild(line) {
+			} else if constraint.IsPlusBuild(line) && !afterBlock {
+				// go/build ignores // +build lines after a /* */ comment.
 				if e, err := constraint.Parse(line); err == nil {
-					plus = append(plus, e)
+					pending = append(pending, e)
 				}
 			}
 			continue

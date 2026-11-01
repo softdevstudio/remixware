@@ -1,4 +1,4 @@
-794 texts: 59 read as the same licence, 11 as another listed licence of the same category, 0 as a stricter one, 264 unlisted ones as a listed licence asking at least for a notice, 457 left for review, 3 unlisted texts that ask nothing read as such, 0 more lenient
+794 texts: 59 read as the same licence, 11 as another listed licence of the same category, 0 as a stricter one, 268 unlisted ones as a listed licence asking at least for a notice, 453 left for review, 3 unlisted texts that ask nothing read as such, 0 more lenient
 
 SPDX id                                       read as                                       verdict
 0BSD                                          0BSD                                          same
@@ -75,7 +75,7 @@ BSD-3-Clause-Modification                     BSD-3-Clause                      
 BSD-3-Clause-No-Military-License              LicenseRef-Unrecognised                       review
 BSD-3-Clause-No-Nuclear-License-2014          LicenseRef-Unrecognised                       review
 BSD-3-Clause-No-Nuclear-License               LicenseRef-Unrecognised                       review
-BSD-3-Clause-No-Nuclear-Warranty              LicenseRef-Unrecognised                       review
+BSD-3-Clause-No-Nuclear-Warranty              BSD-3-Clause                                  unlisted, read as permissive
 BSD-3-Clause-Open-MPI                         BSD-3-Clause                                  unlisted, read as permissive
 BSD-3-Clause-OpenWebUI                        BSD-3-Clause                                  unlisted, read as permissive
 BSD-3-Clause-Sun                              BSD-3-Clause                                  unlisted, read as permissive
@@ -521,9 +521,9 @@ OFL-1.1                                       OFL-1.1                           
 OGC-1.0                                       (none)                                        review
 OGDL-Taiwan-1.0                               CC-BY-4.0                                     unlisted, read as permissive
 OGL-Canada-2.0                                (none)                                        review
-OGL-UK-1.0                                    LicenseRef-Unrecognised                       review
-OGL-UK-2.0                                    LicenseRef-Unrecognised                       review
-OGL-UK-3.0                                    LicenseRef-Unrecognised                       review
+OGL-UK-1.0                                    CC-BY-4.0                                     unlisted, read as permissive
+OGL-UK-2.0                                    CC-BY-4.0                                     unlisted, read as permissive
+OGL-UK-3.0                                    CC-BY-4.0                                     unlisted, read as permissive
 OGTSL                                         (none)                                        review
 OLDAP-1.1                                     (none)                                        review
 OLDAP-1.2                                     (none)                                        review
