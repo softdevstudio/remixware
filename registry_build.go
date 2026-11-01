@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"go/build/constraint"
 	"go/parser"
 	gotoken "go/token"
 	"io"
@@ -222,6 +223,9 @@ func (r *Registry) goFacts(module, version string) (VersionFacts, error) {
 			if err != nil {
 				return VersionFacts{}, fmt.Errorf("module %s %s: %v", module, version, err)
 			}
+			if neverBuilt(src) {
+				continue // //go:build ignore: a generator's input, not built
+			}
 			pf, err := parser.ParseFile(gotoken.NewFileSet(), rel, src, parser.ImportsOnly)
 			if err != nil {
 				continue // a file Go wouldn't build either
@@ -252,4 +256,28 @@ func escapeModulePath(s string) (string, error) {
 		}
 	}
 	return b.String(), nil
+}
+
+// neverBuilt says whether a Go file's build constraint rules it out
+// whatever the platform: one that needs the ignore tag (generator inputs,
+// such as golang.org/x/sys's cgo -godefs files). Every other tag counts as
+// set, so a file built anywhere counts.
+func neverBuilt(src []byte) bool {
+	for _, line := range strings.Split(string(src[:min(len(src), 8<<10)]), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "package ") {
+			break
+		}
+		if !constraint.IsGoBuild(line) && !constraint.IsPlusBuild(line) {
+			continue
+		}
+		expr, err := constraint.Parse(line)
+		if err != nil {
+			continue
+		}
+		if !expr.Eval(func(tag string) bool { return tag != "ignore" }) {
+			return true
+		}
+	}
+	return false
 }

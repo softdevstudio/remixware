@@ -1,0 +1,57 @@
+name: Registries live check
+
+# Run by hand after a change to registry.go or registry_build.go: CI never
+# touches the network, and these sessions can't reach the Go module proxy.
+# Asks the real registries about known packages through `deps --online`
+# and reports what Remixware found as annotations:
+#   Go:    github.com/mattn/go-sqlite3 (cgo, native-code expected),
+#          github.com/google/uuid (pure Go, nothing expected),
+#          golang.org/x/sys (generator inputs behind //go:build ignore)
+#   Rust:  serde_derive (a proc-macro) and libc (a build script) expected
+#          as install-script; syn (neither) not.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build
+        run: go build -o "$RUNNER_TEMP/remixware" ./cmd/remixware
+      - name: Ask the registries
+        shell: bash
+        run: |
+          set -u
+          bin="$RUNNER_TEMP/remixware"
+          w="$RUNNER_TEMP/live"
+          mkdir -p "$w/base" "$w/head"
+          h='h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+          printf 'module example.com/app\n\ngo 1.22\n' > "$w/base/go.mod"
+          printf 'github.com/google/uuid v1.5.0 %s\n' "$h" > "$w/base/go.sum"
+          printf 'module example.com/app\n\ngo 1.22\n' > "$w/head/go.mod"
+          printf 'github.com/google/uuid v1.6.0 %s\ngithub.com/mattn/go-sqlite3 v1.14.24 %s\ngolang.org/x/sys v0.26.0 %s\n' "$h" "$h" "$h" > "$w/head/go.sum"
+          crate() { printf '\n[[package]]\nname = "%s"\nversion = "%s"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\nchecksum = "aa"\n' "$1" "$2"; }
+          { printf 'version = 4\n\n[[package]]\nname = "app"\nversion = "0.1.0"\ndependencies = [\n "syn",\n]\n'; crate syn 2.0.77; } > "$w/base/Cargo.lock"
+          { printf 'version = 4\n\n[[package]]\nname = "app"\nversion = "0.1.0"\ndependencies = [\n "syn",\n "serde_derive",\n "libc",\n]\n'; crate syn 2.0.79; crate serde_derive 1.0.210; crate libc 0.2.159; } > "$w/head/Cargo.lock"
+          "$bin" deps "$w/head" --base "$w/base" --online --no-cache --json "$w/deps.json" > "$w/out.txt" 2> "$w/err.txt"
+          echo "exit code: $?"
+          cat "$w/out.txt" "$w/err.txt"
+          bad=0
+          status() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(next((c['status'] for c in d['changes'] if c['package']==sys.argv[2]), 'missing'))" "$w/deps.json" "$1"; }
+          for want in "golang/github.com/mattn/go-sqlite3 native-code" "golang/github.com/google/uuid updated" \
+                      "cargo/serde_derive install-script" "cargo/libc install-script" "cargo/syn updated"; do
+            set -- $want
+            got=$(status "$1")
+            if [ "$got" = "$2" ]; then echo "::notice::$1: $got, as expected"; else echo "::error::$1: $got, expected $2"; bad=1; fi
+          done
+          echo "::notice::golang/golang.org/x/sys: $(status golang/golang.org/x/sys) (generator inputs behind //go:build ignore don't count)"
+          grep -E "^  (install scripts|native code)" "$w/out.txt" > "$w/checks.txt" || true
+          while read -r line; do echo "::notice::$line"; done < "$w/checks.txt"
+          exit $bad

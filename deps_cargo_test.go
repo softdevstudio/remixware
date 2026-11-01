@@ -195,13 +195,15 @@ func TestGoNativeCodeOnline(t *testing.T) {
 		files  map[string]string
 		native bool
 	}{
-		"plain":                  {map[string]string{"go.mod": "module m\n", "x.go": "package x\n"}, false},
-		"cgo":                    {map[string]string{"go.mod": "module m\n", "x.go": cgo}, true},
-		"cgo in an import block": {map[string]string{"x.go": "package x\n\nimport (\n\t\"C\"\n\t\"fmt\"\n)\n"}, true},
-		"syso":                   {map[string]string{"x.go": "package x\n", "rsrc_windows_amd64.syso": "\x00"}, true},
-		"cgo only in a test":     {map[string]string{"x.go": "package x\n", "x_test.go": cgo}, false},
-		"cgo in testdata":        {map[string]string{"x.go": "package x\n", "testdata/c.go": cgo}, false},
-		"cgo in a nested module": {map[string]string{"x.go": "package x\n", "sub/go.mod": "module m/sub\n", "sub/c.go": cgo}, false},
+		"plain":                           {map[string]string{"go.mod": "module m\n", "x.go": "package x\n"}, false},
+		"cgo":                             {map[string]string{"go.mod": "module m\n", "x.go": cgo}, true},
+		"cgo in an import block":          {map[string]string{"x.go": "package x\n\nimport (\n\t\"C\"\n\t\"fmt\"\n)\n"}, true},
+		"syso":                            {map[string]string{"x.go": "package x\n", "rsrc_windows_amd64.syso": "\x00"}, true},
+		"cgo in a //go:build ignore file": {map[string]string{"x.go": "package x\n", "types.go": "//go:build ignore\n\npackage x\n\nimport \"C\"\n"}, false},
+		"cgo behind a build tag":          {map[string]string{"x.go": "package x\n", "c.go": "//go:build linux && cgo\n\npackage x\n\nimport \"C\"\n"}, true},
+		"cgo only in a test":              {map[string]string{"x.go": "package x\n", "x_test.go": cgo}, false},
+		"cgo in testdata":                 {map[string]string{"x.go": "package x\n", "testdata/c.go": cgo}, false},
+		"cgo in a nested module":          {map[string]string{"x.go": "package x\n", "sub/go.mod": "module m/sub\n", "sub/c.go": cgo}, false},
 	}
 	i := 0
 	for name, c := range cases {
