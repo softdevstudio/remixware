@@ -44,12 +44,16 @@ jobs:
           echo "exit code: $?"
           cat "$w/out.txt" "$w/err.txt"
           bad=0
-          status() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(next((c['status'] for c in d['changes'] if c['package']==sys.argv[2]), 'missing'))" "$w/deps.json" "$1"; }
+          # The change's status and every issue it has, as "status:issue,issue".
+          status() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); c=next((c for c in d['changes'] if c['package']==sys.argv[2]), None); print('missing' if c is None else c['status']+':'+','.join(i['status'] for i in c.get('issues') or []))" "$w/deps.json" "$1"; }
           for want in "golang/github.com/mattn/go-sqlite3 native-code" "golang/github.com/google/uuid updated" \
                       "cargo/serde_derive install-script" "cargo/libc install-script" "cargo/syn updated"; do
             set -- $want
             got=$(status "$1")
-            if [ "$got" = "$2" ]; then echo "::notice::$1: $got, as expected"; else echo "::error::$1: $got, expected $2"; bad=1; fi
+            case "$got" in
+              "$2":*|*:*"$2"*) echo "::notice::$1: $got, as expected" ;;
+              *) echo "::error::$1: $got, expected $2"; bad=1 ;;
+            esac
           done
           echo "::notice::golang/golang.org/x/sys: $(status golang/golang.org/x/sys) (generator inputs behind //go:build ignore don't count)"
           grep -E "^  (install scripts|native code)" "$w/out.txt" > "$w/checks.txt" || true
