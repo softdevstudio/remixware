@@ -24,10 +24,11 @@ const (
 	DepAllowed          = "allowed"           // a new package on the allow list
 	DepUpdated          = "updated"           // a package at a new version
 	DepRemoved          = "removed"           // a package no lockfile names any more
+	DepNativeCode       = "native-code"       // an added or updated Go module compiles C (cgo) or links prebuilt objects
 )
 
 // DepStatuses lists every dependency status, from fine to failing.
-var DepStatuses = []string{DepRemoved, DepUpdated, DepAllowed, DepNotChecked, DepNotAllowed, DepInstallScript, DepPublisherChanged}
+var DepStatuses = []string{DepRemoved, DepUpdated, DepAllowed, DepNativeCode, DepNotChecked, DepNotAllowed, DepInstallScript, DepPublisherChanged}
 
 // DefaultDepFailOn is what remixware deps fails on without a policy.
 var DefaultDepFailOn = []string{DepNotAllowed, DepInstallScript, DepPublisherChanged, DepNotChecked}
@@ -59,6 +60,7 @@ type DepAllowRule struct {
 	Reason          string `json:"reason"`
 	InstallScripts  bool   `json:"install_scripts,omitempty"`
 	PublisherChange bool   `json:"publisher_change,omitempty"`
+	NativeCode      bool   `json:"native_code,omitempty"`
 }
 
 func (d *DepsPolicy) validate(path string) error {
@@ -93,12 +95,12 @@ func (d *DepsPolicy) validate(path string) error {
 func splitDepPattern(p string) (eco, name string, err error) {
 	eco, name, ok := strings.Cut(p, "/")
 	if !ok || name == "" {
-		return "", "", fmt.Errorf("package %q should look like npm/name, pypi/name or golang/module/path", p)
+		return "", "", fmt.Errorf("package %q should look like npm/name, pypi/name, cargo/name or golang/module/path", p)
 	}
 	switch eco {
-	case EcoGo, EcoNPM, EcoPyPI:
+	case EcoGo, EcoNPM, EcoPyPI, EcoCargo:
 	default:
-		return "", "", fmt.Errorf("package %q: ecosystem %q isn't one of golang, npm, pypi", p, eco)
+		return "", "", fmt.Errorf("package %q: ecosystem %q isn't one of golang, npm, pypi, cargo", p, eco)
 	}
 	return eco, name, nil
 }
@@ -113,6 +115,10 @@ func (r DepAllowRule) match(eco, name string) bool {
 	}
 	if eco == EcoPyPI {
 		pn = strings.ToLower(pyNameSep.ReplaceAllString(pn, "-"))
+	}
+	if eco == EcoCargo {
+		// crates.io treats names that differ in case or in - and _ as one.
+		pn, name = crateKey(pn), crateKey(name)
 	}
 	if !strings.Contains(pn, "*") {
 		return pn == name
@@ -467,7 +473,8 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 	allow := &DepCheck{Name: "allow-list"}
 	scripts := &DepCheck{Name: "install-scripts"}
 	pub := &DepCheck{Name: "publisher"}
-	ev := &depEval{dp: dp, reg: opt.Registry, now: now(), days: days, scripts: scripts, pub: pub}
+	native := &DepCheck{Name: "native-code"}
+	ev := &depEval{dp: dp, reg: opt.Registry, now: now(), days: days, scripts: scripts, pub: pub, native: native}
 
 	keys := make([]pkgKey, 0, len(hs.pkgs)+len(bs.pkgs))
 	for k := range hs.pkgs {
@@ -564,7 +571,7 @@ func CompareDeps(head, base DepsTree, opt DepsOptions) (*DepsResult, error) {
 	sort.SliceStable(res.Changes, func(i, j int) bool {
 		return depStatusRank(res.Changes[i].Status) > depStatusRank(res.Changes[j].Status)
 	})
-	for _, c := range []*DepCheck{allow, scripts, pub} {
+	for _, c := range []*DepCheck{allow, scripts, pub, native} {
 		c.finish()
 		res.Checks = append(res.Checks, *c)
 	}
@@ -707,6 +714,8 @@ func lockManifest(l string) string {
 		return "package.json"
 	case kindPoetry, kindUV:
 		return "pyproject.toml"
+	case kindCargo:
+		return "Cargo.toml"
 	}
 	return ""
 }
@@ -766,6 +775,7 @@ type depEval struct {
 	now          time.Time
 	days         int
 	scripts, pub *DepCheck
+	native       *DepCheck
 }
 
 func (e *depEval) rule(k pkgKey, want func(DepAllowRule) bool) (DepAllowRule, bool) {
@@ -782,6 +792,7 @@ const (
 	whyNotRegistry = "not from the public registry"
 	whyNotPinned   = "version not pinned"
 	whyNoPrevious  = "no earlier release to compare with"
+	whyNoCrateData = "crates.io publishers aren't checked yet"
 )
 
 // check runs the install-script and publisher checks on one added or
@@ -789,13 +800,7 @@ const (
 func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) error {
 	e.scripts.Packages++
 	e.pub.Packages++
-	if k.eco == EcoGo {
-		// Go builds run no code from modules when they download them, and the
-		// module proxy keeps no record of who published a version.
-		e.scripts.NotApplicable++
-		e.pub.NotApplicable++
-		return nil
-	}
+	e.native.Packages++
 	lookup := func(chk *DepCheck) bool {
 		switch {
 		case e.reg == nil:
@@ -822,6 +827,34 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 		facts = &f
 		return nil
 	}
+	if k.eco == EcoGo {
+		// Go builds run no code from modules, and the module proxy keeps no
+		// record of who published a version. What a module can bring is C
+		// code compiled with cgo, or prebuilt objects (.syso) linked in.
+		e.scripts.NotApplicable++
+		e.pub.NotApplicable++
+		if !lookup(e.native) {
+			return nil
+		}
+		if err := fetch(); err != nil {
+			return err
+		}
+		e.native.Online++
+		if facts.fromCache {
+			e.native.Cached++
+		}
+		if facts.NativeCode {
+			if _, ok := e.rule(k, func(r DepAllowRule) bool { return r.NativeCode }); !ok {
+				c.Issues = append(c.Issues, DepIssue{Status: DepNativeCode, Version: p.version,
+					Reason: "Compiles C code with cgo, or links prebuilt object files (.syso), so building it runs the C toolchain and puts native code in your program. Accept it with a deps allow rule that has native_code: true and a reason."})
+			}
+		}
+		return nil
+	}
+	// Only Go modules are looked at for native code: npm's node-gyp builds
+	// and crates' build scripts are install scripts, and a Python package
+	// without a wheel builds from source.
+	e.native.NotApplicable++
 	// Install scripts.
 	runs := false
 	switch {
@@ -843,6 +876,8 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 			why := "Runs code when it's installed (an install script, or a build from source)."
 			if k.eco == EcoNPM {
 				why = "Runs an install script (preinstall, install or postinstall, or a node-gyp build) when npm installs it."
+			} else if k.eco == EcoCargo {
+				why = "Has a build script (build.rs) or is a procedural macro, so compiling it runs its code on the build machine."
 			} else if k.eco == EcoPyPI {
 				why = "Has no wheel, so the installer builds it from source, which runs its build code."
 			}
@@ -851,6 +886,10 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 		}
 	}
 	// Publisher.
+	if k.eco == EcoCargo {
+		e.pub.skip(whyNoCrateData)
+		return nil
+	}
 	if !lookup(e.pub) {
 		return nil
 	}

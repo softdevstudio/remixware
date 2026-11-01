@@ -17,6 +17,7 @@ import (
 type depsOpts struct {
 	base, baseRef, policy, failOn, jsonOut string
 	cache, npmURL, pypiURL                 string
+	cratesURL, goProxy                     string
 	online, noCache, quiet, basePolicy     bool
 	output                                 outputFlags
 }
@@ -36,13 +37,15 @@ func depsFlags(stderr io.Writer) (*flag.FlagSet, *depsOpts) {
 	fs.BoolVar(&o.noCache, "no-cache", false, "with --online, keep no cache file")
 	fs.StringVar(&o.npmURL, "npm-registry", "", "npm registry URL for --online (default "+remixware.NPMRegistry+")")
 	fs.StringVar(&o.pypiURL, "pypi-url", "", "PyPI JSON API URL for --online (default "+remixware.PyPIURL+")")
+	fs.StringVar(&o.cratesURL, "crates-url", "", "where --online downloads .crate files (default "+remixware.CratesDownloadURL+")")
+	fs.StringVar(&o.goProxy, "go-proxy", "", "Go module proxy for --online (default "+remixware.GoProxyURL+")")
 	fs.BoolVar(&o.quiet, "quiet", false, "print only the problems and the result")
 	fs.StringVar(&o.output.format, "format", "text", "output: text, or github (error annotations on the lockfiles, for GitHub Actions)")
 	fs.StringVar(&o.output.summary, "summary", "", "append a Markdown summary to this file (such as $GITHUB_STEP_SUMMARY)")
 	fs.Usage = func() {
 		fmt.Fprint(fs.Output(), `Usage: remixware deps [project] (--base FOLDER | --base-ref REV) [flags]
 
-Compares the packages the project's lockfiles name (go.mod and go.sum,
+Compares the packages the project's lockfiles name (go.mod and go.sum, Cargo.lock,
 package-lock.json, pnpm-lock.yaml, yarn.lock, requirements files,
 poetry.lock, uv.lock) with those of the base, and
 exits with status 1 when the change adds a package that isn't on the policy's
@@ -86,8 +89,8 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 			failOn = append(failOn, s)
 		}
 	}
-	if !o.online && (o.cache != "" || o.noCache || o.npmURL != "" || o.pypiURL != "") {
-		return exitUsage, errors.New("deps: --cache, --no-cache, --npm-registry and --pypi-url go with --online")
+	if !o.online && (o.cache != "" || o.noCache || o.npmURL != "" || o.pypiURL != "" || o.cratesURL != "" || o.goProxy != "") {
+		return exitUsage, errors.New("deps: --cache, --no-cache, --npm-registry, --pypi-url, --crates-url and --go-proxy go with --online")
 	}
 	head, err := remixware.DepsDir(project)
 	if err != nil {
@@ -135,7 +138,7 @@ func cmdDeps(args []string, stdout, stderr io.Writer) (int, error) {
 	}
 	var reg *remixware.Registry
 	if o.online {
-		reg = &remixware.Registry{NPMURL: o.npmURL, PyPIURL: o.pypiURL, CachePath: o.cache}
+		reg = &remixware.Registry{NPMURL: o.npmURL, PyPIURL: o.pypiURL, CratesURL: o.cratesURL, GoProxy: o.goProxy, CachePath: o.cache}
 		if o.cache == "" && !o.noCache {
 			reg.CachePath = remixware.DefaultRegistryCache()
 		}
@@ -322,7 +325,8 @@ func printDepChange(w io.Writer, c remixware.DepChange) {
 	}
 }
 
-var checkLabels = map[string]string{"allow-list": "allow list", "install-scripts": "install scripts", "publisher": "publisher changes"}
+var checkLabels = map[string]string{"allow-list": "allow list", "install-scripts": "install scripts", "publisher": "publisher changes",
+	"native-code": "native code"}
 
 // printChecks says what each check did, so a pass can be read for what it
 // covers. Nothing here claims an online check that didn't happen.
@@ -362,8 +366,11 @@ func checkText(c remixware.DepCheck, online bool) string {
 	}
 	if c.NotApplicable > 0 {
 		why := "Go modules run no install scripts"
-		if c.Name == "publisher" {
+		switch c.Name {
+		case "publisher":
 			why = "the Go module proxy records no publisher"
+		case "native-code":
+			why = "only Go modules are checked for native code"
 		}
 		parts = append(parts, fmt.Sprintf("%d not applicable (%s)", c.NotApplicable, why))
 	}

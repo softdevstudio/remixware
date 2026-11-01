@@ -31,6 +31,7 @@ type VersionFacts struct {
 	Maintainers    []string  `json:"maintainers,omitempty"`
 	Published      time.Time `json:"published,omitempty"`
 	Previous       string    `json:"previous,omitempty"` // the release published just before this one
+	NativeCode     bool      `json:"native_code,omitempty"`
 
 	fromCache bool
 }
@@ -39,6 +40,8 @@ type VersionFacts struct {
 type Registry struct {
 	NPMURL    string // default NPMRegistry
 	PyPIURL   string // default PyPIURL
+	CratesURL string // default CratesDownloadURL
+	GoProxy   string // default GoProxyURL
 	CachePath string // "" keeps no cache file
 	Client    *http.Client
 
@@ -140,6 +143,10 @@ func (r *Registry) Facts(eco, name, version string) (VersionFacts, bool, error) 
 		f, err = r.npmFacts(name, version)
 	case EcoPyPI:
 		f, err = r.pypiFacts(name, version)
+	case EcoCargo:
+		f, err = r.crateFacts(name, version)
+	case EcoGo:
+		f, err = r.goFacts(name, version)
 	default:
 		return f, false, fmt.Errorf("no registry lookups for %s packages", eco)
 	}
@@ -157,8 +164,13 @@ func (r *Registry) Facts(eco, name, version string) (VersionFacts, bool, error) 
 func (r *Registry) cacheKey(eco, name, version string) string {
 	key := eco + "/" + name + "@" + version
 	base, def := r.NPMURL, NPMRegistry
-	if eco == EcoPyPI {
+	switch eco {
+	case EcoPyPI:
 		base, def = r.PyPIURL, PyPIURL
+	case EcoCargo:
+		base, def = r.CratesURL, CratesDownloadURL
+	case EcoGo:
+		base, def = r.GoProxy, GoProxyURL
 	}
 	if base = strings.TrimSuffix(base, "/"); base != "" && base != def {
 		key = base + " " + key

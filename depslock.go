@@ -323,6 +323,7 @@ const (
 	kindPnpm        = "pnpm-lock.yaml"
 	kindYarn        = "yarn.lock"
 	kindUV          = "uv.lock"
+	kindCargo       = "Cargo.lock"
 	kindUnsupported = "unsupported"
 )
 
@@ -333,7 +334,7 @@ var requirementsName = regexp.MustCompile(`^(?i)(requirements.*|.*[-_.]requireme
 // unsupportedLockfiles are lockfiles the gate doesn't read. When one of
 // them changes, the change is not-checked: nothing passes unread.
 var unsupportedLockfiles = map[string]bool{"bun.lock": true, "bun.lockb": true,
-	"Pipfile.lock": true, "pdm.lock": true, "Cargo.lock": true, "Gemfile.lock": true, "composer.lock": true,
+	"Pipfile.lock": true, "pdm.lock": true, "Gemfile.lock": true, "composer.lock": true,
 	"packages.lock.json": true, "gradle.lockfile": true, "Package.resolved": true, "mix.lock": true, "pubspec.lock": true,
 	"conan.lock": true, "deno.lock": true,
 	// go build reads go.work (its use and replace directives override go.mod)
@@ -356,6 +357,8 @@ func lockfileKind(rel string) string {
 		return kindYarn
 	case base == "uv.lock":
 		return kindUV
+	case base == "Cargo.lock":
+		return kindCargo
 	case requirementsName.MatchString(base):
 		return kindRequirement
 	case strings.HasSuffix(base, ".txt") && path.Base(path.Dir(rel)) == "requirements":
@@ -427,6 +430,8 @@ func readLockfile(t depTree, rel string, data []byte) ([]lockPackage, []string, 
 		pkgs, err = parseYarnV1(data, pj)
 	case kindUV:
 		pkgs, err = parseUVLock(data)
+	case kindCargo:
+		pkgs, err = parseCargoLock(data)
 	default:
 		return nil, nil, fmt.Errorf("%s: not a lockfile Remixware reads", rel)
 	}

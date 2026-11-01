@@ -437,7 +437,7 @@ func TestDepsFixture(t *testing.T) {
 	if err := json.Unmarshal(data, &res); err != nil {
 		t.Fatal(err)
 	}
-	if res.Online || len(res.Changes) != 10 || res.Counts["not-allowed"] != 2 || len(res.Checks) != 3 {
+	if res.Online || len(res.Changes) != 10 || res.Counts["not-allowed"] != 2 || len(res.Checks) != 4 {
 		t.Errorf("JSON: %+v", res)
 	}
 	for _, c := range res.Checks {
