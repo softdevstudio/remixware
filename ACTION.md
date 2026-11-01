@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: softdevstudio/remixware@v0.4.0
+      - uses: softdevstudio/remixware@v0.5.0
         with:
           index-folders: |
             third_party
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: softdevstudio/remixware@v0.4.0
+      - uses: softdevstudio/remixware@v0.5.0
         with:
           command: deps
 ```

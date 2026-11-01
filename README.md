@@ -551,7 +551,7 @@ lockfile lines that break the policy and writes the job summary (see
 
 ```yaml
       - uses: actions/checkout@v4
-      - uses: softdevstudio/remixware@v0.4.0
+      - uses: softdevstudio/remixware@v0.5.0
         with:
           command: deps
 ```
@@ -780,7 +780,7 @@ and the reports are uploaded (see [ACTION.md](ACTION.md)):
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: softdevstudio/remixware@v0.4.0
+- uses: softdevstudio/remixware@v0.5.0
   with:
     index-folders: vendor
 ```
