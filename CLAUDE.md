@@ -174,7 +174,7 @@ content and config values only; never touch the theme).
   file only claims, and never let an index make a scan skip a project file.
   A change to the index layout bumps `indexFormat`.
 
-## Next: 0.5.0, licence misreads; Cargo.lock; Go and Rust build surface (in progress)
+## Done: 0.5.0, licence misreads; Cargo.lock; Go and Rust build surface (released 2026-11-01)
 
 Approved by YK on 2026-11-01 ("Go") as item 3, Phase B of softdev-plan.md
 in photozeitgeist/jollyroger.biz.
