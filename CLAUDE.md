@@ -174,6 +174,69 @@ content and config values only; never touch the theme).
   file only claims, and never let an index make a scan skip a project file.
   A change to the index layout bumps `indexFormat`.
 
+## Next: 0.4.0, read pnpm, yarn and uv lockfiles; GitHub Action (in progress)
+
+Approved by YK on 2026-11-01 as item 3, Phase A of softdev-plan.md in
+photozeitgeist/jollyroger.biz. Phase B (licence misreads, Cargo.lock and
+Go install-surface checks) waits for his go.
+
+What and why: pnpm, yarn and uv are now the default lockfiles of a large
+share of JS and Python projects, and the gate reports a change to any of
+them as not-checked, so those projects can't use it. And the CI snippet in
+the README is manual; an Action with PR annotations lowers the cost.
+
+Design decisions:
+- Readers, each failing loudly like the others, standard library only:
+  - pnpm-lock.yaml, lockfileVersion 5.x, 6.0 and 9.0: a small YAML subset
+    reader (block mappings and sequences, plain/single/double-quoted
+    scalars, one-line flow mappings and sequences, comments, several
+    documents); anchors, tags and block scalars are errors. Direct = the
+    importers' dependencies, devDependencies, optionalDependencies.
+    Install scripts: `requiresBuild` where the version writes it (5, 6);
+    lockfile 9 doesn't, so unknown (checked online). Registry: an
+    integrity-only resolution or a tarball under the npm registry;
+    git, tarball elsewhere and directory resolutions aren't.
+  - yarn.lock v1 (its own format) and berry (YAML, `__metadata`): name
+    from the descriptor (aliases `npm:` resolved), version, resolved URL
+    (v1) or resolution protocol (berry: npm is the registry; git, http,
+    file, patch, portal aren't; workspace and link entries are the
+    project's own code). Direct from package.json (v1) or the workspace
+    entries' dependencies (berry). Install scripts unknown (yarn records
+    none), so checked online.
+  - uv.lock (TOML): a small TOML value reader (strings, multi-line arrays,
+    inline tables, scalars), strict like the poetry reader. Root packages
+    (source editable/virtual, plus `[manifest] members`) are the project;
+    their dependencies, optional-dependencies and dev-dependencies are the
+    direct ones. Registry: `source = { registry = "https://pypi.org/simple" }`;
+    git, url, path and other registries aren't. Install scripts: a wheel
+    in `wheels` means no; sdist only, git or url to a source archive yes.
+- `remixware check` and `deps` get `--format github` (annotations: check
+  on the copied lines, deps on the lockfile) and `--summary FILE`
+  (Markdown, appended, for $GITHUB_STEP_SUMMARY). Text a project or
+  registry supplies is cleaned with oneLine before it goes into an
+  annotation.
+- action.yml (composite, the pattern in softdev-plan.md section 3 and
+  PXTA's ACTION.md): `command: check|deps`, downloads the pinned release,
+  checks SHA256SUMS, runs with --format github and --summary, uploads the
+  JSON/HTML report; outputs exit-code and result. For deps on a pull
+  request, the base is `origin/${{ github.base_ref }}` (fetched by the
+  action when missing).
+- Version 0.4.0. go.mod stays at go 1.24 (cloud sessions have 1.24.7 and
+  no toolchain download).
+
+Steps:
+1. [ ] TOML value reader + uv.lock reader; tests (fixtures, broken input)
+2. [ ] YAML subset reader + pnpm-lock.yaml (5, 6, 9) and yarn berry; tests
+3. [ ] yarn.lock v1 reader; tests
+4. [ ] wire the kinds; testdata/deps fixtures; promise test across all
+       formats; README and reference text
+5. [ ] --format github and --summary for check and deps; tests
+6. [ ] action.yml, ACTION.md, action test workflow
+7. [ ] deps case studies rerun with a pnpm, a yarn and a uv repo (none
+       not-checked); independent review; fixes; record-deps.sh
+8. [ ] release 0.4.0; check assets; site post, reference, quick start;
+       softdevstudio.com note; softdev-plan.md
+
 ## State
 
 0.1.0 (2026-10-26): index, scan, check, notice, licenses; SCANOSS and
@@ -346,7 +409,8 @@ Known gaps, not planned yet:
 - Dependency gate (0.3.0): yarn.lock, pnpm-lock.yaml, Pipfile.lock,
   uv.lock, Cargo.lock and other lockfiles aren't read (a change to one is
   not-checked, failing by default). A package.json or pyproject.toml without
-  a lockfile isn't read. Symbolic-link lockfiles are skipped on both sides.
+  a lockfile isn't read. Symbolic-link lockfiles inside the project are
+  followed (0.3.1); links that point outside it aren't.
   An npm package kept at the same version but resolved from another host
   isn't flagged (only updates that move off the registry are). PyPI has no
   uploader record, so its publisher check uses metadata and is weak. A
@@ -427,11 +491,6 @@ Known gaps, not planned yet:
   upload/download-artifact@v4, which GitHub now runs on Node 24 with a
   deprecation warning. Newer majors exist (checkout v7 in 2026); move one
   at a time in a quiet moment and watch CI.
-
-## Next
-
-Nothing is approved after 0.3.0. Ask the owner before starting anything
-new.
 
 ## Done: 0.3.2 deps fixes (2026-10-31)
 
