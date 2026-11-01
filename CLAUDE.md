@@ -249,14 +249,22 @@ Steps:
        (now TOML); Go file names, //go:build vs +build, block comments and
        SWIG read unlike go/build; per-file wording read as a choice.
        record-results.sh re-run twice: no number moved but go-difflib.
-6. [ ] release 0.5.0; check assets; site post and reference; softdevstudio
+6. [x] release 0.5.0; check assets; site post and reference; softdevstudio
        note; softdev-plan.md
+       (v0.5.0 tag on dfe7a19, release run 41276843515; five archives and
+       SHA256SUMS answer 200, Linux build's checksum matches, prints 0.5.0
+       and fails the fixture change; Action download job passed, run
+       41276971757; case studies re-recorded with the release; remixware.com
+       d9b1107, Cloudflare Pages green, post live; softdevstudio.com note
+       7f93d2b)
+
+All steps done. Item 3 of softdev-plan.md (Remixware) is complete; the
+next item is the owner's call.
 
 ## Done: 0.4.0, read pnpm, yarn and uv lockfiles; GitHub Action (released 2026-11-01)
 
 Approved by YK on 2026-11-01 as item 3, Phase A of softdev-plan.md in
-photozeitgeist/jollyroger.biz. Phase B (licence misreads, Cargo.lock and
-Go install-surface checks) waits for his go.
+photozeitgeist/jollyroger.biz. Phase B followed as 0.5.0.
 
 What and why: pnpm, yarn and uv are now the default lockfiles of a large
 share of JS and Python projects, and the gate reports a change to any of
