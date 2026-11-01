@@ -1,0 +1,6 @@
+lockfiles: src/pydantic_clai2/web-ui/package-lock.json (123 -> 123 packages), tests/ui_roundtrip/package-lock.json (26 -> 26 packages), uv.lock (426 -> 427 packages)
+changes: 1
+counts: not-allowed 1
+added: 1 (direct 1)
+install scripts: 
+checks: allow-list ran; install-scripts ran; publisher not-run

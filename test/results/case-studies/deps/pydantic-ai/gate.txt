@@ -1,0 +1,18 @@
+$ remixware deps . --base-ref 2a20f137aa5c9e84c7ec4c3a806a20778b6fcd80 --json ./test/results/case-studies/deps/pydantic-ai/gate.json
+Compared the dependencies of . with 2a20f137aa5c9e84c7ec4c3a806a20778b6fcd80
+Lockfiles: src/pydantic_clai2/web-ui/package-lock.json (123 packages), tests/ui_roundtrip/package-lock.json (26 packages), uv.lock (427 packages)
+
+NOT ALLOWED          pypi/boxd 0.2.20, added (direct)
+                     in uv.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 1 added package: 1 checked from the lockfiles
+  install scripts    ran, 1 added or updated version: 1 checked from the lockfiles
+  publisher changes  not run, 1 added or updated version: 1 not checked (needs
+                     --online)
+
+1 change: 1 not-allowed.
+FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

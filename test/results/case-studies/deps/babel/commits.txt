@@ -1,0 +1,12 @@
+project: https://github.com/babel/babel
+base: 52f8e9b9583857eb6f63a06aa302b12499c51e3a
+head: 7750b3d6912344e8a621a99a393cc2f5d3f4d2db
+head subject: Update dependency glob to v14 [SECURITY] (#18487)
+head author date: 2026-11-01
+head commit date: 2026-11-01
+yarn.lock lines: 18351 -> 18389
+
+files changed:
+ packages/babel-cli/package.json |  2 +-
+ yarn.lock                       | 48 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 44 insertions(+), 6 deletions(-)

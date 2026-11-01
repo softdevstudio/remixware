@@ -1,0 +1,17 @@
+$ remixware deps . --base-ref 52f8e9b9583857eb6f63a06aa302b12499c51e3a --quiet
+
+NOT ALLOWED          npm/@isaacs/nonrecursive-glob-match 1.0.3, added (transitive)
+                     in yarn.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 1 added package: 1 checked from the lockfiles
+  install scripts    not run, 5 added or updated versions: 5 not checked (needs
+                     --online)
+  publisher changes  not run, 5 added or updated versions: 5 not checked (needs
+                     --online)
+
+5 changes: 1 not-allowed, 4 updated.
+FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

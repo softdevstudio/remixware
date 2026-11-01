@@ -1,0 +1,24 @@
+project: https://github.com/pydantic/pydantic-ai
+base: 2a20f137aa5c9e84c7ec4c3a806a20778b6fcd80
+head: ab311a5d093494dcb6c4005bbd40bda79738fcf0
+head subject: Add `BoxdSandbox`: a workspace that runs `Coder`, `Shell`, `FileSystem` and every other harness capability in a boxd machine (#11367)
+head author date: 2026-10-28
+head commit date: 2026-10-28
+uv.lock lines: 10518 -> 10539
+
+files changed:
+ .../boxd_sandbox/_capability.py                    | 159 +++++
+ .../pydantic_ai_harness/coder/README.md            |   2 +-
+ src/pydantic_ai_harness/pyproject.toml             |   3 +
+ tests/harness/boxd_sandbox/__init__.py             |   0
+ tests/harness/boxd_sandbox/conftest.py             |  93 +++
+ tests/harness/boxd_sandbox/fake_boxd.py            | 619 ++++++++++++++++
+ tests/harness/boxd_sandbox/test_backend.py         | 633 ++++++++++++++++
+ tests/harness/boxd_sandbox/test_boxd_live.py       | 333 +++++++++
+ tests/harness/boxd_sandbox/test_boxd_sandbox.py    | 227 ++++++
+ tests/harness/boxd_sandbox/test_conformance.py     | 104 +++
+ tests/harness/test_capability_combine.py           |   1 +
+ tests/harness/test_docs_parity.py                  |   1 +
+ tests/harness/test_history_append_only.py          |   1 +
+ uv.lock                                            |  23 +-
+ 35 files changed, 3653 insertions(+), 32 deletions(-)

@@ -1,0 +1,158 @@
+{
+  "project": ".",
+  "base": "52f8e9b9583857eb6f63a06aa302b12499c51e3a",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "yarn.lock",
+      "kind": "yarn.lock",
+      "head_packages": 1566,
+      "base_packages": 1562,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "npm/@isaacs/nonrecursive-glob-match",
+      "ecosystem": "npm",
+      "name": "@isaacs/nonrecursive-glob-match",
+      "change": "added",
+      "to": [
+        "1.0.3"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "yarn.lock"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/brace-expansion",
+      "ecosystem": "npm",
+      "name": "brace-expansion",
+      "change": "updated",
+      "from": [
+        "1.1.14",
+        "2.1.0",
+        "5.0.5"
+      ],
+      "to": [
+        "5.0.12"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "yarn.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "npm/glob",
+      "ecosystem": "npm",
+      "name": "glob",
+      "change": "updated",
+      "from": [
+        "10.5.0",
+        "13.0.6",
+        "7.2.3",
+        "8.1.0"
+      ],
+      "to": [
+        "14.0.3"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "yarn.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "npm/minimatch",
+      "ecosystem": "npm",
+      "name": "minimatch",
+      "change": "updated",
+      "from": [
+        "10.2.5",
+        "3.1.5",
+        "5.1.9",
+        "9.0.9"
+      ],
+      "to": [
+        "11.0.3"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "yarn.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    },
+    {
+      "package": "npm/path-scurry",
+      "ecosystem": "npm",
+      "name": "path-scurry",
+      "change": "updated",
+      "from": [
+        "1.11.1",
+        "2.0.2"
+      ],
+      "to": [
+        "3.0.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "yarn.lock"
+      ],
+      "status": "updated",
+      "reason": "At a new version."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 1,
+      "offline": 1,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "not-run",
+      "packages": 5,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 5
+      }
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 5,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 5
+      }
+    }
+  ],
+  "counts": {
+    "not-allowed": 1,
+    "updated": 4
+  }
+}

@@ -1,0 +1,41 @@
+$ remixware deps . --base-ref 50b382d31835b8b4bc8b6964738ac03146e44261 --format github --quiet --summary ./test/results/case-studies/deps/recipes/github-summary.md
+remixware: warning: skipped packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-lock/yarn.lock, unchanged, and can't be read: line 1: foo has no version
+remixware: warning: skipped packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-state/yarn.lock, unchanged, and can't be read: line 1: foo has no version
+::error file=pnpm-lock.yaml,line=3574,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/darwin-arm64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3579,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/darwin-x64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3584,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/linux-arm64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3589,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/linux-x64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3594,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/win32-arm64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3599,title=Remixware deps%3A not-allowed npm/@oxlint-tsgolint/win32-x64::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3604,title=Remixware deps%3A not-allowed npm/@oxlint/binding-android-arm-eabi::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3610,title=Remixware deps%3A not-allowed npm/@oxlint/binding-android-arm64::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3616,title=Remixware deps%3A not-allowed npm/@oxlint/binding-darwin-arm64::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3622,title=Remixware deps%3A not-allowed npm/@oxlint/binding-darwin-x64::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3628,title=Remixware deps%3A not-allowed npm/@oxlint/binding-freebsd-x64::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3634,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-arm-gnueabihf::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3640,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-arm-musleabihf::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3646,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-arm64-gnu::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3653,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-arm64-musl::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3660,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-ppc64-gnu::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3667,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-riscv64-gnu::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3674,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-riscv64-musl::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3681,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-s390x-gnu::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3688,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-x64-gnu::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3695,title=Remixware deps%3A not-allowed npm/@oxlint/binding-linux-x64-musl::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3702,title=Remixware deps%3A not-allowed npm/@oxlint/binding-openharmony-arm64::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3708,title=Remixware deps%3A not-allowed npm/@oxlint/binding-win32-arm64-msvc::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3714,title=Remixware deps%3A not-allowed npm/@oxlint/binding-win32-ia32-msvc::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=3720,title=Remixware deps%3A not-allowed npm/@oxlint/binding-win32-x64-msvc::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=183,title=Remixware deps%3A not-allowed npm/oxlint::added 1.87.0. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+::error file=pnpm-lock.yaml,line=234,title=Remixware deps%3A not-allowed npm/oxlint-tsgolint::added 7.0.2004. New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.
+
+Checks:
+  allow list         ran, 27 added packages: 27 checked from the lockfiles
+  install scripts    not run, 27 added or updated versions: 27 not checked (needs
+                     --online)
+  publisher changes  not run, 27 added or updated versions: 27 not checked (needs
+                     --online)
+
+67 changes: 27 not-allowed, 40 removed.
+FAIL: 27 changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

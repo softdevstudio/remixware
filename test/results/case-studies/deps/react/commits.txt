@@ -1,0 +1,15 @@
+project: https://github.com/facebook/react
+base: a1a6bc89742fbe8e1f9680a3051fdedc111fb378
+head: 7df975a0c56de0e9d0d6d9c36a000185db58fc00
+head subject: [react-devtools-cdt-mcp] add chrome-devtools E2E coverage (#36823)
+head author date: 2026-07-01
+head commit date: 2026-07-01
+yarn.lock lines: 18115 -> 18120
+
+files changed:
+ packages/react-devtools-cdt-mcp/e2e/run.flow.js    | 1157 ++++++++++++++++++++
+ packages/react-devtools-cdt-mcp/e2e/run.js         |   23 +
+ .../fixtures/app/webpack.config.js                 |    8 +-
+ packages/react-devtools-cdt-mcp/package.json       |    7 +-
+ yarn.lock                                          |    5 +
+ 5 files changed, 1197 insertions(+), 3 deletions(-)

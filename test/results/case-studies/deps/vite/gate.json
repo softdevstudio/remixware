@@ -1,0 +1,1241 @@
+{
+  "project": ".",
+  "base": "50b382d31835b8b4bc8b6964738ac03146e44261",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-lock/yarn.lock",
+      "kind": "yarn.lock",
+      "head_packages": 0,
+      "base_packages": 0,
+      "in_head": true,
+      "in_base": true,
+      "skipped": "unchanged, and can't be read: line 1: foo has no version"
+    },
+    {
+      "path": "packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-state/yarn.lock",
+      "kind": "yarn.lock",
+      "head_packages": 0,
+      "base_packages": 0,
+      "in_head": true,
+      "in_base": true,
+      "skipped": "unchanged, and can't be read: line 1: foo has no version"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "kind": "pnpm-lock.yaml",
+      "head_packages": 1253,
+      "base_packages": 1269,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "npm/@oxlint-tsgolint/darwin-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/darwin-arm64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint-tsgolint/darwin-x64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/darwin-x64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint-tsgolint/linux-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/linux-arm64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint-tsgolint/linux-x64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/linux-x64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint-tsgolint/win32-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/win32-arm64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint-tsgolint/win32-x64",
+      "ecosystem": "npm",
+      "name": "@oxlint-tsgolint/win32-x64",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-android-arm-eabi",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-android-arm-eabi",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-android-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-android-arm64",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-darwin-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-darwin-arm64",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-darwin-x64",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-darwin-x64",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-freebsd-x64",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-freebsd-x64",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-arm-gnueabihf",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-arm-gnueabihf",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-arm-musleabihf",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-arm-musleabihf",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-arm64-gnu",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-arm64-gnu",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-arm64-musl",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-arm64-musl",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-ppc64-gnu",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-ppc64-gnu",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-riscv64-gnu",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-riscv64-gnu",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-riscv64-musl",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-riscv64-musl",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-s390x-gnu",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-s390x-gnu",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-x64-gnu",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-x64-gnu",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-linux-x64-musl",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-linux-x64-musl",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-openharmony-arm64",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-openharmony-arm64",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-win32-arm64-msvc",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-win32-arm64-msvc",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-win32-ia32-msvc",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-win32-ia32-msvc",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@oxlint/binding-win32-x64-msvc",
+      "ecosystem": "npm",
+      "name": "@oxlint/binding-win32-x64-msvc",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/oxlint",
+      "ecosystem": "npm",
+      "name": "oxlint",
+      "change": "added",
+      "to": [
+        "1.87.0"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/oxlint-tsgolint",
+      "ecosystem": "npm",
+      "name": "oxlint-tsgolint",
+      "change": "added",
+      "to": [
+        "7.0.2004"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    },
+    {
+      "package": "npm/@emnapi/core",
+      "ecosystem": "npm",
+      "name": "@emnapi/core",
+      "change": "removed",
+      "from": [
+        "1.11.2"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@emnapi/wasi-threads",
+      "ecosystem": "npm",
+      "name": "@emnapi/wasi-threads",
+      "change": "removed",
+      "from": [
+        "1.2.2"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@napi-rs/wasm-runtime",
+      "ecosystem": "npm",
+      "name": "@napi-rs/wasm-runtime",
+      "change": "removed",
+      "from": [
+        "0.2.12"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@tybys/wasm-util",
+      "ecosystem": "npm",
+      "name": "@tybys/wasm-util",
+      "change": "removed",
+      "from": [
+        "0.10.3"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/eslint-plugin",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/eslint-plugin",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/parser",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/parser",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/project-service",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/project-service",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/scope-manager",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/scope-manager",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/tsconfig-utils",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/tsconfig-utils",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/type-utils",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/type-utils",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/types",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/types",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/typescript-estree",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/typescript-estree",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/utils",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/utils",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@typescript-eslint/visitor-keys",
+      "ecosystem": "npm",
+      "name": "@typescript-eslint/visitor-keys",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-android-arm-eabi",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-android-arm-eabi",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-android-arm64",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-android-arm64",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-darwin-arm64",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-darwin-arm64",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-darwin-x64",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-darwin-x64",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-freebsd-x64",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-freebsd-x64",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-arm-gnueabihf",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-arm-gnueabihf",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-arm-musleabihf",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-arm-musleabihf",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-arm64-gnu",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-arm64-gnu",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-arm64-musl",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-arm64-musl",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-ppc64-gnu",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-ppc64-gnu",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-riscv64-gnu",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-riscv64-gnu",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-riscv64-musl",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-riscv64-musl",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-s390x-gnu",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-s390x-gnu",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-x64-gnu",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-x64-gnu",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-linux-x64-musl",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-linux-x64-musl",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-wasm32-wasi",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-wasm32-wasi",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-win32-arm64-msvc",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-win32-arm64-msvc",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-win32-ia32-msvc",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-win32-ia32-msvc",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/@unrs/resolver-binding-win32-x64-msvc",
+      "ecosystem": "npm",
+      "name": "@unrs/resolver-binding-win32-x64-msvc",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/eslint-import-context",
+      "ecosystem": "npm",
+      "name": "eslint-import-context",
+      "change": "removed",
+      "from": [
+        "0.1.9"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/eslint-plugin-import-x",
+      "ecosystem": "npm",
+      "name": "eslint-plugin-import-x",
+      "change": "removed",
+      "from": [
+        "4.17.1"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/napi-postinstall",
+      "ecosystem": "npm",
+      "name": "napi-postinstall",
+      "change": "removed",
+      "from": [
+        "0.3.4"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/stable-hash-x",
+      "ecosystem": "npm",
+      "name": "stable-hash-x",
+      "change": "removed",
+      "from": [
+        "0.2.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/ts-api-utils",
+      "ecosystem": "npm",
+      "name": "ts-api-utils",
+      "change": "removed",
+      "from": [
+        "2.5.0"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/typescript-eslint",
+      "ecosystem": "npm",
+      "name": "typescript-eslint",
+      "change": "removed",
+      "from": [
+        "8.71.1"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    },
+    {
+      "package": "npm/unrs-resolver",
+      "ecosystem": "npm",
+      "name": "unrs-resolver",
+      "change": "removed",
+      "from": [
+        "1.11.1"
+      ],
+      "direct": false,
+      "lockfiles": [
+        "pnpm-lock.yaml"
+      ],
+      "status": "removed",
+      "reason": "No lockfile names it any more."
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 27,
+      "offline": 27,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "not-run",
+      "packages": 27,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 27
+      }
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 27,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 27
+      }
+    }
+  ],
+  "counts": {
+    "not-allowed": 27,
+    "removed": 40
+  }
+}

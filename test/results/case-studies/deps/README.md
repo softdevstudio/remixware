@@ -21,13 +21,25 @@ command and ends with the exit code.
 - `hugo/`: gohugoio/hugo c7165589, "Add a "deploy" command".
   `gate-allowed.txt` uses `inputs/go-project-modules.json`, an example.
 - `serve/`: pytorch/serve b260776b5, "Enable opt-6.7b benchmark on inf2".
+- `vite/`: vitejs/vite 5b73935 (pnpm-lock.yaml 9), "chore: migrate to
+  Oxlint". `gate-allowed.txt` uses `inputs/oxlint.json`, an example.
+  vite's two fixture yarn.lock files (two lines, no version) are skipped
+  as unchanged and unreadable.
+- `babel/`: babel/babel 7750b3d6 (yarn.lock from yarn 4), "Update
+  dependency glob to v14 [SECURITY]".
+- `react/`: facebook/react 7df975a (47 yarn.lock files from yarn 1 and one
+  package-lock.json, all read), "[react-devtools-cdt-mcp] add
+  chrome-devtools E2E coverage".
+- `pydantic-ai/`: pydantic/pydantic-ai ab311a5 (uv.lock), "Add
+  BoxdSandbox".
 - `recipes/`: the use examples. A small git repository whose main holds
   TypeScript's lockfiles before esbuild and `inputs/demo-main.json` as its
   policy, a branch with the lockfiles after (`add-esbuild`) and one that
   also allows its own packages (`allow-itself`); and a monorepo made from
   the three projects' lockfiles (web/, api/, ml/). `actions-run.txt` runs
   the run blocks of `inputs/deps.yml` as written, downloading the latest
-  release.
+  release. `github.txt` and `github-summary.md` are the vite change with
+  `--format github` and `--summary`, as the GitHub Action runs it.
 
 The policies in `inputs/` are examples written for these runs; none of the
 projects uses Remixware.

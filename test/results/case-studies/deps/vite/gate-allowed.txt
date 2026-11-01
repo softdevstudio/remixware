@@ -1,0 +1,20 @@
+$ remixware deps . --base-ref 50b382d31835b8b4bc8b6964738ac03146e44261 --policy ./test/results/case-studies/deps/inputs/oxlint.json --quiet
+remixware: warning: skipped packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-lock/yarn.lock, unchanged, and can't be read: line 1: foo has no version
+remixware: warning: skipped packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-state/yarn.lock, unchanged, and can't be read: line 1: foo has no version
+
+Allow rules this change adds to the policy (review them: a change can allow its own packages):
+  npm/oxlint: Linter, replaces ESLint; dev only, reviewed in the migration PR.
+  npm/oxlint-tsgolint: Type-aware rules for oxlint; dev only.
+  npm/@oxlint/binding-*: oxlint's prebuilt binary for each platform; npm installs only the one that matches.
+  npm/@oxlint-tsgolint/*: oxlint-tsgolint's prebuilt binary for each platform.
+
+Checks:
+  allow list         ran, 27 added packages: 27 checked from the lockfiles
+  install scripts    not run, 27 added or updated versions: 27 not checked (needs
+                     --online)
+  publisher changes  not run, 27 added or updated versions: 27 not checked (needs
+                     --online)
+
+67 changes: 27 allowed, 40 removed.
+PASS: no changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 0

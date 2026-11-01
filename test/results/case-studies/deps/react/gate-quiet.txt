@@ -1,0 +1,17 @@
+$ remixware deps . --base-ref a1a6bc89742fbe8e1f9680a3051fdedc111fb378 --quiet
+
+NOT ALLOWED          npm/chrome-devtools-mcp 1.3.0, added (transitive)
+                     in yarn.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+Checks:
+  allow list         ran, 1 added package: 1 checked from the lockfiles
+  install scripts    not run, 1 added or updated version: 1 not checked (needs
+                     --online)
+  publisher changes  not run, 1 added or updated version: 1 not checked (needs
+                     --online)
+
+1 change: 1 not-allowed.
+FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

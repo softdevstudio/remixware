@@ -1,0 +1,24 @@
+project: https://github.com/vitejs/vite
+base: 50b382d31835b8b4bc8b6964738ac03146e44261
+head: 5b73935881424ed5919571036dd89d3868590f92
+head subject: chore: migrate to Oxlint (#23746)
+head author date: 2026-10-15
+head commit date: 2026-10-15
+pnpm-lock.yaml lines: 14342 -> 14131
+
+files changed:
+ packages/vite/src/node/config.ts                  |   4 +-
+ packages/vite/src/node/logger.ts                  |   2 +-
+ packages/vite/src/node/plugins/css.ts             |   2 +-
+ packages/vite/src/node/plugins/license.ts         |   1 +
+ packages/vite/src/node/server/pluginContainer.ts  |   2 +-
+ packages/vite/src/node/utils.ts                   |   5 +-
+ packages/vite/src/types/chokidar.d.ts             |   2 +-
+ packages/vite/src/types/connect.d.ts              |   2 +-
+ packages/vite/src/types/ws.d.ts                   |   3 +-
+ packages/vite/types/internal/devtoolsOptions.d.ts |   6 +-
+ playground/environment-react-ssr/vite.config.ts   |   2 +-
+ playground/hmr-ssr/queries/index.js               |   1 +
+ pnpm-lock.yaml                                    | 803 ++++++++--------------
+ pnpm-workspace.yaml                               |   1 -
+ 21 files changed, 611 insertions(+), 843 deletions(-)

@@ -1,0 +1,6 @@
+lockfiles: packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-lock/yarn.lock (0 -> 0 packages), packages/vite/src/node/__tests__/optimizer/fixtures/lockfile-hash/yarn-state/yarn.lock (0 -> 0 packages), pnpm-lock.yaml (1269 -> 1253 packages)
+changes: 67
+counts: not-allowed 27, removed 40
+added: 27 (direct 2)
+install scripts: 
+checks: allow-list ran; install-scripts not-run; publisher not-run

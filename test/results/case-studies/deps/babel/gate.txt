@@ -1,0 +1,35 @@
+$ remixware deps . --base-ref 52f8e9b9583857eb6f63a06aa302b12499c51e3a --json ./test/results/case-studies/deps/babel/gate.json
+Compared the dependencies of . with 52f8e9b9583857eb6f63a06aa302b12499c51e3a
+Lockfiles: yarn.lock (1,566 packages)
+
+NOT ALLOWED          npm/@isaacs/nonrecursive-glob-match 1.0.3, added (transitive)
+                     in yarn.lock
+                     New, and not on the allow list. Add a deps allow rule with a reason to the
+                     policy file, or drop it.
+
+UPDATED              npm/brace-expansion 1.1.14, 2.1.0, 5.0.5 -> 5.0.12 (transitive)
+                     in yarn.lock
+                     At a new version.
+
+UPDATED              npm/glob 10.5.0, 13.0.6, 7.2.3, 8.1.0 -> 14.0.3 (direct)
+                     in yarn.lock
+                     At a new version.
+
+UPDATED              npm/minimatch 10.2.5, 3.1.5, 5.1.9, 9.0.9 -> 11.0.3 (transitive)
+                     in yarn.lock
+                     At a new version.
+
+UPDATED              npm/path-scurry 1.11.1, 2.0.2 -> 3.0.0 (transitive)
+                     in yarn.lock
+                     At a new version.
+
+Checks:
+  allow list         ran, 1 added package: 1 checked from the lockfiles
+  install scripts    not run, 5 added or updated versions: 5 not checked (needs
+                     --online)
+  publisher changes  not run, 5 added or updated versions: 5 not checked (needs
+                     --online)
+
+5 changes: 1 not-allowed, 4 updated.
+FAIL: 1 change breaks the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).
+exit code: 1

@@ -1,0 +1,89 @@
+{
+  "project": ".",
+  "base": "2a20f137aa5c9e84c7ec4c3a806a20778b6fcd80",
+  "online": false,
+  "lockfiles": [
+    {
+      "path": "src/pydantic_clai2/web-ui/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 123,
+      "base_packages": 123,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "tests/ui_roundtrip/package-lock.json",
+      "kind": "package-lock.json",
+      "head_packages": 26,
+      "base_packages": 26,
+      "in_head": true,
+      "in_base": true
+    },
+    {
+      "path": "uv.lock",
+      "kind": "uv.lock",
+      "head_packages": 427,
+      "base_packages": 426,
+      "in_head": true,
+      "in_base": true
+    }
+  ],
+  "changes": [
+    {
+      "package": "pypi/boxd",
+      "ecosystem": "pypi",
+      "name": "boxd",
+      "change": "added",
+      "to": [
+        "0.2.20"
+      ],
+      "direct": true,
+      "lockfiles": [
+        "uv.lock"
+      ],
+      "status": "not-allowed",
+      "reason": "New, and not on the allow list. Add a deps allow rule with a reason to the policy file, or drop it.",
+      "issues": [
+        {
+          "status": "not-allowed",
+          "reason": "new package not on the allow list"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "allow-list",
+      "status": "ran",
+      "packages": 1,
+      "offline": 1,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "install-scripts",
+      "status": "ran",
+      "packages": 1,
+      "offline": 1,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0
+    },
+    {
+      "name": "publisher",
+      "status": "not-run",
+      "packages": 1,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 0,
+      "not_run": {
+        "needs --online": 1
+      }
+    }
+  ],
+  "counts": {
+    "not-allowed": 1
+  }
+}
