@@ -5,6 +5,7 @@ Checks:
   allow list         nothing to check (no added packages)
   install scripts    nothing to check (no added or updated versions)
   publisher changes  nothing to check (no added or updated versions)
+  native code        nothing to check (no added or updated versions)
 
 No dependency changes.
 PASS: no changes break the policy (fail on: not-allowed, install-script, publisher-changed, not-checked).

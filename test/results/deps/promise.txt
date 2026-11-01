@@ -1,1 +1,1 @@
-800 new packages not on the allow list, 800 failed; 1600 unchanged or allowed sets, 1600 passed; 240 new install scripts, 240 failed; 800 broken lockfiles, 800 stopped with an error
+880 new packages not on the allow list, 880 failed; 1760 unchanged or allowed sets, 1760 passed; 240 new install scripts, 240 failed; 880 broken lockfiles, 880 stopped with an error

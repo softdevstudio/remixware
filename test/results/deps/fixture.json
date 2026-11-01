@@ -250,6 +250,18 @@
       "not_run": {
         "needs --online": 7
       }
+    },
+    {
+      "name": "native-code",
+      "status": "not-run",
+      "packages": 10,
+      "offline": 0,
+      "online": 0,
+      "cached": 0,
+      "not_applicable": 7,
+      "not_run": {
+        "needs --online": 3
+      }
     }
   ],
   "counts": {
