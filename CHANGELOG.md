@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.0
+
+- Licence detection no longer reads a licence as one that asks less of
+  you. The SIL Open Font License (1.0 and 1.1) was read as MIT-0, which
+  asks for nothing; it is now OFL, a weak copyleft. A BSD text whose third
+  clause says "may not be used to endorse or promote" (go-difflib's
+  wording) was read as BSD-2-Clause; it is BSD-3-Clause. The Functional
+  Source License (read as MIT or Apache-2.0) is recognised as
+  source-available, Sleepycat (read as BSD-3-Clause) as copyleft, and
+  Creative Commons texts of any version keep their NonCommercial,
+  NoDerivs and ShareAlike terms. A permissive text with terms of its own
+  on top (the complete source must be available, as in TOSL and TMate, or
+  a field of use is ruled out, as in the BSD No-Nuclear variants) is left
+  for review instead of being read as its base licence, and so is a grant
+  that keeps its notice in other words (TU-Berlin-2.0, read as 0BSD).
+- Licence files named after licences (LICENSE-MIT, LICENSE-APACHE) are a
+  choice only when nothing says otherwise: a short file that names them
+  without offering a choice ("the library is under LICENSE-MIT, the
+  documentation under LICENSE-APACHE") makes them all apply, and GPL and
+  LGPL files together are never a choice.
+- Every text of the SPDX License List was read with the new detection
+  (scripts/spdx-corpus.sh, test/results/licences/spdx-corpus.txt): of
+  794, none is read as a licence that asks less than it does.
+
 ## 0.4.0
 
 - `remixware deps` reads `pnpm-lock.yaml` (lockfile versions 5, 6 and 9),

@@ -80,6 +80,8 @@ var knownLicenses = []License{
 	{"LGPL-3.0-or-later", "GNU Lesser General Public License v3.0 or later", CatWeakCopyleft},
 	{"MPL-1.1", "Mozilla Public License 1.1", CatWeakCopyleft},
 	{"MPL-2.0", "Mozilla Public License 2.0", CatWeakCopyleft},
+	{"OFL-1.1", "SIL Open Font License 1.1", CatWeakCopyleft},
+	{"OFL-1.0", "SIL Open Font License 1.0", CatWeakCopyleft},
 	{"EPL-1.0", "Eclipse Public License 1.0", CatWeakCopyleft},
 	{"EPL-2.0", "Eclipse Public License 2.0", CatWeakCopyleft},
 	{"CDDL-1.0", "Common Development and Distribution License 1.0", CatWeakCopyleft},
@@ -90,6 +92,7 @@ var knownLicenses = []License{
 	{"GPL-1.0-only", "GNU General Public License v1.0 only", CatCopyleft},
 	{"GPL-1.0-or-later", "GNU General Public License v1.0 or later", CatCopyleft},
 	{"GPL-2.0-only", "GNU General Public License v2.0 only", CatCopyleft},
+	{"Sleepycat", "Sleepycat License", CatCopyleft},
 	{"GPL-2.0-or-later", "GNU General Public License v2.0 or later", CatCopyleft},
 	{"GPL-3.0-only", "GNU General Public License v3.0 only", CatCopyleft},
 	{"GPL-3.0-or-later", "GNU General Public License v3.0 or later", CatCopyleft},
@@ -110,6 +113,9 @@ var knownLicenses = []License{
 	{"PolyForm-Shield-1.0.0", "PolyForm Shield License 1.0.0", CatSourceAvailable},
 	{"CC-BY-NC-4.0", "Creative Commons Attribution Non Commercial 4.0", CatSourceAvailable},
 	{"CC-BY-NC-SA-4.0", "Creative Commons Attribution Non Commercial Share Alike 4.0", CatSourceAvailable},
+	{"CC-BY-NC-ND-4.0", "Creative Commons Attribution Non Commercial No Derivatives 4.0", CatSourceAvailable},
+	{"FSL-1.1-MIT", "Functional Source License, Version 1.1, MIT Future License", CatSourceAvailable},
+	{"FSL-1.1-ALv2", "Functional Source License, Version 1.1, ALv2 Future License", CatSourceAvailable},
 	{"CC-BY-ND-4.0", "Creative Commons Attribution No Derivatives 4.0", CatSourceAvailable},
 	{"LicenseRef-Commons-Clause", "Commons Clause", CatSourceAvailable},
 	{"JSON", "JSON License", CatSourceAvailable},
@@ -619,18 +625,38 @@ var licenseSignatures = []licenseSignature{
 	{"creative commons zero", fixed("CC0-1.0")},
 	{"creative commons legal code cc0", fixed("CC0-1.0")},
 	{"creative commons attribution", func(rest, _ string) string {
+		// The licence's title gives its terms, in any version and order:
+		// "Attribution-NonCommercial-NoDerivs 1.0", "Attribution-NoDerivs-
+		// NonCommercial", "Attribution-ShareAlike 2.0 UK".
+		title := rest[:min(len(rest), 90)]
+		nc := strings.Contains(title, " noncommercial ") || strings.Contains(title, " non commercial ")
+		nd := strings.Contains(title, " noderivs ") || strings.Contains(title, " noderivatives ") ||
+			strings.Contains(title, " no derivatives ") || strings.Contains(title, " no derivs ")
+		sa := strings.Contains(title, " sharealike ") || strings.Contains(title, " share alike ")
 		switch {
-		case strings.HasPrefix(rest, " creative commons attribution noncommercial sharealike"):
+		case nc && nd:
+			return "CC-BY-NC-ND-4.0"
+		case nc && sa:
 			return "CC-BY-NC-SA-4.0"
-		case strings.HasPrefix(rest, " creative commons attribution noncommercial"):
+		case nc:
 			return "CC-BY-NC-4.0"
-		case strings.HasPrefix(rest, " creative commons attribution noderivatives"):
+		case nd:
 			return "CC-BY-ND-4.0"
-		case strings.HasPrefix(rest, " creative commons attribution sharealike"):
+		case sa:
 			return "CC-BY-SA-4.0"
 		}
 		return "CC-BY-4.0"
 	}},
+	{"sil open font license", func(rest, _ string) string {
+		return orDefault(versionIn(rest, 60, " version 1 0 ", "OFL-1.0", " version 1 1 ", "OFL-1.1"), "OFL-1.1")
+	}},
+	{"functional source license", func(rest, _ string) string {
+		if strings.Contains(rest[:min(len(rest), 120)], " alv2 ") || strings.Contains(rest[:min(len(rest), 120)], " apache ") {
+			return "FSL-1.1-ALv2"
+		}
+		return "FSL-1.1-MIT"
+	}},
+	{"the sleepycat license", fixed("Sleepycat")},
 	{"permission is hereby granted free of charge to any person obtaining a copy", mitFamily},
 	{"permission to use copy modify and or distribute this software for any purpose with or without fee is hereby granted", isc},
 	{"permission to use copy modify and distribute this software for any purpose with or without fee is hereby granted", isc},
@@ -638,7 +664,9 @@ var licenseSignatures = []licenseSignature{
 		switch {
 		case strings.Contains(all, " all advertising materials mentioning features or use of this software "):
 			return "BSD-4-Clause"
-		case strings.Contains(all, " neither the name ") || strings.Contains(all, " may be used to endorse or promote products derived "):
+		case strings.Contains(all, " neither the name ") || strings.Contains(all, " used to endorse or promote "):
+			// "may not be used to endorse or promote" (go-difflib) and
+			// other wordings of the third clause.
 			return "BSD-3-Clause"
 		}
 		return "BSD-2-Clause"
@@ -663,6 +691,8 @@ var licenseSignatures = []licenseSignature{
 // any condition to keep the notice makes it MIT or a variant of it.
 func mitFamily(_, all string) string {
 	switch {
+	case strings.Contains(all, " font software "):
+		return "" // the SIL Open Font License's grant, read by its own entry
 	case strings.Contains(all, " the software shall be used for good not evil "):
 		return "JSON"
 	case strings.Contains(all, " unicode ") && strings.Contains(all, " data files "):
@@ -673,11 +703,8 @@ func mitFamily(_, all string) string {
 	case strings.Contains(all, " x consortium "):
 		return "X11"
 	}
-	for _, keep := range []string{" shall be included ", " notice appear ", " notices appear ", " must be retained ",
-		" must retain ", " must be reproduced ", " must reproduce ", " must be included "} {
-		if strings.Contains(all, keep) {
-			return "MIT"
-		}
+	if keepsNoticeWords(all) {
+		return "MIT"
 	}
 	return "MIT-0"
 }
@@ -701,7 +728,24 @@ func isc(_, all string) string {
 	if strings.Contains(all, " provided that the above copyright notice and this permission notice appear in all copies ") {
 		return "ISC"
 	}
+	// 0BSD asks for nothing. The same grant with a condition in other
+	// words ("provided that this notice is not removed") isn't 0BSD.
+	if keepsNoticeWords(all) || strings.Contains(all, " provided that ") || strings.Contains(all, " provided the ") {
+		return LicenseUnrecognised
+	}
 	return "0BSD"
+}
+
+// keepsNoticeWords says whether a licence text asks for a notice to stay.
+func keepsNoticeWords(all string) bool {
+	for _, keep := range []string{" shall be included ", " notice appear ", " notices appear ", " must be retained ",
+		" must retain ", " must be reproduced ", " must reproduce ", " must be included ", " is not removed ",
+		" are not removed ", " not be removed "} {
+		if strings.Contains(all, keep) {
+			return true
+		}
+	}
+	return false
 }
 
 // DetectLicense names the licence in a licence file or a licence notice.
@@ -718,13 +762,20 @@ func DetectLicense(text string) string {
 	}
 	main := ""
 	var riders []string
-	for _, id := range licensesIn(normText(text)) {
+	norm := normText(text)
+	for _, id := range licensesIn(norm) {
 		switch {
 		case licenseRiders[id]:
 			riders = append(riders, id)
 		case main == "":
 			main = id
 		}
+	}
+	if main != "" && lookupLicense(main).Cat <= CatPermissive && addsTerms(norm) {
+		// A permissive grant with terms of its own on top (the source must
+		// be available, a field of use is ruled out) isn't the base
+		// licence: a person has to read it.
+		main = LicenseUnrecognised
 	}
 	switch {
 	case len(riders) == 0:
@@ -733,6 +784,20 @@ func DetectLicense(text string) string {
 		return joinLicenses(riders)
 	}
 	return joinLicenses(append([]string{main}, riders...))
+}
+
+// addsTerms says whether a licence text asks for more than permissive
+// licences do: that the complete source be made available (TOSL, TMate),
+// or that the software not be used in a field (the BSD No-Nuclear and
+// No-Military variants).
+func addsTerms(t string) bool {
+	for _, w := range []string{" complete source code ", " nuclear facility ", " nuclear facilities ", " nuclear reactor ",
+		" military ", " weapons "} {
+		if strings.Contains(t, w) {
+			return true
+		}
+	}
+	return false
 }
 
 // licenseRiders are conditions added to another licence rather than

@@ -654,6 +654,16 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 			}
 		}
 	}
+	// A short file that names the other licence files without offering a
+	// choice says which part is under which: "The code is under the MIT
+	// licence (LICENSE-MIT), the documentation under Apache-2.0
+	// (LICENSE-APACHE)". The files it names then all apply.
+	partsDiffer := map[string]bool{}
+	for _, p := range paths {
+		if !pointer[p] && namesOtherLicenceFiles(readSmall(p, 4<<10), p, paths) {
+			partsDiffer[p] = true
+		}
+	}
 	for _, p := range paths {
 		t := readSmall(p, 256<<10)
 		if strings.TrimSpace(t) == "" || strings.ContainsRune(t[:min(len(t), 8<<10)], 0) {
@@ -749,6 +759,24 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 			}
 		}
 	}
+	// Files named after licences are a choice only when nothing says the
+	// parts differ, and never GPL with LGPL: an LGPL library ships the GPL
+	// text because the LGPL builds on it, and a project with both often
+	// has parts under each.
+	gpl, lgpl := false, false
+	for i, id := range ids {
+		if option[i] {
+			gpl = gpl || strings.HasPrefix(id, "GPL-")
+			lgpl = lgpl || strings.HasPrefix(id, "LGPL-")
+		}
+	}
+	if len(partsDiffer) > 0 || (gpl && lgpl) {
+		for i := range option {
+			if !chosen[pathsByBase(paths, froms[i])] {
+				option[i] = false
+			}
+		}
+	}
 	var opts, rest []string
 	for i, id := range ids {
 		if option[i] {
@@ -764,6 +792,37 @@ func licenseFromFiles(paths []string) (expr string, from string, text string, co
 		rest = append(rest, opts...)
 	}
 	return joinLicenses(rest), strings.Join(froms, ", "), text, dedupe(copyrights)
+}
+
+// namesOtherLicenceFiles says whether a short text that isn't a licence
+// names two or more of the other licence files without offering them as a
+// choice.
+func namesOtherLicenceFiles(t, self string, paths []string) bool {
+	if t = strings.TrimSpace(t); t == "" || len(t) > 2000 || strings.ContainsRune(t, 0) {
+		return false
+	}
+	low := strings.ToLower(t)
+	n := 0
+	for _, p := range paths {
+		if p != self && wordIndex(low, strings.ToLower(filepath.Base(p))) >= 0 {
+			n++
+		}
+	}
+	if n < 2 {
+		return false
+	}
+	norm := " " + normText(low) + " "
+	return !offersChoice(norm) && !choiceIn(norm)
+}
+
+// pathsByBase returns the path in paths whose base name is base.
+func pathsByBase(paths []string, base string) string {
+	for _, p := range paths {
+		if filepath.Base(p) == base {
+			return p
+		}
+	}
+	return ""
 }
 
 // licenseFilePointer returns the other licence files that a short file offers

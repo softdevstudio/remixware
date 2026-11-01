@@ -1,0 +1,798 @@
+794 texts: 59 read as the same licence, 11 as another listed licence of the same category, 0 as a stricter one, 264 unlisted ones as a listed licence asking at least for a notice, 457 left for review, 3 unlisted texts that ask nothing read as such, 0 more lenient
+
+SPDX id                                       read as                                       verdict
+0BSD                                          0BSD                                          same
+389-exception                                 GPL-2.0-only                                  unlisted, read as copyleft
+3D-Slicer-1.0                                 GPL-2.0-only                                  unlisted, read as copyleft
+AAL                                           BSD-3-Clause                                  unlisted, read as permissive
+ADSL                                          (none)                                        review
+AFL-1.1                                       (none)                                        review
+AFL-1.2                                       (none)                                        review
+AFL-2.0                                       (none)                                        review
+AFL-2.1                                       Apache-2.0                                    unlisted, read as permissive
+AFL-3.0                                       (none)                                        review
+AGPL-1.0-only                                 GPL-2.0-only                                  unlisted, read as copyleft
+AGPL-1.0-or-later                             GPL-2.0-only                                  unlisted, read as copyleft
+AGPL-3.0-only                                 AGPL-3.0-only                                 same
+AGPL-3.0-or-later                             AGPL-3.0-only                                 same category
+ALGLIB-Documentation                          (none)                                        review
+AMD-newlib                                    (none)                                        review
+AMDPLPA                                       (none)                                        review
+AML-glslang                                   (none)                                        review
+AML                                           (none)                                        review
+AMPAS                                         (none)                                        review
+ANTLR-PD-fallback                             (none)                                        review
+ANTLR-PD                                      (none)                                        review
+APAFML                                        (none)                                        review
+APL-1.0                                       (none)                                        review
+APSL-1.0                                      (none)                                        review
+APSL-1.1                                      (none)                                        review
+APSL-1.2                                      (none)                                        review
+APSL-2.0                                      (none)                                        review
+ASWF-Digital-Assets-1.0                       (none)                                        review
+ASWF-Digital-Assets-1.1                       (none)                                        review
+Abstyles                                      (none)                                        review
+AdaCore-doc                                   (none)                                        review
+Adobe-2006                                    (none)                                        review
+Adobe-Display-PostScript                      (none)                                        review
+Adobe-Glyph                                   MIT                                           unlisted, read as permissive
+Adobe-Utopia                                  (none)                                        review
+Advanced-Cryptics-Dictionary                  (none)                                        review
+Afmparse                                      (none)                                        review
+Aladdin                                       (none)                                        review
+Apache-1.0                                    BSD-4-Clause                                  unlisted, read as permissive
+Apache-1.1                                    Apache-1.1                                    same
+Apache-2.0                                    Apache-2.0                                    same
+App-s2p                                       (none)                                        review
+Arphic-1999                                   (none)                                        review
+Artistic-1.0-Perl                             (none)                                        review
+Artistic-1.0-cl8                              (none)                                        review
+Artistic-1.0                                  (none)                                        review
+Artistic-2.0                                  Artistic-2.0                                  same
+Artistic-dist                                 (none)                                        review
+Aspell-RU                                     (none)                                        review
+Asterisk-exception                            (none)                                        review
+Asterisk-linking-protocols-exception          (none)                                        review
+Autoconf-exception-2.0                        GPL-2.0-only                                  unlisted, read as copyleft
+Autoconf-exception-3.0                        GPL-3.0-only                                  unlisted, read as copyleft
+Autoconf-exception-generic-3.0                GPL-3.0-only                                  unlisted, read as copyleft
+Autoconf-exception-generic                    GPL-2.0-only                                  unlisted, read as copyleft
+Autoconf-exception-macro                      GPL-2.0-only                                  unlisted, read as copyleft
+BOLA-1.1                                      (none)                                        review
+BSD-1-Clause                                  BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-Darwin                           BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-Patent                           BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-Views                            BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-first-lines                      BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-pkgconf-disclaimer               BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause-pos-unchanged                    BSD-2-Clause                                  unlisted, read as permissive
+BSD-2-Clause                                  BSD-2-Clause                                  same
+BSD-3-Clause-Attribution                      BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-Clear                            BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-HP                               BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-LBNL                             BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-Modification                     BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-No-Military-License              LicenseRef-Unrecognised                       review
+BSD-3-Clause-No-Nuclear-License-2014          LicenseRef-Unrecognised                       review
+BSD-3-Clause-No-Nuclear-License               LicenseRef-Unrecognised                       review
+BSD-3-Clause-No-Nuclear-Warranty              LicenseRef-Unrecognised                       review
+BSD-3-Clause-Open-MPI                         BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-OpenWebUI                        BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-Sun                              BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-Tso                              BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-acpica                           BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause-flex                             BSD-3-Clause                                  unlisted, read as permissive
+BSD-3-Clause                                  BSD-3-Clause                                  same
+BSD-4-Clause-Shortened                        BSD-4-Clause                                  unlisted, read as permissive
+BSD-4-Clause-UC                               BSD-4-Clause                                  unlisted, read as permissive
+BSD-4-Clause                                  BSD-4-Clause                                  same
+BSD-4.3RENO                                   (none)                                        review
+BSD-4.3TAHOE                                  (none)                                        review
+BSD-Advertising-Acknowledgement               BSD-4-Clause                                  unlisted, read as permissive
+BSD-Attribution-HPND-disclaimer               BSD-3-Clause                                  unlisted, read as permissive
+BSD-Inferno-Nettverk                          BSD-4-Clause                                  unlisted, read as permissive
+BSD-Mark-Modifications                        BSD-3-Clause                                  unlisted, read as permissive
+BSD-Protection                                GPL-2.0-only                                  unlisted, read as copyleft
+BSD-Source-Code-no-disclaimer                 BSD-3-Clause                                  unlisted, read as permissive
+BSD-Source-Code                               (none)                                        review
+BSD-Source-alt-GPL                            BSD-3-Clause                                  unlisted, read as permissive
+BSD-Source-beginning-file                     BSD-3-Clause                                  unlisted, read as permissive
+BSD-Systemics-W3Works                         BSD-4-Clause                                  unlisted, read as permissive
+BSD-Systemics                                 BSD-4-Clause                                  unlisted, read as permissive
+BSD-ask-to-endorse                            BSD-3-Clause                                  unlisted, read as permissive
+BSL-1.0                                       BSL-1.0                                       same
+BUSL-1.1                                      BUSL-1.1                                      same
+Baekmuk                                       (none)                                        review
+Bahyph                                        (none)                                        review
+Barr                                          (none)                                        review
+Beerware                                      (none)                                        review
+Bison-exception-1.24                          (none)                                        review
+Bison-exception-2.2                           GPL-2.0-only                                  unlisted, read as copyleft
+BitTorrent-1.0                                (none)                                        review
+BitTorrent-1.1                                (none)                                        review
+Bitstream-Charter                             (none)                                        review
+Bitstream-Vera                                (none)                                        review
+BlueOak-1.0.0                                 BlueOak-1.0.0                                 same
+Boehm-GC-without-fee                          (none)                                        review
+Boehm-GC                                      (none)                                        review
+Bootloader-exception                          GPL-2.0-only                                  unlisted, read as copyleft
+Borceux                                       (none)                                        review
+Brian-Gladman-2-Clause                        (none)                                        review
+Brian-Gladman-3-Clause-no-conversion          (none)                                        review
+Brian-Gladman-3-Clause                        GPL-2.0-only                                  unlisted, read as copyleft
+Buddy                                         (none)                                        review
+Bugroff                                       GPL-2.0-only                                  unlisted, read as copyleft
+C-UDA-1.0                                     (none)                                        review
+CAL-1.0-Combined-Work-Exception               CAL-1.0                                       review
+CAL-1.0                                       CAL-1.0                                       same
+CAPEC-tou                                     (none)                                        review
+CATOSL-1.1                                    (none)                                        review
+CC-BY-1.0                                     CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-2.0                                     CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-2.5-AU                                  CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-2.5                                     CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-3.0-AT                                  (none)                                        review
+CC-BY-3.0-AU                                  CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-3.0-DE                                  (none)                                        review
+CC-BY-3.0-IGO                                 CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-3.0-NL                                  (none)                                        review
+CC-BY-3.0-US                                  CC-BY-4.0                                     unlisted, read as permissive
+CC-BY-3.0                                     (none)                                        review
+CC-BY-4.0                                     CC-BY-4.0                                     same
+CC-BY-NC-1.0                                  CC-BY-NC-4.0                                  unlisted, read as source available
+CC-BY-NC-2.0                                  CC-BY-NC-4.0                                  unlisted, read as source available
+CC-BY-NC-2.5                                  CC-BY-NC-4.0                                  unlisted, read as source available
+CC-BY-NC-3.0-DE                               (none)                                        review
+CC-BY-NC-3.0-IGO                              (none)                                        review
+CC-BY-NC-3.0                                  (none)                                        review
+CC-BY-NC-4.0                                  CC-BY-NC-4.0                                  same
+CC-BY-NC-ND-1.0                               CC-BY-NC-ND-4.0                               unlisted, read as source available
+CC-BY-NC-ND-2.0                               CC-BY-NC-ND-4.0                               unlisted, read as source available
+CC-BY-NC-ND-2.5                               CC-BY-NC-ND-4.0                               unlisted, read as source available
+CC-BY-NC-ND-3.0-DE                            (none)                                        review
+CC-BY-NC-ND-3.0-IGO                           (none)                                        review
+CC-BY-NC-ND-3.0                               (none)                                        review
+CC-BY-NC-ND-4.0                               CC-BY-NC-ND-4.0                               same
+CC-BY-NC-SA-1.0                               CC-BY-NC-SA-4.0                               unlisted, read as source available
+CC-BY-NC-SA-2.0-DE                            (none)                                        review
+CC-BY-NC-SA-2.0-FR                            (none)                                        review
+CC-BY-NC-SA-2.0-UK                            CC-BY-NC-SA-4.0                               unlisted, read as source available
+CC-BY-NC-SA-2.0                               CC-BY-NC-SA-4.0                               unlisted, read as source available
+CC-BY-NC-SA-2.5                               CC-BY-NC-SA-4.0                               unlisted, read as source available
+CC-BY-NC-SA-3.0-DE                            (none)                                        review
+CC-BY-NC-SA-3.0-IGO                           (none)                                        review
+CC-BY-NC-SA-3.0                               (none)                                        review
+CC-BY-NC-SA-4.0                               CC-BY-NC-SA-4.0                               same
+CC-BY-ND-1.0                                  CC-BY-ND-4.0                                  unlisted, read as source available
+CC-BY-ND-2.0                                  CC-BY-ND-4.0                                  unlisted, read as source available
+CC-BY-ND-2.5                                  CC-BY-ND-4.0                                  unlisted, read as source available
+CC-BY-ND-3.0-DE                               (none)                                        review
+CC-BY-ND-3.0                                  (none)                                        review
+CC-BY-ND-4.0                                  CC-BY-ND-4.0                                  same
+CC-BY-SA-1.0                                  CC-BY-SA-4.0                                  unlisted, read as copyleft
+CC-BY-SA-2.0-UK                               CC-BY-SA-4.0                                  unlisted, read as copyleft
+CC-BY-SA-2.0                                  CC-BY-SA-4.0                                  unlisted, read as copyleft
+CC-BY-SA-2.1-JP                               (none)                                        review
+CC-BY-SA-2.5                                  CC-BY-SA-4.0                                  unlisted, read as copyleft
+CC-BY-SA-3.0-AT                               (none)                                        review
+CC-BY-SA-3.0-DE                               (none)                                        review
+CC-BY-SA-3.0-IGO                              CC-BY-SA-4.0                                  unlisted, read as copyleft
+CC-BY-SA-3.0                                  (none)                                        review
+CC-BY-SA-4.0                                  CC-BY-SA-4.0                                  same
+CC-PDDC                                       (none)                                        review
+CC-PDM-1.0                                    (none)                                        review
+CC-SA-1.0                                     (none)                                        review
+CC0-1.0                                       CC0-1.0                                       same
+CDDL-1.0                                      CDDL-1.0                                      same
+CDDL-1.1                                      CDDL-1.1                                      same
+CDL-1.0                                       (none)                                        review
+CDLA-Permissive-1.0                           (none)                                        review
+CDLA-Permissive-2.0                           (none)                                        review
+CDLA-Sharing-1.0                              (none)                                        review
+CECILL-1.0                                    CeCILL-2.1                                    unlisted, read as copyleft
+CECILL-1.1                                    (none)                                        review
+CECILL-2.0                                    CeCILL-2.1                                    same category
+CECILL-2.1                                    CeCILL-2.1                                    same
+CECILL-B                                      CeCILL-B                                      same
+CECILL-C                                      CeCILL-C                                      same
+CERN-OHL-1.1                                  (none)                                        review
+CERN-OHL-1.2                                  (none)                                        review
+CERN-OHL-P-2.0                                (none)                                        review
+CERN-OHL-S-2.0                                (none)                                        review
+CERN-OHL-W-2.0                                (none)                                        review
+CFITSIO                                       (none)                                        review
+CGAL-linking-exception                        (none)                                        review
+CLISP-exception-2.0                           GPL-2.0-only                                  unlisted, read as copyleft
+CMU-Mach-nodoc                                (none)                                        review
+CMU-Mach                                      (none)                                        review
+CNRI-Jython                                   (none)                                        review
+CNRI-Python-GPL-Compatible                    GPL-2.0-only                                  unlisted, read as copyleft
+CNRI-Python                                   (none)                                        review
+COIL-1.0                                      (none)                                        review
+CPAL-1.0                                      MPL-1.1                                       unlisted, read as weak copyleft
+CPL-1.0                                       (none)                                        review
+CPOL-1.02                                     (none)                                        review
+CUA-OPL-1.0                                   (none)                                        review
+Caldera-no-preamble                           BSD-4-Clause                                  unlisted, read as permissive
+Caldera                                       BSD-4-Clause                                  unlisted, read as permissive
+Catharon                                      (none)                                        review
+ClArtistic                                    (none)                                        review
+Classpath-exception-2.0-short                 (none)                                        review
+Classpath-exception-2.0                       GPL-2.0-only                                  unlisted, read as copyleft
+Clips                                         MIT-0                                         asks nothing
+Community-Spec-1.0                            MIT                                           unlisted, read as permissive
+Condor-1.1                                    (none)                                        review
+Cornell-Lossless-JPEG                         HPND                                          unlisted, read as permissive
+Cronyx                                        (none)                                        review
+Crossword                                     (none)                                        review
+CryptoSwift                                   Zlib                                          unlisted, read as permissive
+CrystalStacker                                (none)                                        review
+Cube                                          Zlib                                          unlisted, read as permissive
+D-FSL-1.0                                     GPL-2.0-only                                  unlisted, read as copyleft
+DEC-3-Clause                                  (none)                                        review
+DL-DE-BY-2.0                                  (none)                                        review
+DL-DE-ZERO-2.0                                (none)                                        review
+DOC                                           (none)                                        review
+DRL-1.0                                       MIT                                           unlisted, read as permissive
+DRL-1.1                                       MIT                                           unlisted, read as permissive
+DSDP                                          (none)                                        review
+DigiRule-FOSS-exception                       CDDL-1.0                                      unlisted, read as weak copyleft
+Digia-Qt-LGPL-exception-1.1                   LGPL-2.1-only                                 unlisted, read as weak copyleft
+DocBook-DTD                                   (none)                                        review
+DocBook-Schema                                (none)                                        review
+DocBook-Stylesheet                            (none)                                        review
+DocBook-XML                                   MIT                                           unlisted, read as permissive
+Dotseqn                                       (none)                                        review
+ECL-1.0                                       (none)                                        review
+ECL-2.0                                       (none)                                        review
+EFL-1.0                                       (none)                                        review
+EFL-2.0                                       (none)                                        review
+EPICS                                         OSL-3.0                                       unlisted, read as copyleft
+EPL-1.0                                       EPL-1.0                                       same
+EPL-2.0                                       EPL-2.0                                       same
+ESA-PL-permissive-2.4                         (none)                                        review
+ESA-PL-strong-copyleft-2.4                    (none)                                        review
+ESA-PL-weak-copyleft-2.4                      GPL-2.0-only                                  unlisted, read as copyleft
+EUDatagrid                                    (none)                                        review
+EUPL-1.0                                      EUPL-1.2                                      unlisted, read as copyleft
+EUPL-1.1                                      EUPL-1.1                                      same
+EUPL-1.2                                      EUPL-1.2                                      same
+Elastic-2.0                                   Elastic-2.0                                   same
+Entessa                                       BSD-3-Clause                                  unlisted, read as permissive
+ErlPL-1.1                                     MPL-2.0                                       unlisted, read as weak copyleft
+Eurosym                                       (none)                                        review
+FBM                                           (none)                                        review
+FDK-AAC                                       LicenseRef-Unrecognised                       review
+FDK-MPEG-H                                    LicenseRef-Unrecognised                       review
+FLTK-exception                                LGPL-2.1-only                                 unlisted, read as weak copyleft
+FSFAP-no-warranty-disclaimer                  (none)                                        review
+FSFAP                                         (none)                                        review
+FSFUL                                         (none)                                        review
+FSFULLR                                       (none)                                        review
+FSFULLRSD                                     (none)                                        review
+FSFULLRWD                                     (none)                                        review
+FSL-1.1-ALv2                                  FSL-1.1-ALv2                                  same
+FSL-1.1-MIT                                   FSL-1.1-MIT                                   same
+FTL                                           (none)                                        review
+Fair                                          (none)                                        review
+Fawkes-Runtime-exception                      GPL-2.0-only                                  unlisted, read as copyleft
+Ferguson-Twofish                              (none)                                        review
+Font-exception-2.0                            GPL-2.0-only                                  unlisted, read as copyleft
+Frameworx-1.0                                 (none)                                        review
+FreeBSD-DOC                                   (none)                                        review
+FreeImage                                     (none)                                        review
+Furuseth                                      BSD-3-Clause                                  unlisted, read as permissive
+GCC-exception-2.0-note                        LGPL-2.1-only                                 unlisted, read as weak copyleft
+GCC-exception-2.0                             GPL-2.0-only                                  unlisted, read as copyleft
+GCC-exception-3.1                             GPL-3.0-only                                  unlisted, read as copyleft
+GCR-docs                                      (none)                                        review
+GD                                            (none)                                        review
+GFDL-1.1-invariants-only                      GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.1-invariants-or-later                  GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.1-no-invariants-only                   GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.1-no-invariants-or-later               GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.1-only                                 GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.1-or-later                             GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-invariants-only                      GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-invariants-or-later                  GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-no-invariants-only                   GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-no-invariants-or-later               GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-only                                 GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.2-or-later                             GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-invariants-only                      GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-invariants-or-later                  GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-no-invariants-only                   GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-no-invariants-or-later               GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-only                                 GPL-2.0-or-later                              unlisted, read as copyleft
+GFDL-1.3-or-later                             GPL-2.0-or-later                              unlisted, read as copyleft
+GL2PS                                         (none)                                        review
+GLWTPL                                        (none)                                        review
+GNAT-exception                                GPL-2.0-only                                  unlisted, read as copyleft
+GNOME-examples-exception                      (none)                                        review
+GNU-compiler-exception                        GPL-2.0-only                                  unlisted, read as copyleft
+GPL-1.0-only                                  GPL-1.0-only                                  same
+GPL-1.0-or-later                              GPL-1.0-only                                  same category
+GPL-2.0-only                                  GPL-2.0-only                                  same
+GPL-2.0-or-later                              GPL-2.0-only                                  same category
+GPL-3.0-389-ds-base-exception                 (none)                                        review
+GPL-3.0-interface-exception                   GPL-2.0-only                                  unlisted, read as copyleft
+GPL-3.0-linking-exception                     (none)                                        review
+GPL-3.0-linking-source-exception              (none)                                        review
+GPL-3.0-only                                  GPL-3.0-only                                  same
+GPL-3.0-or-later                              GPL-3.0-only                                  same category
+GPL-CC-1.0                                    GPL-2.0-only                                  unlisted, read as copyleft
+GStreamer-exception-2005                      (none)                                        review
+GStreamer-exception-2008                      (none)                                        review
+Game-Programming-Gems                         (none)                                        review
+Giftware                                      (none)                                        review
+Glide                                         (none)                                        review
+Glulxe                                        (none)                                        review
+Gmsh-exception                                GPL-2.0-only                                  unlisted, read as copyleft
+Google-Patent-WebM                            (none)                                        review
+Graphics-Gems                                 (none)                                        review
+Gutmann                                       (none)                                        review
+HDF5                                          BSD-3-Clause                                  unlisted, read as permissive
+HIDAPI                                        (none)                                        review
+HP-1986                                       (none)                                        review
+HP-1989                                       (none)                                        review
+HPND-DEC                                      HPND                                          unlisted, read as permissive
+HPND-Fenneberg-Livingston                     (none)                                        review
+HPND-INRIA-IMAG                               (none)                                        review
+HPND-Intel                                    (none)                                        review
+HPND-Kevlin-Henney                            HPND                                          unlisted, read as permissive
+HPND-MIT-disclaimer                           HPND                                          unlisted, read as permissive
+HPND-Markus-Kuhn                              (none)                                        review
+HPND-Netrek                                   HPND                                          unlisted, read as permissive
+HPND-Pbmplus                                  HPND                                          unlisted, read as permissive
+HPND-SMC                                      (none)                                        review
+HPND-UC-export-US                             HPND                                          unlisted, read as permissive
+HPND-UC                                       HPND                                          unlisted, read as permissive
+HPND-doc-sell                                 (none)                                        review
+HPND-doc                                      (none)                                        review
+HPND-export-US-acknowledgement                (none)                                        review
+HPND-export-US-modify                         HPND                                          unlisted, read as permissive
+HPND-export-US                                HPND                                          unlisted, read as permissive
+HPND-export2-US                               HPND                                          unlisted, read as permissive
+HPND-merchantability-variant                  (none)                                        review
+HPND-sell-MIT-disclaimer-xserver              (none)                                        review
+HPND-sell-regexpr                             (none)                                        review
+HPND-sell-variant-MIT-disclaimer-rev          (none)                                        review
+HPND-sell-variant-MIT-disclaimer              (none)                                        review
+HPND-sell-variant-critical-systems            (none)                                        review
+HPND-sell-variant                             (none)                                        review
+HPND                                          HPND                                          same
+HTMLTIDY                                      (none)                                        review
+HaskellReport                                 (none)                                        review
+Hippocratic-2.1                               (none)                                        review
+Hippocratic-3.0-core                          (none)                                        review
+IBM-pibs                                      (none)                                        review
+ICU                                           MIT                                           unlisted, read as permissive
+IEC-Code-Components-EULA                      (none)                                        review
+IJG-short                                     (none)                                        review
+IJG                                           (none)                                        review
+IPA                                           (none)                                        review
+IPL-1.0                                       (none)                                        review
+ISC-Veillard                                  ISC                                           unlisted, read as permissive
+ISC                                           ISC                                           same
+ISO-permission                                (none)                                        review
+ImageMagick                                   (none)                                        review
+Imlib2                                        MIT                                           unlisted, read as permissive
+Independent-modules-exception                 GPL-2.0-only                                  unlisted, read as copyleft
+Info-ZIP                                      (none)                                        review
+Informatica                                   BSD-2-Clause                                  unlisted, read as permissive
+Inner-Net-2.0                                 (none)                                        review
+InnoSetup                                     (none)                                        review
+Intel-ACPI                                    (none)                                        review
+Intel                                         BSD-3-Clause                                  unlisted, read as permissive
+Interbase-1.0                                 MPL-2.0                                       unlisted, read as weak copyleft
+JPL-image                                     (none)                                        review
+JPNIC                                         (none)                                        review
+JSON                                          JSON                                          same
+Jam                                           (none)                                        review
+JasPer-2.0                                    (none)                                        review
+Kastrup                                       (none)                                        review
+Kazlib                                        (none)                                        review
+KiCad-libraries-exception                     (none)                                        review
+Knuth-CTAN                                    (none)                                        review
+LAL-1.2                                       (none)                                        review
+LAL-1.3                                       (none)                                        review
+LGPL-2.0-only                                 LGPL-2.1-only                                 same category
+LGPL-2.0-or-later                             LGPL-2.1-only                                 same category
+LGPL-2.1-only                                 LGPL-2.1-only                                 same
+LGPL-2.1-or-later                             LGPL-2.1-only                                 same category
+LGPL-3.0-linking-exception                    LGPL-3.0-only                                 unlisted, read as weak copyleft
+LGPL-3.0-only                                 LGPL-3.0-only                                 same
+LGPL-3.0-or-later                             LGPL-3.0-only                                 same category
+LGPLLR                                        (none)                                        review
+LLGPL                                         LGPL-2.1-only                                 unlisted, read as weak copyleft
+LLVM-exception                                (none)                                        review
+LOOP                                          HPND                                          unlisted, read as permissive
+LPD-document                                  (none)                                        review
+LPL-1.0                                       (none)                                        review
+LPL-1.02                                      (none)                                        review
+LPPL-1.0                                      (none)                                        review
+LPPL-1.1                                      GPL-2.0-or-later                              unlisted, read as copyleft
+LPPL-1.2                                      GPL-2.0-or-later                              unlisted, read as copyleft
+LPPL-1.3a                                     GPL-2.0-or-later                              unlisted, read as copyleft
+LPPL-1.3c                                     GPL-2.0-or-later                              unlisted, read as copyleft
+LZMA-SDK-9.11-to-9.20                         (none)                                        review
+LZMA-SDK-9.22                                 (none)                                        review
+LZMA-exception                                (none)                                        review
+Latex2e-translated-notice                     (none)                                        review
+Latex2e                                       (none)                                        review
+Leptonica                                     (none)                                        review
+LiLiQ-P-1.1                                   (none)                                        review
+LiLiQ-R-1.1                                   CDDL-1.0                                      unlisted, read as weak copyleft
+LiLiQ-Rplus-1.1                               CeCILL-2.1                                    unlisted, read as copyleft
+Libpng                                        (none)                                        review
+Libtool-exception                             GPL-2.0-only                                  unlisted, read as copyleft
+Linux-OpenIB                                  BSD-2-Clause                                  unlisted, read as permissive
+Linux-man-pages-1-para                        (none)                                        review
+Linux-man-pages-copyleft-2-para               (none)                                        review
+Linux-man-pages-copyleft-var                  (none)                                        review
+Linux-man-pages-copyleft                      (none)                                        review
+Linux-syscall-note                            (none)                                        review
+Lucida-Bitmap-Fonts                           (none)                                        review
+MIPS                                          (none)                                        review
+MIT-0                                         MIT-0                                         same
+MIT-CMU                                       (none)                                        review
+MIT-Click                                     MIT                                           unlisted, read as permissive
+MIT-Festival                                  (none)                                        review
+MIT-Khronos-old                               MIT                                           unlisted, read as permissive
+MIT-Modern-Variant                            (none)                                        review
+MIT-STK                                       MIT                                           unlisted, read as permissive
+MIT-Wu                                        MIT                                           unlisted, read as permissive
+MIT-advertising                               MIT                                           unlisted, read as permissive
+MIT-enna                                      MIT                                           unlisted, read as permissive
+MIT-feh                                       MIT                                           unlisted, read as permissive
+MIT-open-group                                (none)                                        review
+MIT-testregex                                 MIT-0                                         asks nothing
+MIT                                           MIT                                           same
+MITNFA                                        MIT                                           unlisted, read as permissive
+MMIXware                                      (none)                                        review
+MMPL-1.0.1                                    (none)                                        review
+MPEG-SSG                                      (none)                                        review
+MPL-1.0                                       MPL-1.1                                       unlisted, read as weak copyleft
+MPL-1.1                                       MPL-1.1                                       same
+MPL-2.0-no-copyleft-exception                 MPL-2.0                                       unlisted, read as weak copyleft
+MPL-2.0                                       MPL-2.0                                       same
+MS-LPL                                        (none)                                        review
+MS-PL                                         (none)                                        review
+MS-RL                                         MS-RL                                         same
+MTLL                                          BSD-3-Clause                                  unlisted, read as permissive
+MVT-1.1                                       GPL-2.0-only                                  unlisted, read as copyleft
+Mackerras-3-Clause-acknowledgment             BSD-3-Clause                                  unlisted, read as permissive
+Mackerras-3-Clause                            BSD-3-Clause                                  unlisted, read as permissive
+MakeIndex                                     (none)                                        review
+Martin-Birgmeier                              (none)                                        review
+McPhee-slideshow                              (none)                                        review
+Minpack                                       BSD-2-Clause                                  unlisted, read as permissive
+MirOS                                         (none)                                        review
+Motosoto                                      (none)                                        review
+MulanPSL-1.0                                  (none)                                        review
+MulanPSL-2.0                                  (none)                                        review
+Multics                                       (none)                                        review
+Mup                                           BSD-2-Clause                                  unlisted, read as permissive
+NAIST-2003                                    (none)                                        review
+NASA-1.3                                      (none)                                        review
+NBPL-1.0                                      (none)                                        review
+NCBI-PD                                       (none)                                        review
+NCGL-UK-2.0                                   (none)                                        review
+NCL                                           (none)                                        review
+NCSA                                          NCSA                                          same
+NGPL                                          (none)                                        review
+NICTA-1.0                                     (none)                                        review
+NIST-PD-TNT                                   (none)                                        review
+NIST-PD-fallback                              (none)                                        review
+NIST-PD                                       (none)                                        review
+NIST-Software                                 (none)                                        review
+NLOD-1.0                                      CC-BY-4.0                                     unlisted, read as permissive
+NLOD-2.0                                      CC-BY-4.0                                     unlisted, read as permissive
+NLPL                                          (none)                                        review
+NOSL                                          (none)                                        review
+NPL-1.0                                       MPL-2.0                                       unlisted, read as weak copyleft
+NPL-1.1                                       MPL-1.1                                       unlisted, read as weak copyleft
+NPOSL-3.0                                     OSL-3.0                                       unlisted, read as copyleft
+NRL                                           (none)                                        review
+NTIA-PD                                       (none)                                        review
+NTP-0                                         HPND                                          unlisted, read as permissive
+NTP                                           HPND                                          unlisted, read as permissive
+Naumen                                        BSD-3-Clause                                  unlisted, read as permissive
+NetCDF                                        (none)                                        review
+Newsletr                                      (none)                                        review
+Nokia-Qt-exception-1.1                        LGPL-2.1-only                                 unlisted, read as weak copyleft
+Nokia                                         (none)                                        review
+Noweb                                         (none)                                        review
+O-UDA-1.0                                     (none)                                        review
+OAR                                           (none)                                        review
+OCCT-PL                                       (none)                                        review
+OCCT-exception-1.0                            LGPL-2.1-only                                 unlisted, read as weak copyleft
+OCLC-2.0                                      (none)                                        review
+OCaml-LGPL-linking-exception                  LGPL-2.1-only                                 unlisted, read as weak copyleft
+ODC-By-1.0                                    (none)                                        review
+ODbL-1.0                                      (none)                                        review
+OFFIS                                         (none)                                        review
+OFL-1.0-RFN                                   OFL-1.0                                       unlisted, read as weak copyleft
+OFL-1.0-no-RFN                                OFL-1.0                                       unlisted, read as weak copyleft
+OFL-1.0                                       OFL-1.0                                       same
+OFL-1.1-RFN                                   OFL-1.1                                       unlisted, read as weak copyleft
+OFL-1.1-no-RFN                                OFL-1.1                                       unlisted, read as weak copyleft
+OFL-1.1                                       OFL-1.1                                       same
+OGC-1.0                                       (none)                                        review
+OGDL-Taiwan-1.0                               CC-BY-4.0                                     unlisted, read as permissive
+OGL-Canada-2.0                                (none)                                        review
+OGL-UK-1.0                                    LicenseRef-Unrecognised                       review
+OGL-UK-2.0                                    LicenseRef-Unrecognised                       review
+OGL-UK-3.0                                    LicenseRef-Unrecognised                       review
+OGTSL                                         (none)                                        review
+OLDAP-1.1                                     (none)                                        review
+OLDAP-1.2                                     (none)                                        review
+OLDAP-1.3                                     (none)                                        review
+OLDAP-1.4                                     (none)                                        review
+OLDAP-2.0.1                                   (none)                                        review
+OLDAP-2.0                                     (none)                                        review
+OLDAP-2.1                                     (none)                                        review
+OLDAP-2.2.1                                   (none)                                        review
+OLDAP-2.2.2                                   (none)                                        review
+OLDAP-2.2                                     (none)                                        review
+OLDAP-2.3                                     (none)                                        review
+OLDAP-2.4                                     (none)                                        review
+OLDAP-2.5                                     (none)                                        review
+OLDAP-2.6                                     (none)                                        review
+OLDAP-2.7                                     (none)                                        review
+OLDAP-2.8                                     (none)                                        review
+OLFL-1.3                                      (none)                                        review
+OML                                           (none)                                        review
+OPL-1.0                                       (none)                                        review
+OPL-UK-3.0                                    (none)                                        review
+OPUBL-1.0                                     (none)                                        review
+OSC-1.0                                       (none)                                        review
+OSET-PL-2.1                                   MPL-2.0                                       unlisted, read as weak copyleft
+OSL-1.0                                       OSL-3.0                                       unlisted, read as copyleft
+OSL-1.1                                       OSL-3.0                                       unlisted, read as copyleft
+OSL-2.0                                       OSL-3.0                                       unlisted, read as copyleft
+OSL-2.1                                       OSL-3.0                                       unlisted, read as copyleft
+OSL-3.0                                       OSL-3.0                                       same
+OSSP                                          ISC                                           unlisted, read as permissive
+OpenJDK-assembly-exception-1.0                GPL-2.0-only                                  unlisted, read as copyleft
+OpenMDW-1.0                                   (none)                                        review
+OpenPBS-2.3                                   (none)                                        review
+OpenSSL-standalone                            BSD-4-Clause                                  unlisted, read as permissive
+OpenSSL                                       BSD-4-Clause                                  unlisted, read as permissive
+OpenVision                                    (none)                                        review
+PADL                                          BSD-2-Clause                                  unlisted, read as permissive
+PCRE2-exception                               (none)                                        review
+PDDL-1.0                                      (none)                                        review
+PHP-3.0                                       (none)                                        review
+PHP-3.01                                      (none)                                        review
+PPL                                           CC-BY-NC-SA-4.0                               unlisted, read as source available
+PS-or-PDF-font-exception-20170817             AGPL-3.0-only                                 unlisted, read as network copyleft
+PSF-2.0                                       PSF-2.0                                       same
+ParaType-Free-Font-1.3                        (none)                                        review
+Parity-6.0.0                                  (none)                                        review
+Parity-7.0.0                                  BlueOak-1.0.0                                 unlisted, read as permissive
+Pixar                                         (none)                                        review
+Plexus                                        (none)                                        review
+PolyForm-Noncommercial-1.0.0                  PolyForm-Noncommercial-1.0.0                  same
+PolyForm-Small-Business-1.0.0                 (none)                                        review
+PostgreSQL                                    PostgreSQL                                    same
+Python-2.0.1                                  PSF-2.0                                       same category
+Python-2.0                                    PSF-2.0                                       same category
+QPL-1.0-INRIA-2004-exception                  (none)                                        review
+QPL-1.0-INRIA-2004                            (none)                                        review
+QPL-1.0                                       (none)                                        review
+Qhull                                         (none)                                        review
+Qt-GPL-exception-1.0                          (none)                                        review
+Qt-LGPL-exception-1.1                         LGPL-2.1-only                                 unlisted, read as weak copyleft
+Qwt-exception-1.0                             LGPL-2.1-only                                 unlisted, read as weak copyleft
+RHeCos-1.1                                    (none)                                        review
+RPL-1.1                                       (none)                                        review
+RPL-1.5                                       (none)                                        review
+RPSL-1.0                                      MPL-2.0                                       unlisted, read as weak copyleft
+RRDtool-FLOSS-exception-2.0                   GPL-2.0-only                                  unlisted, read as copyleft
+RSA-MD                                        (none)                                        review
+RSCPL                                         (none)                                        review
+Rdisc                                         (none)                                        review
+Ruby-pty                                      (none)                                        review
+Ruby                                          (none)                                        review
+SANE-exception                                GPL-2.0-only                                  unlisted, read as copyleft
+SAX-PD-2.0                                    (none)                                        review
+SAX-PD                                        (none)                                        review
+SCEA                                          (none)                                        review
+SGI-B-1.0                                     (none)                                        review
+SGI-B-1.1                                     (none)                                        review
+SGI-B-2.0                                     MIT                                           unlisted, read as permissive
+SGI-OpenGL                                    (none)                                        review
+SGMLUG-PM                                     (none)                                        review
+SGP4                                          (none)                                        review
+SHL-0.5                                       Apache-2.0                                    unlisted, read as permissive
+SHL-0.51                                      Apache-2.0                                    unlisted, read as permissive
+SHL-2.0                                       Apache-2.0                                    unlisted, read as permissive
+SHL-2.1                                       Apache-2.0                                    unlisted, read as permissive
+SISSL-1.2                                     (none)                                        review
+SISSL                                         (none)                                        review
+SL                                            (none)                                        review
+SMAIL-GPL                                     (none)                                        review
+SMLNJ                                         HPND                                          unlisted, read as permissive
+SMPPL                                         (none)                                        review
+SNIA                                          (none)                                        review
+SOFA                                          (none)                                        review
+SPL-1.0                                       (none)                                        review
+SSH-OpenSSH                                   (none)                                        review
+SSH-short                                     (none)                                        review
+SSLeay-standalone                             BSD-4-Clause                                  unlisted, read as permissive
+SSPL-1.0                                      SSPL-1.0                                      same
+SUL-1.0                                       (none)                                        review
+SWI-exception                                 GPL-2.0-only                                  unlisted, read as copyleft
+SWL                                           (none)                                        review
+Saxpath                                       BSD-3-Clause                                  unlisted, read as permissive
+SchemeReport                                  (none)                                        review
+Sendmail-8.23                                 BSD-3-Clause                                  unlisted, read as permissive
+Sendmail-Open-Source-1.1                      (none)                                        review
+Sendmail                                      BSD-3-Clause                                  unlisted, read as permissive
+SimPL-2.0                                     (none)                                        review
+Simple-Library-Usage-exception                GPL-2.0-only                                  unlisted, read as copyleft
+Sleepycat                                     Sleepycat                                     same
+Soundex                                       (none)                                        review
+Spelling-Provider-LGPL-exception              LGPL-2.1-only                                 unlisted, read as weak copyleft
+Spencer-86                                    (none)                                        review
+Spencer-94                                    (none)                                        review
+Spencer-99                                    BSD-2-Clause                                  unlisted, read as permissive
+SugarCRM-1.1.3                                MPL-1.1                                       unlisted, read as weak copyleft
+Sun-PPP-2000                                  (none)                                        review
+Sun-PPP                                       (none)                                        review
+SunPro                                        (none)                                        review
+Swift-exception                               (none)                                        review
+Symlinks                                      (none)                                        review
+TAPR-OHL-1.0                                  GPL-2.0-only                                  unlisted, read as copyleft
+TCL                                           (none)                                        review
+TCP-wrappers                                  BSD-2-Clause                                  unlisted, read as permissive
+TGPPL-1.0                                     (none)                                        review
+TMate                                         LicenseRef-Unrecognised                       review
+TORQUE-1.1                                    (none)                                        review
+TOSL                                          LicenseRef-Unrecognised                       review
+TPDL                                          (none)                                        review
+TPL-1.0                                       (none)                                        review
+TTWL                                          (none)                                        review
+TTYP0                                         (none)                                        review
+TU-Berlin-1.0                                 (none)                                        review
+TU-Berlin-2.0                                 LicenseRef-Unrecognised                       review
+TekHVC                                        (none)                                        review
+TermReadKey                                   (none)                                        review
+Texinfo-exception                             GPL-3.0-only                                  unlisted, read as copyleft
+ThirdEye                                      (none)                                        review
+TrustedQSL                                    BSD-2-Clause                                  unlisted, read as permissive
+UBDL-exception                                GPL-2.0-only                                  unlisted, read as copyleft
+UCAR                                          BSD-3-Clause                                  unlisted, read as permissive
+UCL-1.0                                       Apache-2.0                                    unlisted, read as permissive
+UMich-Merit                                   HPND                                          unlisted, read as permissive
+UPL-1.0                                       (none)                                        review
+URT-RLE                                       (none)                                        review
+Ubuntu-font-1.0                               (none)                                        review
+UnRAR                                         (none)                                        review
+Unicode-3.0                                   Unicode-3.0                                   same
+Unicode-DFS-2015                              Unicode-DFS-2016                              unlisted, read as permissive
+Unicode-DFS-2016                              Unicode-DFS-2016                              same
+Unicode-TOU                                   (none)                                        review
+Universal-FOSS-exception-1.0                  (none)                                        review
+UnixCrypt                                     (none)                                        review
+Unlicense-libtelnet                           (none)                                        review
+Unlicense-libwhirlpool                        Unlicense                                     asks nothing
+Unlicense                                     Unlicense                                     same
+VOSTROM                                       (none)                                        review
+VSL-1.0                                       BSD-3-Clause                                  unlisted, read as permissive
+Vim                                           GPL-2.0-or-later                              unlisted, read as copyleft
+Vixie-Cron                                    (none)                                        review
+W3C-19980720                                  (none)                                        review
+W3C-20150513                                  (none)                                        review
+W3C                                           (none)                                        review
+WTFNMFPL                                      (none)                                        review
+WTFPL                                         WTFPL                                         same
+Watcom-1.0                                    (none)                                        review
+Widget-Workshop                               (none)                                        review
+WordNet                                       (none)                                        review
+Wsuipa                                        (none)                                        review
+WxWindows-exception-3.1                       (none)                                        review
+X11-distribute-modifications-variant          MIT                                           unlisted, read as permissive
+X11-no-permit-persons                         MIT                                           unlisted, read as permissive
+X11-swapped                                   MIT                                           unlisted, read as permissive
+X11                                           X11                                           same
+XFree86-1.1                                   MIT                                           unlisted, read as permissive
+XSkat                                         (none)                                        review
+Xdebug-1.03                                   (none)                                        review
+Xerox                                         (none)                                        review
+Xfig                                          (none)                                        review
+Xnet                                          MIT                                           unlisted, read as permissive
+YPL-1.0                                       (none)                                        review
+YPL-1.1                                       (none)                                        review
+ZPL-1.1                                       BSD-3-Clause                                  unlisted, read as permissive
+ZPL-2.0                                       BSD-3-Clause                                  unlisted, read as permissive
+ZPL-2.1                                       BSD-3-Clause                                  unlisted, read as permissive
+Zed                                           (none)                                        review
+Zeeff                                         (none)                                        review
+Zend-2.0                                      (none)                                        review
+Zimbra-1.3                                    (none)                                        review
+Zimbra-1.4                                    (none)                                        review
+Zlib                                          Zlib                                          same
+any-OSI-perl-modules                          (none)                                        review
+any-OSI                                       (none)                                        review
+atc-game                                      (none)                                        review
+bcrypt-Solar-Designer                         BSD-2-Clause                                  unlisted, read as permissive
+blessing                                      (none)                                        review
+bzip2-1.0.6                                   BSD-3-Clause                                  unlisted, read as permissive
+check-cvs                                     (none)                                        review
+checkmk                                       (none)                                        review
+copyleft-next-0.3.0                           GPL-2.0-only                                  unlisted, read as copyleft
+copyleft-next-0.3.1                           GPL-2.0-only                                  unlisted, read as copyleft
+cryptsetup-OpenSSL-exception                  GPL-2.0-only                                  unlisted, read as copyleft
+curl                                          ISC                                           unlisted, read as permissive
+cve-tou                                       (none)                                        review
+diffmark                                      (none)                                        review
+dtoa                                          (none)                                        review
+dvipdfm                                       (none)                                        review
+eCos-exception-2.0                            GPL-2.0-only                                  unlisted, read as copyleft
+eGenix                                        (none)                                        review
+erlang-otp-linking-exception                  AGPL-3.0-only                                 unlisted, read as network copyleft
+etalab-2.0                                    CC-BY-4.0                                     unlisted, read as permissive
+fmt-exception                                 (none)                                        review
+freertos-exception-2.0                        GPL-2.0-only                                  unlisted, read as copyleft
+fwlw                                          (none)                                        review
+gSOAP-1.3b                                    MPL-2.0                                       unlisted, read as weak copyleft
+generic-xts                                   (none)                                        review
+gnu-javamail-exception                        GPL-2.0-only                                  unlisted, read as copyleft
+gnuplot                                       (none)                                        review
+gtkbook                                       (none)                                        review
+harbour-exception                             GPL-2.0-only                                  unlisted, read as copyleft
+hdparm                                        (none)                                        review
+hyphen-bulgarian                              (none)                                        review
+i2p-gpl-java-exception                        GPL-2.0-only                                  unlisted, read as copyleft
+iMatix                                        GPL-2.0-only                                  unlisted, read as copyleft
+jove                                          (none)                                        review
+kvirc-openssl-exception                       GPL-2.0-only                                  unlisted, read as copyleft
+libpng-1.6.35                                 (none)                                        review
+libpng-2.0                                    (none)                                        review
+libpri-OpenH323-exception                     (none)                                        review
+libselinux-1.0                                (none)                                        review
+libtiff                                       (none)                                        review
+libutil-David-Nugent                          (none)                                        review
+lsof                                          (none)                                        review
+magaz                                         (none)                                        review
+mailprio                                      (none)                                        review
+man2html                                      (none)                                        review
+metamail                                      (none)                                        review
+mif-exception                                 GPL-2.0-only                                  unlisted, read as copyleft
+mpi-permissive                                (none)                                        review
+mpich2                                        (none)                                        review
+mplus                                         (none)                                        review
+mxml-exception                                (none)                                        review
+ngrep                                         (none)                                        review
+openvpn-openssl-exception                     GPL-2.0-only                                  unlisted, read as copyleft
+pkgconf                                       ISC                                           unlisted, read as permissive
+pnmstitch                                     (none)                                        review
+polyparse-exception                           (none)                                        review
+psfrag                                        (none)                                        review
+psutils                                       GPL-2.0-only                                  unlisted, read as copyleft
+python-ldap                                   (none)                                        review
+radvd                                         (none)                                        review
+romic-exception                               (none)                                        review
+rsync-linking-exception                       (none)                                        review
+snprintf                                      (none)                                        review
+softSurfer                                    (none)                                        review
+sqlitestudio-OpenSSL-exception                GPL-2.0-only                                  unlisted, read as copyleft
+ssh-keyscan                                   (none)                                        review
+stunnel-exception                             GPL-2.0-only                                  unlisted, read as copyleft
+swrule                                        (none)                                        review
+threeparttable                                (none)                                        review
+u-boot-exception-2.0                          (none)                                        review
+ulem                                          (none)                                        review
+vsftpd-openssl-exception                      (none)                                        review
+w3m                                           (none)                                        review
+wwl                                           (none)                                        review
+x11vnc-openssl-exception                      GPL-2.0-only                                  unlisted, read as copyleft
+xinetd                                        (none)                                        review
+xkeyboard-config-Zinoviev                     (none)                                        review
+xlock                                         HPND                                          unlisted, read as permissive
+xpp                                           BSD-3-Clause                                  unlisted, read as permissive
+xzoom                                         (none)                                        review
+zlib-acknowledgement                          Zlib                                          unlisted, read as permissive
+license-list-data 3184648 2026-10-29
