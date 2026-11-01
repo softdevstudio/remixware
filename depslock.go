@@ -320,6 +320,9 @@ const (
 	kindNPM         = "package-lock.json"
 	kindRequirement = "requirements.txt"
 	kindPoetry      = "poetry.lock"
+	kindPnpm        = "pnpm-lock.yaml"
+	kindYarn        = "yarn.lock"
+	kindUV          = "uv.lock"
 	kindUnsupported = "unsupported"
 )
 
@@ -329,8 +332,8 @@ var requirementsName = regexp.MustCompile(`^(?i)(requirements.*|.*[-_.]requireme
 
 // unsupportedLockfiles are lockfiles the gate doesn't read. When one of
 // them changes, the change is not-checked: nothing passes unread.
-var unsupportedLockfiles = map[string]bool{"yarn.lock": true, "pnpm-lock.yaml": true, "bun.lock": true, "bun.lockb": true,
-	"Pipfile.lock": true, "pdm.lock": true, "uv.lock": true, "Cargo.lock": true, "Gemfile.lock": true, "composer.lock": true,
+var unsupportedLockfiles = map[string]bool{"bun.lock": true, "bun.lockb": true,
+	"Pipfile.lock": true, "pdm.lock": true, "Cargo.lock": true, "Gemfile.lock": true, "composer.lock": true,
 	"packages.lock.json": true, "gradle.lockfile": true, "Package.resolved": true, "mix.lock": true, "pubspec.lock": true,
 	"conan.lock": true, "deno.lock": true,
 	// go build reads go.work (its use and replace directives override go.mod)
@@ -347,6 +350,12 @@ func lockfileKind(rel string) string {
 		return kindNPM
 	case base == "poetry.lock":
 		return kindPoetry
+	case base == "pnpm-lock.yaml":
+		return kindPnpm
+	case base == "yarn.lock":
+		return kindYarn
+	case base == "uv.lock":
+		return kindUV
 	case requirementsName.MatchString(base):
 		return kindRequirement
 	case strings.HasSuffix(base, ".txt") && path.Base(path.Dir(rel)) == "requirements":
@@ -404,6 +413,20 @@ func readLockfile(t depTree, rel string, data []byte) ([]lockPackage, []string, 
 			return nil, nil, perr
 		}
 		pkgs, err = parsePoetryLock(data, py)
+	case kindPnpm:
+		pkgs, err = parsePnpmLock(data)
+	case kindYarn:
+		if yarnBerry(data) {
+			pkgs, err = parseYarnBerry(data)
+			break
+		}
+		pj, _, perr := t.read(path.Join(path.Dir(rel), "package.json"))
+		if perr != nil {
+			return nil, nil, perr
+		}
+		pkgs, err = parseYarnV1(data, pj)
+	case kindUV:
+		pkgs, err = parseUVLock(data)
 	default:
 		return nil, nil, fmt.Errorf("%s: not a lockfile Remixware reads", rel)
 	}

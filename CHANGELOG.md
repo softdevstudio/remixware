@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0
+
+- `remixware deps` reads `pnpm-lock.yaml` (lockfile versions 5, 6 and 9),
+  `yarn.lock` (yarn 1, and yarn 2 and later) and `uv.lock`. A change to one
+  of them used to be `not-checked`; now its packages go through the allow
+  list, the install-script check (offline where the lockfile records it:
+  pnpm 5 and 6, uv's wheels) and the registry check, like the other
+  formats. Each reader stops the command on input it can't read.
+- Moving from one package manager to another in a folder (yarn to pnpm,
+  Poetry to uv) is read through the new lockfile instead of being reported
+  as a deleted lockfile.
+- The install-script reason for Python packages says "the installer"
+  rather than pip, since uv builds them too.
+
 ## 0.3.2
 
 Two fixes in the dependency gate, found while recording the case studies.

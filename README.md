@@ -312,6 +312,36 @@ the change and in the base:
   given twice in a table or a table header it doesn't know stops the
   command; a package with a `source` it can't read counts as one from
   outside the registry that builds from source.
+- `pnpm-lock.yaml`, lockfile versions 5, 6 and 9, every document in the
+  file. The importers' dependencies, devDependencies and
+  optionalDependencies are direct; `link:`, `file:` and folder packages
+  are your own code. A package resolved by integrity or by a tarball on
+  the npm registry is a registry package; git and other tarballs aren't.
+  Versions 5 and 6 record install scripts (`requiresBuild`); version 9
+  doesn't, so those are checked with `--online`.
+- `yarn.lock` from yarn 1 and from yarn 2 and later (told apart by the
+  `__metadata` entry). Yarn 1: `package.json` names the direct packages,
+  and a package resolved from `registry.yarnpkg.com` or
+  `registry.npmjs.org` is a registry package. Yarn 2 and later: the
+  workspaces' dependencies are direct; `npm:` resolutions, and patches of
+  them (yarn's built-in compat patches, patch files in the project), are
+  registry packages; git, file and URL resolutions aren't, and `exec:`
+  counts as an install script. Workspace, link and portal entries are
+  your own code. Aliases (`npm:other@1.0.0`) are named by the package
+  they install. Yarn records no install scripts: those are checked with
+  `--online`.
+- `uv.lock`. The workspace's own packages (editable, virtual or a folder
+  in the project) are left out, and their dependencies, optional and dev
+  dependencies are direct. A package from `https://pypi.org/simple` is a
+  registry package; other indexes, git, URLs and paths aren't. A package
+  with a wheel installs without running code; one with only a source
+  archive, from git or from a source archive URL or path, builds from
+  source, which counts as an install script.
+
+The YAML and TOML in these files are read by small strict readers: YAML
+anchors, tags and block scalars, tabs, keys given twice, values TOML
+doesn't allow, and anything else these lockfiles never contain stop the
+command rather than being skipped.
 
 A lockfile that's a symbolic link is read through the link, as the
 package managers read it, when the link stays inside the project; a link
@@ -319,21 +349,24 @@ out of the project stops the command.
 
 A lockfile Remixware can't make sense of stops the command with exit code
 2, on either side: a gate that skipped a broken lockfile would pass
-whatever it hides. A lockfile kind it doesn't read (`yarn.lock`,
-`pnpm-lock.yaml`, `Pipfile.lock`, `uv.lock`, `Cargo.lock` and others)
-that the change touches is reported as `not-checked`, which fails by
-default. A `package.json` or `pyproject.toml` without a lockfile isn't
-read: commit your lockfiles. A change that deletes `package-lock.json` or
-`poetry.lock` but keeps the `package.json` or `pyproject.toml` next to it
-is `not-checked`, since the next install picks whatever the manifest
-allows.
+whatever it hides. A lockfile kind it doesn't read (`bun.lock`,
+`Pipfile.lock`, `pdm.lock`, `Cargo.lock` and others) that the change
+touches is reported as `not-checked`, which fails by default. A
+`package.json` or `pyproject.toml` without a lockfile isn't read: commit
+your lockfiles. A change that deletes a lockfile but keeps the
+`package.json` or `pyproject.toml` next to it, with no other lockfile for
+that manifest in the folder, is `not-checked`, since the next install
+picks whatever the manifest allows. Moving from one package manager to
+another (yarn to pnpm, Poetry to uv) is read through the new lockfile, and
+packages are compared by ecosystem and name, so the move alone reports no
+new packages.
 
 ### Statuses
 
 | Status | Meaning |
 |---|---|
 | `not-allowed` | A package no lockfile on the base names, direct or transitive, and no allow rule names. |
-| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip builds from source. |
+| `install-script` | An added or updated package runs code when it's installed: an npm `preinstall`, `install` or `postinstall` script or a node-gyp build, or a Python package without a wheel (including one from git or a source archive URL), which pip or uv builds from source. |
 | `publisher-changed` | An added or updated version was published within `publisher_days` (90 by default) by someone who neither published nor maintained the version it's compared with: the base's version for an update, the release before it for a new package. Only with `--online`. |
 | `not-checked` | A lockfile Remixware doesn't read changed, or a lockfile outside `deps.lockfiles` was added or changed, or a requirements file now sends pip to another package index (`--index-url`, `--extra-index-url`, `--find-links`), where a package of the same name could take the place of the one you expect, or an updated package that main takes from the public registry now comes from somewhere else (a URL, git, another registry), or the change deletes a lockfile and keeps its manifest. |
 | `allowed` | A new package an allow rule names. |
@@ -352,8 +385,9 @@ isn't checked again. `deps` fails on `not-allowed`, `install-script`,
 Without `--online`, `deps` reads only the lockfiles, and two runs on the
 same files give the same answer. The allow list always runs. Install
 scripts are known from `package-lock.json` versions 2 and 3
-(`hasInstallScript`) and from `poetry.lock`'s file lists (no wheel means a
-build from source). Everything else is listed as not checked.
+(`hasInstallScript`), from `pnpm-lock.yaml` versions 5 and 6
+(`requiresBuild`), and from `poetry.lock`'s file lists and `uv.lock`'s
+wheels (no wheel means a build from source). Everything else is listed as not checked.
 
 With `--online`, `deps` also asks the npm registry
 (`https://registry.npmjs.org`) and PyPI's JSON API (`https://pypi.org/pypi`)

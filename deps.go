@@ -642,22 +642,24 @@ func policyChanges(pol, base *Policy) []string {
 
 // lockManifest is the file a lockfile pins the packages of, when an
 // installer would go on without the lockfile: package.json for npm,
-// pyproject.toml for Poetry.
+// pnpm and yarn, pyproject.toml for Poetry and uv.
 func lockManifest(l string) string {
 	switch lockfileKind(l) {
-	case kindNPM:
+	case kindNPM, kindPnpm, kindYarn:
 		return "package.json"
-	case kindPoetry:
+	case kindPoetry, kindUV:
 		return "pyproject.toml"
 	}
 	return ""
 }
 
-// hasSiblingLockfile says whether the side has another lockfile of the
-// same kind in l's folder (npm-shrinkwrap.json for package-lock.json).
+// hasSiblingLockfile says whether the side has another lockfile in l's
+// folder that pins the same manifest: npm-shrinkwrap.json for
+// package-lock.json, or pnpm-lock.yaml after a move from yarn, uv.lock
+// after a move from Poetry. Its packages are the ones checked.
 func hasSiblingLockfile(s *depSide, l string) bool {
 	for o := range s.has {
-		if o != l && path.Dir(o) == path.Dir(l) && lockfileKind(o) == lockfileKind(l) {
+		if o != l && path.Dir(o) == path.Dir(l) && lockManifest(o) == lockManifest(l) {
 			return true
 		}
 	}
@@ -776,7 +778,7 @@ func (e *depEval) check(c *DepChange, k pkgKey, p lockPackage, base *pkgEntry) e
 			if k.eco == EcoNPM {
 				why = "Runs an install script (preinstall, install or postinstall, or a node-gyp build) when npm installs it."
 			} else if k.eco == EcoPyPI {
-				why = "Has no wheel, so pip builds it from source, which runs its build code."
+				why = "Has no wheel, so the installer builds it from source, which runs its build code."
 			}
 			c.Issues = append(c.Issues, DepIssue{Status: DepInstallScript, Version: p.version,
 				Reason: why + " Accept it with a deps allow rule that has install_scripts: true and a reason."})
