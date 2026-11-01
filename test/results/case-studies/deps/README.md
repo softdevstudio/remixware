@@ -27,8 +27,8 @@ command and ends with the exit code.
   as unchanged and unreadable.
 - `babel/`: babel/babel 7750b3d6 (yarn.lock from yarn 4), "Update
   dependency glob to v14 [SECURITY]".
-- `react/`: facebook/react 7df975a (47 yarn.lock files from yarn 1 and one
-  package-lock.json, all read), "[react-devtools-cdt-mcp] add
+- `react/`: facebook/react 7df975a (46 yarn.lock files from yarn 1 and one
+  package-lock.json, all read; a Cargo.lock it doesn't read), "[react-devtools-cdt-mcp] add
   chrome-devtools E2E coverage".
 - `pydantic-ai/`: pydantic/pydantic-ai ab311a5 (uv.lock), "Add
   BoxdSandbox".
