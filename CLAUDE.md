@@ -174,6 +174,68 @@ content and config values only; never touch the theme).
   file only claims, and never let an index make a scan skip a project file.
   A change to the index layout bumps `indexFormat`.
 
+## Next: 0.5.0, licence misreads; Cargo.lock; Go and Rust build surface (in progress)
+
+Approved by YK on 2026-11-01 ("Go") as item 3, Phase B of softdev-plan.md
+in photozeitgeist/jollyroger.biz.
+
+What and why: three licence misreads let code pass that needs a person's
+look (OFL fonts read as MIT-0, which asks nothing; a BSD-3 text without
+"Neither the name of" read as BSD-2; LICENSE-APACHE plus LICENSE-MIT read
+as a choice when a LICENSE says the parts differ). A probe over all 826
+SPDX texts (license-list-data 3184648, 2026-10-29) found more of the same
+kind: TU-Berlin-2.0 read as 0BSD although it keeps the notice; old CC
+NonCommercial texts read as CC-BY; TOSL, TMate and Sleepycat (source must
+be available) read as BSD; BSD No-Nuclear/No-Military variants read as
+BSD-3; FSL (source-available) read as MIT or Apache-2.0. And Rust projects
+get nothing from `deps`, and Go reports install scripts as not applicable
+though cgo and build.rs both put code on the build machine.
+
+Design decisions:
+- Licences: OFL-1.0/1.1 recognised (weak copyleft: fonts stay under the
+  OFL); "used to endorse or promote" in any wording makes BSD-3; FSL-1.1
+  (MIT and ALv2 futures) recognised as source-available; Sleepycat as
+  copyleft; CC licences read their NC/ND/SA terms from the title words in
+  any version. A permissive reading of a text that also asks for the
+  source to be made available, or restricts the field of use (nuclear,
+  military), becomes LicenseRef-Unrecognised (review), never the base
+  licence. Files named after licences aren't a choice when a short licence
+  file names them without choice wording (the parts differ), or when they
+  are GPL and LGPL.
+- SPDX corpus check: scripts/spdx-corpus.sh clones license-list-data at a
+  pinned commit into a cache and runs TestSPDXCorpus, recording
+  test/results/licences/spdx-corpus.txt. The promise: no SPDX text is read
+  as a licence that asks less than it (no-conditions when it asks for a
+  notice; permissive when it's copyleft, source-available or restricted),
+  except texts that ask nothing themselves. The texts the fixes need are
+  copied into testdata/licences (SPDX License List data) for CI.
+- Cargo.lock (versions 3 and 4, and older files without a version):
+  [[package]] entries via tomlread; ecosystem `cargo`. No source = the
+  workspace's own crates; their `dependencies` are the direct ones.
+  crates.io sources (registry+ and sparse+ index URLs) are the registry;
+  git and other registries aren't. lockManifest Cargo.toml.
+- Build surface, online only (not in the lockfiles): a crate with a build
+  script (build.rs, or `build =` in its Cargo.toml) or a proc-macro runs
+  code when it's compiled: `install-script`, from the .crate on
+  static.crates.io. A Go module with cgo files or .syso objects: new
+  status `native-code` (reports; not in the default fail_on), from the
+  module zip on proxy.golang.org, with allow-rule key `native_code`. Reads
+  capped (64 MB per download, file heads only). Cargo publisher check: not
+  run in this release (says so in Checks).
+- Version 0.5.0.
+
+Steps:
+1. [ ] licence fixes with tests (testdata/licences); TestSPDXCorpus and
+       scripts/spdx-corpus.sh; record results
+2. [ ] Cargo.lock reader; wire the kind; promise test; tests
+3. [ ] online build surface: crates (.crate) and Go (module zip),
+       native-code status and allow key; fake-registry tests
+4. [ ] README, reference text; case studies (a Rust project's
+       Cargo.lock change; a Go change adding a cgo module)
+5. [ ] independent review agent; fixes; record-deps.sh, licence results
+6. [ ] release 0.5.0; check assets; site post and reference; softdevstudio
+       note; softdev-plan.md
+
 ## Done: 0.4.0, read pnpm, yarn and uv lockfiles; GitHub Action (released 2026-11-01)
 
 Approved by YK on 2026-11-01 as item 3, Phase A of softdev-plan.md in
